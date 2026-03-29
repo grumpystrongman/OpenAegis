@@ -32,6 +32,30 @@ interface JsonMap {
   [key: string]: unknown;
 }
 
+const roleToPrivileges: Record<string, string[]> = {
+  clinician: ["workflow_operator", "analyst"],
+  security: ["security_admin", "approver", "auditor", "platform_admin"],
+  admin: ["platform_admin", "security_admin", "auditor", "workflow_operator", "approver", "analyst"]
+};
+
+const roleToAssurance: Record<string, "aal1" | "aal2" | "aal3"> = {
+  clinician: "aal2",
+  security: "aal3",
+  admin: "aal3"
+};
+
+const resolveUserRole = (user: { role?: string; roles?: string[] }): "clinician" | "security" | "admin" => {
+  if (typeof user.role === "string") {
+    if (user.role === "security" || user.role === "admin" || user.role === "clinician") return user.role;
+  }
+
+  if (Array.isArray(user.roles)) {
+    if (user.roles.includes("platform_admin")) return "admin";
+    if (user.roles.includes("security_admin") || user.roles.includes("approver")) return "security";
+  }
+  return "clinician";
+};
+
 const sendJson = (response: ServerResponse, statusCode: number, body: unknown) => {
   response.writeHead(statusCode, {
     "content-type": "application/json",
@@ -152,9 +176,14 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
       return;
     }
 
+    const canonicalRole = resolveUserRole(user);
     sendJson(response, 200, {
       accessToken: `demo-token-${user.userId}`,
-      user,
+      user: {
+        ...user,
+        roles: roleToPrivileges[canonicalRole] ?? ["workflow_operator"],
+        assuranceLevel: roleToAssurance[canonicalRole] ?? "aal2"
+      },
       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
     });
     return;

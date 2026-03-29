@@ -46,11 +46,19 @@ export interface ApprovalRecord {
   requestedBy: string;
   reason: string;
   riskLevel: "high" | "critical";
+  requiredApprovers: number;
+  approvers: Array<{
+    approverId: string;
+    decision: "approved" | "rejected";
+    reason?: string;
+    decidedAt: string;
+  }>;
   status: ApprovalStatus;
   executionId?: string;
   decidedBy?: string;
   decisionReason?: string;
   createdAt: string;
+  expiresAt: string;
   updatedAt: string;
 }
 
@@ -384,9 +392,12 @@ export const createApproval = (input: { tenantId: string; requestedBy: string; r
     requestedBy: input.requestedBy,
     reason: input.reason,
     riskLevel: input.riskLevel,
+    requiredApprovers: 1,
+    approvers: [],
     status: "pending",
     ...(input.executionId ? { executionId: input.executionId } : {}),
     createdAt: timestamp,
+    expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
     updatedAt: timestamp
   };
 };
@@ -396,6 +407,15 @@ export const applyApprovalDecision = (approval: ApprovalRecord, input: { approve
   status: input.decision,
   decidedBy: input.approverId,
   ...(input.reason ? { decisionReason: input.reason } : {}),
+  approvers: [
+    ...(Array.isArray(approval.approvers) ? approval.approvers : []),
+    {
+      approverId: input.approverId,
+      decision: input.decision === "approved" ? "approved" : "rejected",
+      ...(input.reason ? { reason: input.reason } : {}),
+      decidedAt: now()
+    }
+  ],
   updatedAt: now()
 });
 
@@ -423,7 +443,7 @@ export const createAuditEvent = (input: { tenantId: string; actorId: string; cat
 });
 
 export const buildDischargeSummary = (patient: FhirPatient, carePlan: CarePlan): ExecutionOutput => {
-  const riskFlags = [...patient.riskFlags];
+  const riskFlags = Array.isArray(patient.riskFlags) ? [...patient.riskFlags] : [];
   if (patient.readinessScore < 70) riskFlags.push("low_readiness");
   return {
     summary: `${patient.displayName} (${patient.mrn}) in ${patient.ward} can follow the plan: ${carePlan.summary}`,
@@ -510,10 +530,60 @@ const createIncident = (input: {
 const getGraphDefinition = (state: PilotState, graphId: string): AgentGraphDefinition | undefined =>
   state.graphDefinitions.find((item) => item.graphId === graphId);
 
-const getPatientBundle = (state: PilotState, patientId: string) => ({
-  patient: state.fhirPatients.find((item) => item.patientId === patientId),
-  carePlan: state.carePlans.find((item) => item.patientId === patientId)
-});
+const toString = (value: unknown, fallback: string): string => (typeof value === "string" && value.trim().length > 0 ? value : fallback);
+const toNumber = (value: unknown, fallback: number): number => (typeof value === "number" && Number.isFinite(value) ? value : fallback);
+const toStringArray = (value: unknown, fallback: string[]): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : fallback;
+
+const normalizePatientRecord = (value: unknown): FhirPatient | undefined => {
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  const patientId = toString(record.patientId, "");
+  if (!patientId) return undefined;
+
+  return {
+    patientId,
+    mrn: toString(record.mrn, `MRN-${patientId}`),
+    displayName: toString(record.displayName ?? record.name, "Unknown patient"),
+    ward: toString(record.ward, "General"),
+    readinessScore: toNumber(record.readinessScore ?? record.dischargeReadinessScore, 70),
+    diagnosis: toString(record.diagnosis, "Not specified"),
+    riskFlags: toStringArray(record.riskFlags, ["standard_monitoring"]),
+    primaryCareProvider: toString(record.primaryCareProvider ?? record.attendingPhysician, "Unassigned")
+  };
+};
+
+const normalizeCarePlanRecord = (value: unknown, patientId: string): CarePlan | undefined => {
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  const planPatientId = toString(record.patientId, "");
+  if (planPatientId !== patientId) return undefined;
+
+  const tasks = toStringArray(record.tasks, []);
+  const pendingLabs = toStringArray(record.pendingLabs, []);
+
+  return {
+    patientId,
+    summary: toString(
+      record.summary,
+      tasks.length > 0 ? `Care plan tasks: ${tasks.join("; ")}` : "Care plan summary unavailable."
+    ),
+    dischargeTargetDate: toString(record.dischargeTargetDate, new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString().slice(0, 10)),
+    recommendedFollowupHours: toNumber(record.recommendedFollowupHours, 48),
+    medicationChanges: toStringArray(record.medicationChanges, pendingLabs.length > 0 ? pendingLabs : ["No medication changes provided"]),
+    supportNeeds: toStringArray(record.supportNeeds, tasks.length > 0 ? tasks : ["Follow clinical discharge protocol"])
+  };
+};
+
+const getPatientBundle = (state: PilotState, patientId: string) => {
+  const rawPatient = state.fhirPatients.find((item) => item.patientId === patientId) as unknown;
+  const rawCarePlan = state.carePlans.find((item) => item.patientId === patientId) as unknown;
+
+  return {
+    patient: normalizePatientRecord(rawPatient),
+    carePlan: normalizeCarePlanRecord(rawCarePlan, patientId)
+  };
+};
 
 const persistState = async (state: PilotState): Promise<PilotState> => {
   await saveState(state);
@@ -938,8 +1008,7 @@ export const resolveApprovalAndAdvanceExecution = async (input: { approvalId: st
 
   execution.approvalId = updatedApproval.approvalId;
   graphExecution.approvalId = updatedApproval.approvalId;
-  const patient = state.fhirPatients.find((item) => item.patientId === execution.patientId);
-  const carePlan = state.carePlans.find((item) => item.patientId === execution.patientId);
+  const { patient, carePlan } = getPatientBundle(state, execution.patientId);
   if (!patient || !carePlan) {
     await persistState(state);
     return { status: 404, body: { error: "patient_or_care_plan_not_found" } };

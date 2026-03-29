@@ -1,282 +1,199 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "./routes.js";
-import { pilotApi, type ApprovalRecord, type AuditEvent, type ExecutionRecord, type LoginResponse } from "../shared/api/pilot.js";
+import { useEffect, useMemo } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import type { SessionContext, UserRole } from "../shared/auth/session.js";
+import { APP_ROUTES, canAccessRoute } from "./routes.js";
+import { Badge, EmptyState, PageHeader } from "./ui.js";
+import { PILOT_USE_CASE } from "./pilot-data.js";
+import { usePilotWorkspace } from "./pilot-workspace.js";
 
-interface SessionBundle {
-  clinician?: LoginResponse;
-  approver?: LoginResponse;
-}
+const supportedRoles: UserRole[] = [
+  "platform_admin",
+  "security_admin",
+  "auditor",
+  "workflow_operator",
+  "approver",
+  "analyst"
+];
 
-const renderStatus = (value: string) => {
-  const className = value.includes("blocked") ? "blocked" : value.includes("pending") ? "pending" : "completed";
-  return <span className={`badge ${className}`}>{value}</span>;
+const toSessionContext = (
+  session: {
+    user: {
+      userId: string;
+      tenantId: string;
+      roles: string[];
+      assuranceLevel: "aal1" | "aal2" | "aal3";
+    };
+  } | undefined
+): SessionContext | undefined => {
+  if (!session) return undefined;
+  const roles = session.user.roles.filter((role): role is UserRole =>
+    supportedRoles.includes(role as UserRole)
+  );
+  return {
+    userId: session.user.userId,
+    tenantId: session.user.tenantId,
+    roles,
+    assuranceLevel: session.user.assuranceLevel
+  };
 };
 
 export const App = () => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const currentRoute = useMemo(() => {
+    return APP_ROUTES.find((route) => route.path === location.pathname) ?? APP_ROUTES[0]!;
+  }, [location.pathname]);
 
-  const [session, setSession] = useState<SessionBundle>({});
-  const [executions, setExecutions] = useState<ExecutionRecord[]>([]);
-  const [approvals, setApprovals] = useState<ApprovalRecord[]>([]);
-  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
-  const [modelPreview, setModelPreview] = useState<{ provider: string; modelId: string; zeroRetention: boolean; reasonCodes: string[] }>();
-  const [error, setError] = useState<string>("");
-  const [busy, setBusy] = useState<string>("");
-
-  const currentPath = location.pathname === "/" ? "/dashboard" : location.pathname;
-
-  const metrics = useMemo(() => {
-    const blocked = executions.filter((item) => item.status === "blocked").length;
-    const completed = executions.filter((item) => item.status === "completed").length;
-    const pendingApprovals = approvals.filter((item) => item.status === "pending").length;
-    return { blocked, completed, pendingApprovals, auditCount: auditEvents.length };
-  }, [executions, approvals, auditEvents]);
-
-  const refreshData = async () => {
-    if (!session.clinician?.accessToken) return;
-    const [approvalResult, auditResult, modelResult] = await Promise.all([
-      pilotApi.listApprovals(session.clinician.accessToken),
-      pilotApi.listAuditEvents(session.clinician.accessToken),
-      pilotApi.previewModelRoute(session.clinician.accessToken)
-    ]);
-    setApprovals(approvalResult.approvals);
-    setAuditEvents(auditResult.events);
-    setModelPreview(modelResult.selected);
-  };
+  const clinicianSession = usePilotWorkspace((state) => state.clinicianSession);
+  const securitySession = usePilotWorkspace((state) => state.securitySession);
+  const activePersona = usePilotWorkspace((state) => state.activePersona);
+  const isSyncing = usePilotWorkspace((state) => state.isSyncing);
+  const error = usePilotWorkspace((state) => state.error);
+  const lastSyncedAt = usePilotWorkspace((state) => state.lastSyncedAt);
+  const connectDemoUsers = usePilotWorkspace((state) => state.connectDemoUsers);
+  const refreshWorkspace = usePilotWorkspace((state) => state.refreshWorkspace);
+  const boot = usePilotWorkspace((state) => state.boot);
+  const setActivePersona = usePilotWorkspace((state) => state.setActivePersona);
+  const activeSession = activePersona === "clinician" ? clinicianSession : securitySession;
+  const activeContext = useMemo(() => toSessionContext(activeSession), [activeSession]);
+  const routeAccess = useMemo(
+    () =>
+      APP_ROUTES.map((route) => ({
+        route,
+        allowed: activeContext ? canAccessRoute(activeContext, route) : true
+      })),
+    [activeContext]
+  );
+  const hasRouteAccess = activeContext ? canAccessRoute(activeContext, currentRoute) : true;
 
   useEffect(() => {
-    void refreshData();
-  }, [session.clinician?.accessToken]);
-
-  const loginUsers = async () => {
-    setBusy("login");
-    setError("");
-    try {
-      const [clinician, approver] = await Promise.all([
-        pilotApi.login("clinician@starlighthealth.org"),
-        pilotApi.login("security@starlighthealth.org")
-      ]);
-      setSession({ clinician, approver });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "login_failed");
-    } finally {
-      setBusy("");
-    }
-  };
-
-  const runExecution = async (mode: "simulation" | "live") => {
-    if (!session.clinician?.accessToken) {
-      setError("login_required");
-      return;
-    }
-
-    setBusy(`run-${mode}`);
-    setError("");
-    try {
-      const execution = await pilotApi.runExecution(session.clinician.accessToken, mode, true);
-      setExecutions((prev) => [execution, ...prev]);
-      await refreshData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "execution_failed");
-    } finally {
-      setBusy("");
-    }
-  };
-
-  const approveFirstPending = async (decision: "approve" | "reject") => {
-    if (!session.approver?.accessToken) {
-      setError("approver_login_required");
-      return;
-    }
-
-    const pending = approvals.find((item) => item.status === "pending");
-    if (!pending) {
-      setError("no_pending_approvals");
-      return;
-    }
-
-    setBusy(decision);
-    setError("");
-    try {
-      await pilotApi.decideApproval(session.approver.accessToken, pending.approvalId, decision, `UI ${decision} action`);
-      if (pending.executionId && session.clinician?.accessToken) {
-        const updatedExecution = await pilotApi.getExecution(session.clinician.accessToken, pending.executionId);
-        setExecutions((prev) => prev.map((item) => (item.executionId === updatedExecution.executionId ? updatedExecution : item)));
-      }
-      await refreshData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "approval_failed");
-    } finally {
-      setBusy("");
-    }
-  };
-
-  const routeTitle = APP_ROUTES.find((item) => item.path === currentPath)?.title ?? "EAOS";
+    void boot();
+  }, [boot]);
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <h1>EAOS Pilot Console</h1>
-        <div className="sub">Hospital discharge assistant workflow</div>
-        <div className="nav-list">
-          {APP_ROUTES.map((route) => (
-            <button
-              key={route.path}
-              className={`nav-item ${route.path === currentPath ? "active" : ""}`}
-              onClick={() => navigate(route.path)}
-            >
-              {route.title}
-            </button>
-          ))}
+        <div className="brand">
+          <div className="brand-mark">EAOS</div>
+          <div>
+            <div className="brand-name">Enterprise Agent OS</div>
+            <div className="brand-subtitle">Vendor-neutral, policy-enforced, zero-trust pilot</div>
+          </div>
         </div>
+
+        <section className="sidebar-panel">
+          <div className="sidebar-panel-label">Pilot use case</div>
+          <h1>{PILOT_USE_CASE.title}</h1>
+          <p>{PILOT_USE_CASE.subtitle}</p>
+          <div className="sidebar-chip-row">
+            <Badge tone="info">{PILOT_USE_CASE.classification}</Badge>
+            <Badge tone="warning">{PILOT_USE_CASE.tenantId}</Badge>
+            <Badge tone="success">Live backend</Badge>
+          </div>
+        </section>
+
+        <nav className="sidebar-nav" aria-label="EAOS sections">
+          {routeAccess.map(({ route, allowed }) =>
+            allowed ? (
+              <NavLink key={route.path} to={route.path} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+                <span className="nav-link-title">{route.title}</span>
+                <span className="nav-link-summary">{route.summary}</span>
+              </NavLink>
+            ) : (
+              <div key={route.path} className="nav-link disabled" aria-disabled="true">
+                <span className="nav-link-title">{route.title}</span>
+                <span className="nav-link-summary">{route.summary}</span>
+                <span className="nav-lock">Requires additional role</span>
+              </div>
+            )
+          )}
+        </nav>
+
+        <section className="sidebar-panel compact">
+          <div className="sidebar-panel-label">Connected personas</div>
+          <div className="persona-row">
+            <button
+              type="button"
+              className={activePersona === "clinician" ? "persona-chip active" : "persona-chip"}
+              onClick={() => setActivePersona("clinician")}
+            >
+              Clinician
+            </button>
+            <button
+              type="button"
+              className={activePersona === "security" ? "persona-chip active" : "persona-chip"}
+              onClick={() => setActivePersona("security")}
+            >
+              Security
+            </button>
+          </div>
+          <div className="persona-state">
+            <span>{clinicianSession ? "Clinician connected" : "Clinician disconnected"}</span>
+            <span>{securitySession ? "Security connected" : "Security disconnected"}</span>
+          </div>
+          <div className="sidebar-actions">
+            <button type="button" className="primary" onClick={() => void connectDemoUsers()} disabled={isSyncing}>
+              {clinicianSession || securitySession ? "Reconnect demo sessions" : "Connect demo sessions"}
+            </button>
+            <button type="button" onClick={() => void refreshWorkspace()} disabled={isSyncing || !clinicianSession}>
+              Refresh live data
+            </button>
+          </div>
+        </section>
       </aside>
 
       <main className="main">
-        <h2>{routeTitle}</h2>
-        <div className="toolbar">
-          <button className="primary" onClick={() => void loginUsers()} disabled={busy === "login"}>
-            {session.clinician ? "Re-authenticate Demo Users" : "Login Demo Users"}
-          </button>
-          <button onClick={() => void runExecution("simulation")} disabled={!session.clinician || busy !== ""}>Run Simulation</button>
-          <button className="success" onClick={() => void runExecution("live")} disabled={!session.clinician || busy !== ""}>Run Live Workflow</button>
-          <button onClick={() => void approveFirstPending("approve")} disabled={!session.approver || busy !== ""}>Approve Pending</button>
-          <button className="danger" onClick={() => void approveFirstPending("reject")} disabled={!session.approver || busy !== ""}>Reject Pending</button>
+        <div className="topbar">
+          <div>
+            <div className="topbar-label">Current route</div>
+            <h2>{currentRoute.title}</h2>
+            <p>{currentRoute.summary}</p>
+          </div>
+          <div className="topbar-meta">
+            <Badge tone="info">Active: {activePersona}</Badge>
+            <Badge tone={currentRoute.requireStepUpMfa ? "warning" : "success"}>
+              {currentRoute.requireStepUpMfa ? "Step-up MFA route" : "Standard route"}
+            </Badge>
+            {lastSyncedAt ? <span className="sync-stamp">Synced {new Date(lastSyncedAt).toLocaleString()}</span> : null}
+            <Link className="subtle-link" to="/dashboard">
+              Jump to dashboard
+            </Link>
+          </div>
         </div>
 
-        {error ? <p style={{ color: "#b42318" }}>Error: {error}</p> : null}
+        {error ? <div className="banner error">Sync error: {error}</div> : null}
+        {isSyncing ? <div className="banner info">Refreshing pilot data and evidence chain...</div> : null}
 
-        <div className="grid">
-          <section className="card">
-            <h3>Pilot Use Case</h3>
-            <p className="muted">
-              Workflow: <strong>Discharge Readiness Assistant</strong>.
-              The agent reads FHIR patient data and SQL care-plan tasks, routes inference to a policy-approved model,
-              and escalates human approval before sending a follow-up email.
-            </p>
-            <ul>
-              <li>Tenant: tenant-starlight-health</li>
-              <li>Classification: EPHI</li>
-              <li>Zero-retention routing: enforced</li>
-              <li>Approval gate: high-risk outbound communication</li>
-            </ul>
-          </section>
+        <PageHeader
+          eyebrow="EAOS Pilot Console"
+          title={PILOT_USE_CASE.title}
+          subtitle={PILOT_USE_CASE.summary}
+          actions={
+            <>
+              <Badge tone="info">{PILOT_USE_CASE.workflowId}</Badge>
+              <Badge tone="warning">{PILOT_USE_CASE.patientId}</Badge>
+              <Badge tone="success">Replayable evidence</Badge>
+            </>
+          }
+        />
 
-          <section className="card">
-            <h3>KPI Snapshot</h3>
-            <table>
-              <tbody>
-                <tr><td>Completed Executions</td><td>{metrics.completed}</td></tr>
-                <tr><td>Blocked Executions</td><td>{metrics.blocked}</td></tr>
-                <tr><td>Pending Approvals</td><td>{metrics.pendingApprovals}</td></tr>
-                <tr><td>Audit Events</td><td>{metrics.auditCount}</td></tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section className="card">
-            <h3>Model Route Preview</h3>
-            {modelPreview ? (
-              <>
-                <p><strong>{modelPreview.provider}</strong> / {modelPreview.modelId}</p>
-                <p>Zero-retention: {modelPreview.zeroRetention ? "enabled" : "disabled"}</p>
-                <p className="muted">Reason codes: {modelPreview.reasonCodes.join(", ")}</p>
-              </>
-            ) : (
-              <p className="muted">Login to fetch route preview.</p>
-            )}
-          </section>
-        </div>
-
-        <section className="card" style={{ marginTop: 14 }}>
-          <h3>Executions</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Mode</th>
-                <th>Status</th>
-                <th>Step</th>
-                <th>Approval</th>
-                <th>Updated</th>
-              </tr>
-            </thead>
-            <tbody>
-              {executions.map((execution) => (
-                <tr key={execution.executionId}>
-                  <td>{execution.executionId}</td>
-                  <td>{execution.mode}</td>
-                  <td>{renderStatus(execution.status)}</td>
-                  <td>{execution.currentStep}</td>
-                  <td>{execution.approvalId ?? "-"}</td>
-                  <td>{new Date(execution.updatedAt).toLocaleString()}</td>
-                </tr>
-              ))}
-              {executions.length === 0 ? (
-                <tr><td colSpan={6} className="muted">No executions yet. Start with Simulation.</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </section>
-
-        <section className="card" style={{ marginTop: 14 }}>
-          <h3>Approval Inbox</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Approval ID</th>
-                <th>Status</th>
-                <th>Risk</th>
-                <th>Reason</th>
-                <th>Execution</th>
-              </tr>
-            </thead>
-            <tbody>
-              {approvals.map((approval) => (
-                <tr key={approval.approvalId}>
-                  <td>{approval.approvalId}</td>
-                  <td>{renderStatus(approval.status)}</td>
-                  <td>{approval.riskLevel}</td>
-                  <td>{approval.reason}</td>
-                  <td>{approval.executionId ?? "-"}</td>
-                </tr>
-              ))}
-              {approvals.length === 0 ? (
-                <tr><td colSpan={5} className="muted">No approvals created yet.</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </section>
-
-        <section className="card" style={{ marginTop: 14 }}>
-          <h3>Audit Explorer</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Category</th>
-                <th>Action</th>
-                <th>Status</th>
-                <th>Evidence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {auditEvents.map((event) => (
-                <tr key={event.eventId}>
-                  <td>{new Date(event.timestamp).toLocaleString()}</td>
-                  <td>{event.category}</td>
-                  <td>{event.action}</td>
-                  <td>{renderStatus(event.status)}</td>
-                  <td>{event.evidenceId}</td>
-                </tr>
-              ))}
-              {auditEvents.length === 0 ? (
-                <tr><td colSpan={5} className="muted">No audit events yet.</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </section>
+        {hasRouteAccess ? (
+          <Outlet />
+        ) : (
+          <EmptyState
+            title="Route access denied"
+            description={`The active persona does not have the required role for ${currentRoute.title}. Switch persona or reconnect sessions.`}
+            action={
+              <div className="pill-row">
+                <button type="button" onClick={() => setActivePersona("clinician")}>
+                  Use clinician persona
+                </button>
+                <button type="button" onClick={() => setActivePersona("security")}>
+                  Use security persona
+                </button>
+              </div>
+            }
+          />
+        )}
       </main>
     </div>
   );

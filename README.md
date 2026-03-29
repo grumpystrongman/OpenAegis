@@ -23,8 +23,13 @@ The included pilot demonstrates a **Hospital Discharge Readiness Assistant**:
 
 ## Screenshots
 
+All screenshots below are captured from live route-specific pages in the running pilot app.
+
 ### KPI Dashboard
 ![KPI Dashboard](docs/assets/screenshots/dashboard-pilot.png)
+
+### Admin Console
+![Admin Console](docs/assets/screenshots/admin-console.png)
 
 ### Workflow Designer
 ![Workflow Designer](docs/assets/screenshots/workflow-designer.png)
@@ -32,11 +37,17 @@ The included pilot demonstrates a **Hospital Discharge Readiness Assistant**:
 ### Approval Inbox
 ![Approval Inbox](docs/assets/screenshots/approval-inbox.png)
 
+### Incident Review Explorer
+![Incident Review Explorer](docs/assets/screenshots/incident-review.png)
+
 ### Audit Explorer
 ![Audit Explorer](docs/assets/screenshots/audit-explorer.png)
 
 ### Security Console
 ![Security Console](docs/assets/screenshots/security-console.png)
+
+### Simulation Lab
+![Simulation Lab](docs/assets/screenshots/simulation-lab.png)
 
 ## Quick Start
 

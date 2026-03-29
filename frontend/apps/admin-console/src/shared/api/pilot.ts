@@ -33,7 +33,7 @@ export interface ExecutionRecord {
     provider: string;
     modelId: string;
     zeroRetention: boolean;
-    reasonCodes: string[];
+    reasonCodes?: string[];
   };
   toolCalls: string[];
   evidenceId: string;
@@ -65,6 +65,19 @@ export interface AuditEvent {
   status: "success" | "blocked" | "failure";
   details: Record<string, unknown>;
   evidenceId: string;
+}
+
+export interface ModelRoutePreview {
+  provider: string;
+  modelId: string;
+  zeroRetention: boolean;
+  reasonCodes?: string[];
+  score?: {
+    cost: number;
+    latency: number;
+    risk: number;
+    total: number;
+  };
 }
 
 const baseUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:3000";
@@ -111,7 +124,7 @@ export const pilotApi = {
   listAuditEvents: (token: string) =>
     jsonRequest<{ events: AuditEvent[] }>("/v1/audit/events", "GET", token),
   previewModelRoute: (token: string) =>
-    jsonRequest<{ selected: { provider: string; modelId: string; zeroRetention: boolean; reasonCodes: string[] } }>(
+    jsonRequest<{ selected: ModelRoutePreview; fallback: ModelRoutePreview[] }>(
       "/v1/model/route/preview",
       "POST",
       token,

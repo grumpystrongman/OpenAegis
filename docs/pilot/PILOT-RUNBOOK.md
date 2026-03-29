@@ -51,19 +51,31 @@ Optional explicit demo output:
 node tools/scripts/pilot-demo.mjs
 ```
 
+## Regenerate Screenshots
+
+Use Playwright CLI with a running gateway (`:3000`) and admin console (`:4273`):
+
+```bash
+npx --yes --package @playwright/cli playwright-cli -s=eaosshots open http://127.0.0.1:4273/dashboard
+# ...navigate route-by-route...
+npx --yes --package @playwright/cli playwright-cli -s=eaosshots screenshot --full-page --filename docs/assets/screenshots/dashboard-pilot.png
+```
+
 ## Pilot UI Walkthrough
 
-1. Open Admin Console and click **Login Demo Users**
-2. Click **Run Live Workflow** to trigger a blocked execution
-3. Open **Approval Inbox** and click **Approve Pending**
-4. Verify execution is `completed`
-5. Open **Audit Explorer** and inspect evidence IDs
+1. Open the console at `http://127.0.0.1:4273/dashboard` and click **Connect demo sessions**.
+2. In **Simulation Lab**, run one simulation pass to baseline behavior.
+3. Run **Run live workflow** from dashboard or simulation to create a pending approval.
+4. Switch to the **Security** persona and open **Approval Inbox**.
+5. Approve or reject the selected item and verify status/evidence update in **Audit Explorer**.
+6. Open **Incident Review Explorer** to inspect derived incident records.
 
 ## Screenshot Gallery
 
 - Dashboard: `docs/assets/screenshots/dashboard-pilot.png`
 - Admin Console: `docs/assets/screenshots/admin-console.png`
 - Security Console: `docs/assets/screenshots/security-console.png`
+- Agent Builder: `docs/assets/screenshots/agent-builder.png`
 - Workflow Designer: `docs/assets/screenshots/workflow-designer.png`
 - Approval Inbox: `docs/assets/screenshots/approval-inbox.png`
 - Incident Review: `docs/assets/screenshots/incident-review.png`

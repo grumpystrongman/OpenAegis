@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-03-29T20:31:56.720Z",
+  "startedAt": "2026-03-29T21:23:45.872Z",
   "useCase": "Hospital Discharge Readiness Assistant",
   "steps": [
     {
@@ -15,9 +15,9 @@
     {
       "name": "run_live_workflow",
       "status": 201,
-      "executionId": "ex-mnc7t6jm-fqsjz",
+      "executionId": "ex-mnc9ntlb-ddaft1",
       "workflowStatus": "blocked",
-      "approvalId": "ap-3pf8fmt6jm"
+      "approvalId": "ap-mnc9ntls-fdz9s5"
     },
     {
       "name": "approval_decision",
@@ -29,14 +29,14 @@
       "status": 200,
       "workflowStatus": "completed",
       "model": "llama-3.1-70b-instruct",
-      "evidenceId": "ev-ex-mnc7t6jm-fqsjz"
+      "evidenceId": "ev-ex-mnc9ntlb-ddaft1"
     },
     {
       "name": "audit_events",
       "status": 200,
-      "count": 11,
-      "latestEvidence": "ev-3akegbt6jt"
+      "count": 46,
+      "latestEvidence": "ev-mnc9ntm1-nz6ycg"
     }
   ],
-  "completedAt": "2026-03-29T20:31:56.790Z"
+  "completedAt": "2026-03-29T21:23:45.980Z"
 }
