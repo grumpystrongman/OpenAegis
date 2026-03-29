@@ -3,19 +3,25 @@
     {
       "order": 3,
       "path": "_index.md",
-      "tokens": 347,
+      "tokens": 422,
       "type": "summary"
     },
     {
       "order": 2,
       "path": "architecture/_index.md",
-      "tokens": 426,
+      "tokens": 472,
       "type": "summary"
     },
     {
       "order": 1,
       "path": "architecture/eaos_overview/_index.md",
       "tokens": 254,
+      "type": "summary"
+    },
+    {
+      "order": 1,
+      "path": "architecture/eaos_pilot/_index.md",
+      "tokens": 293,
       "type": "summary"
     },
     {
@@ -32,18 +38,24 @@
     },
     {
       "importance": 50,
+      "path": "architecture/eaos_pilot/eaos_pilot_overview.md",
+      "tokens": 304,
+      "type": "context"
+    },
+    {
+      "importance": 50,
       "path": "architecture/eaos_security/eaos_security_and_governance.md",
       "tokens": 231,
       "type": "context"
     }
   ],
-  "generated_at": "2026-03-29T19:54:27.875Z",
+  "generated_at": "2026-03-29T20:33:25.338Z",
   "lane_tokens": {
-    "contexts": 493,
+    "contexts": 797,
     "stubs": 0,
-    "summaries": 1212
+    "summaries": 1626
   },
-  "source_fingerprint": "7737a17f7aa56c8fcb1cd539cd805f9121032308246f69ec44b98b1d9ce88bcd",
-  "total_tokens": 1705,
+  "source_fingerprint": "ba209db2babb1cad052c8ad4d6e70d3bfe49134e0224b504a75dba6ee4117aa0",
+  "total_tokens": 2423,
   "version": 1
 }

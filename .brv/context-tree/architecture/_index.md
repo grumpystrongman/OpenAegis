@@ -1,34 +1,33 @@
 ---
-children_hash: 2f28efc328c261a34efed412e98e1036f08a61be1f243c170fd71abbd2fd63e8
-compression_ratio: 0.7473684210526316
+children_hash: a530648403ebcde9d5e963c676d42bf6b797ac92143a33bf57d7bfdddfec6c0c
+compression_ratio: 0.5091693635382956
 condensation_order: 2
-covers: [eaos_overview/_index.md, eaos_security/_index.md]
-covers_token_total: 570
+covers: [eaos_overview/_index.md, eaos_pilot/_index.md, eaos_security/_index.md]
+covers_token_total: 927
 summary_level: d2
-token_count: 426
+token_count: 472
 type: summary
 ---
-# EAOS Structural Overview (Level D2)
+# EAOS Structural Overview (Level 2)
 
-The Enterprise Agent Orchestration and Trust (EAOS) platform provides a vendor-neutral, zero-trust framework designed for highly regulated environments. The architecture is defined by five functional planes: Experience, Control, Secure Agent Runtime, Data, and Trust.
+This summary synthesizes the core architectural, operational, and security pillars of the EAOS platform. For detailed implementation, refer to the source entries: `eaos_overview`, `eaos_pilot`, and `eaos_security`.
 
-### Architectural Foundations
-The system architecture, detailed in `eaos_architecture_blueprint.md`, mandates specific infrastructure dependencies, including PostgreSQL, Kafka/NATS, Redis, and Minio. Security is rooted in a zero-trust model featuring:
-* Access Control: OIDC and SAML-based identity management.
-* Infrastructure Isolation: Multi-tenant deployment using microVMs and hardened containers.
-* Encryption: Mandatory TLS 1.3 for transit and envelope encryption for data at rest.
-* Auditability: Immutable evidence chains via hash-based logging.
+### 1. Architectural Blueprint (eaos_overview)
+EAOS is a vendor-neutral orchestration framework built for regulated environments. It operates across five functional layers: Experience, Control, Secure Agent Runtime, Data, and Trust Planes.
+* **Infrastructure Dependencies:** PostgreSQL, Kafka/NATS, Redis, Minio.
+* **Operational Principles:** Zero-retention for sensitive data, default-deny egress control, and strict break-glass protocols requiring dual-approval for high-privilege actions.
 
-### Governance and Operational Constraints
-Security and governance, summarized in `eaos_security_and_governance.md`, are enforced through strict policy-governed agent actions:
-* PHI/ePHI Protection: Exposure of sensitive data is treated as a system failure.
-* Retention: EPHI is subject to a 6+ year default retention policy, while non-sensitive data follows a zero-retention model.
-* High-Privilege Operations: Break-glass protocols require dual-approval for high-risk actions.
-* Network Security: Default deny egress policy for all external traffic.
+### 2. Pilot Implementation & Workflows (eaos_pilot)
+The EAOS Pilot demonstrates clinical workflow automation with policy-gated integrity.
+* **Workflow:** Clinician Initiation → Policy Evaluation (`REQUIRE_APPROVAL`) → Approval → Inference → Audit.
+* **Core Assets:**
+    * **Gateway:** `backend/services/api-gateway/src/index.ts` (port 3000).
+    * **Admin Interface:** `frontend/apps/admin-console/src/app/App.tsx`.
+    * **Automation Script:** `tools/scripts/pilot-demo.mjs`.
+* **Constraints:** Tenant `tenant-starlight-health` requires mandatory `REQUIRE_APPROVAL` for high-risk operations; authentication tokens follow `demo-token-{userId}` format.
 
-### Documentation References
-For further analysis and implementation, refer to:
-* Technical Specifications: `eaos_architecture_blueprint.md`
-* Security Standards: `eaos_security_and_governance.md`
-* Governance Context: `docs/data-governance.md`
-* Threat Landscape: `docs/threat-model.md`
+### 3. Security & Governance (eaos_security)
+The security model enforces zero-trust through multi-tenant isolation and immutable auditing.
+* **Access & Encryption:** OIDC/SAML identity integration, mandatory TLS 1.3 transit encryption, and envelope encryption at rest.
+* **Compliance:** PHI/ePHI exposure is treated as a system-level failure. EPHI retention is mandated at 6+ years.
+* **References:** For compliance specifics, see `docs/data-governance.md` and `docs/threat-model.md`.
