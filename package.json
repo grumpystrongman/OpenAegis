@@ -11,11 +11,17 @@
   "scripts": {
     "build": "npm run --workspaces build",
     "test": "npm run --workspaces test",
-    "test:commercial": "npm run build && node --test tests/commercial/commercial-proof.test.mjs",
+    "test:commercial": "npm run build && node --test tests/commercial/commercial-proof.test.mjs tests/commercial/readiness-gate-score.test.mjs",
     "lint": "npm run --workspaces lint",
     "typecheck": "npm run --workspaces typecheck",
     "smoke:pilot": "node tools/scripts/smoke-pilot.mjs",
     "proof:commercial": "npm run build && node tools/scripts/commercial-proof.mjs",
+    "load:commercial": "node tools/scripts/load-commercial.mjs",
+    "chaos:commercial": "node tools/scripts/chaos-commercial.mjs",
+    "backup:state": "node tools/scripts/backup-state.mjs",
+    "restore:state": "node tools/scripts/restore-state.mjs",
+    "evidence:package": "node tools/scripts/export-evidence-package.mjs",
+    "readiness:gate": "node tools/scripts/readiness-gate.mjs",
     "screenshots:commercial": "node tools/scripts/capture-commercial-screenshots.mjs"
   },
   "devDependencies": {

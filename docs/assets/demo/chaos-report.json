@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-03-30T15:10:46.457Z",
+  "suite": "commercial-chaos-drill",
+  "endpoints": {
+    "audit": "http://127.0.0.1:3931",
+    "auditRestart": "http://127.0.0.1:3933",
+    "killSwitch": "http://127.0.0.1:3932"
+  },
+  "checks": [
+    {
+      "checkId": "audit_chain_valid_before_restart",
+      "passed": true,
+      "details": {
+        "valid": true,
+        "lastHash": "88393ca6b1b864d29aa9cdef5633ce029e0b0dad22f24b1f0f8708ffe910ed37"
+      }
+    },
+    {
+      "checkId": "audit_entries_persist_after_restart",
+      "passed": true,
+      "details": {
+        "entries": 10
+      }
+    },
+    {
+      "checkId": "audit_chain_valid_after_restart",
+      "passed": true,
+      "details": {
+        "valid": true,
+        "lastHash": "88393ca6b1b864d29aa9cdef5633ce029e0b0dad22f24b1f0f8708ffe910ed37"
+      }
+    },
+    {
+      "checkId": "kill_switch_trigger",
+      "passed": true,
+      "details": {
+        "circuit": {
+          "circuitId": "ks-5af048abba2814d6f2815fa2",
+          "scope": {
+            "tenantId": "tenant-starlight-health",
+            "workflowId": "wf-discharge-assistant",
+            "serviceName": "tool-execution-service"
+          },
+          "status": "triggered",
+          "reason": "chaos drill forced isolation",
+          "severity": "critical",
+          "triggeredBy": "user-security",
+          "triggeredAt": "2026-03-30T15:10:46.445Z",
+          "revision": 1
+        },
+        "event": {
+          "eventId": "kse-mndbs04t-9y0bwz",
+          "eventType": "TRIGGERED",
+          "circuitId": "ks-5af048abba2814d6f2815fa2",
+          "scope": {
+            "tenantId": "tenant-starlight-health",
+            "workflowId": "wf-discharge-assistant",
+            "serviceName": "tool-execution-service"
+          },
+          "tenantId": "tenant-starlight-health",
+          "actorId": "user-security",
+          "reason": "chaos drill forced isolation",
+          "severity": "critical",
+          "createdAt": "2026-03-30T15:10:46.445Z",
+          "hash": "0eee94ce98d0c8fdf0bed11f777bb706442dfb7e7fb72d6e14d5b5cf9bf31ad5"
+        }
+      }
+    },
+    {
+      "checkId": "kill_switch_release",
+      "passed": true,
+      "details": {
+        "circuit": {
+          "circuitId": "ks-5af048abba2814d6f2815fa2",
+          "scope": {
+            "tenantId": "tenant-starlight-health",
+            "workflowId": "wf-discharge-assistant",
+            "serviceName": "tool-execution-service"
+          },
+          "status": "released",
+          "reason": "chaos drill release",
+          "severity": "critical",
+          "triggeredBy": "user-security",
+          "triggeredAt": "2026-03-30T15:10:46.445Z",
+          "revision": 2,
+          "releasedBy": "user-security",
+          "releasedAt": "2026-03-30T15:10:46.451Z"
+        },
+        "event": {
+          "eventId": "kse-mndbs04z-jv7e5e",
+          "eventType": "RELEASED",
+          "circuitId": "ks-5af048abba2814d6f2815fa2",
+          "scope": {
+            "tenantId": "tenant-starlight-health",
+            "workflowId": "wf-discharge-assistant",
+            "serviceName": "tool-execution-service"
+          },
+          "tenantId": "tenant-starlight-health",
+          "actorId": "user-security",
+          "reason": "chaos drill release",
+          "severity": "critical",
+          "createdAt": "2026-03-30T15:10:46.451Z",
+          "prevHash": "0eee94ce98d0c8fdf0bed11f777bb706442dfb7e7fb72d6e14d5b5cf9bf31ad5",
+          "hash": "d3b561e59387983d4cec2e2e188590753f9c1f85be02c7c556fc9b7d1dd85e5a"
+        }
+      }
+    },
+    {
+      "checkId": "kill_switch_event_chain_valid",
+      "passed": true,
+      "details": {
+        "eventCount": 2,
+        "chain": {
+          "valid": true
+        }
+      }
+    }
+  ],
+  "summary": {
+    "totalChecks": 6,
+    "passedChecks": 6,
+    "failedChecks": 0,
+    "scorePercent": 100,
+    "status": "PASS"
+  }
+}

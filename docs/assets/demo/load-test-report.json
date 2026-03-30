@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-03-30T15:10:45.599Z",
+  "suite": "commercial-load-test",
+  "target": "http://127.0.0.1:3930",
+  "thresholds": {
+    "maxErrorRate": 0.02,
+    "maxP95Ms": 450,
+    "minThroughputRps": 40
+  },
+  "metrics": {
+    "requests": 180,
+    "concurrency": 18,
+    "elapsedSeconds": 0.148,
+    "successes": 180,
+    "failures": 0,
+    "errorRate": 0,
+    "throughputRps": 1212.82,
+    "p50Ms": 12.07,
+    "p95Ms": 31.63,
+    "p99Ms": 37.83
+  },
+  "scorePercent": 100,
+  "status": "PASS",
+  "components": {
+    "errorScore": 100,
+    "latencyScore": 99,
+    "throughputScore": 100
+  }
+}

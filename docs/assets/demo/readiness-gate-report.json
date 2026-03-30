@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-03-30T15:10:47.656Z",
+  "targetReadinessPercent": 98,
+  "commands": [
+    {
+      "id": "typecheck",
+      "label": "Typecheck",
+      "mandatory": true,
+      "weight": 8,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 27579,
+      "stdoutTail": "\n> openaegis@0.1.0 typecheck\n> npm run --workspaces typecheck\n\n\n> @openaegis/agent-registry@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/api-gateway@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/approval-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/audit-ledger@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/auth-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/classification-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/context-retrieval-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/kill-switch-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/model-broker@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/notification-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/observability-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/policy-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/secrets-broker@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/tenant-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit --allowImportingTsExtensions\n\n\n> @openaegis/tool-execution-service@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/tool-registry@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/workflow-orchestrator@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/contracts@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/events@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/pilot-core@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/security-kit@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @openaegis/admin-console@0.1.0 typecheck\n> tsc -p tsconfig.json --noEmit\n\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "mandatory": true,
+      "weight": 8,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 32942,
+      "stdoutTail": "\n> openaegis@0.1.0 build\n> npm run --workspaces build\n\n\n> @openaegis/agent-registry@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/api-gateway@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/approval-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/audit-ledger@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/auth-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/classification-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/context-retrieval-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/kill-switch-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/model-broker@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/notification-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/observability-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/policy-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/secrets-broker@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tenant-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tool-execution-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tool-registry@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/workflow-orchestrator@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/contracts@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/events@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/pilot-core@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/security-kit@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/admin-console@0.1.0 build\n> tsc -p tsconfig.json && vite build\n\n\u001b[36mvite v7.3.1 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 60 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.41 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.28 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-DzVgjHTR.css  \u001b[39m\u001b[1m\u001b[2m 13.59 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-CseS2gqV.js   \u001b[39m\u001b[1m\u001b[2m351.82 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 108.07 kB\u001b[22m\n\u001b[32m✓ built in 1.64s\u001b[39m\n",
+      "stderrTail": "\u001b[33m../../../node_modules/react-router/dist/development/index.mjs (11:0): Module level directives cause errors when bundled, \"use client\" in \"../../../node_modules/react-router/dist/development/index.mjs\" was ignored.\u001b[39m\n\u001b[33m../../../node_modules/react-router/dist/development/dom-export.mjs (1:0): Module level directives cause errors when bundled, \"use client\" in \"../../../node_modules/react-router/dist/development/dom-export.mjs\" was ignored.\u001b[39m\n"
+    },
+    {
+      "id": "test",
+      "label": "Test",
+      "mandatory": true,
+      "weight": 12,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 15976,
+      "stdoutTail": "s require platform admin (28.6544ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 407.1189\n\n> @openaegis/policy-service@0.1.0 test\n> node --test\n\n✔ evaluates and stores decision records (68.1936ms)\n✔ security admin can publish new policy bundle versions (21.1484ms)\n✔ requires actor context on evaluate (8.6736ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 331.3478\n\n> @openaegis/secrets-broker@0.1.0 test\n> node --test\n\n✔ registers secret and leases short-lived credential (67.4235ms)\n✔ revokes active lease (38.3841ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 340.2848\n\n> @openaegis/tenant-service@0.1.0 test\n> node --test\n\n✔ platform admin can create tenant and update isolation (60.3362ms)\n✔ cross-tenant read is denied without platform admin (15.2737ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 321.1925\n\n> @openaegis/tool-execution-service@0.1.0 test\n> npm run build && node --test ../../../dist/services/tool-execution-service/src/index.test.js\n\n\n> @openaegis/tool-execution-service@0.1.0 build\n> tsc -p tsconfig.json\n\n(node:34148) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/grump/EAOS/dist/services/tool-execution-service/src/index.test.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Users\\grump\\EAOS\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n✔ allows simulated connector execution (56.7166ms)\n✔ blocks execution when approval is required and missing (20.6366ms)\n✔ replays idempotent calls for matching idempotency key (23.7238ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 312.5435\n\n> @openaegis/tool-registry@0.1.0 test\n> npm run build && node --test ../../../dist/services/tool-registry/src/index.test.js\n\n\n> @openaegis/tool-registry@0.1.0 build\n> tsc -p tsconfig.json\n\n(node:69972) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/grump/EAOS/dist/services/tool-registry/src/index.test.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Users\\grump\\EAOS\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n✔ lists default published manifests including linear connector (42.3801ms)\n✔ creates a draft manifest and publishes it (31.5748ms)\n✔ rejects duplicate tool ids (20.9662ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 287.8074\n\n> @openaegis/workflow-orchestrator@0.1.0 test\n> node --test\n\n✔ health exposes workflow metrics (45.522ms)\n✔ creates, starts, checkpoints, and completes an execution (57.9646ms)\n✔ blocks admin-only actions without role and returns 404 for missing execution (16.6912ms)\n✔ admin can register a new workflow (15.9973ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 402.3493\n\n> @openaegis/contracts@0.1.0 test\n> node --test\n\nℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 14.2789\n\n> @openaegis/events@0.1.0 test\n> node --test\n\nℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 16.9068\n\n> @openaegis/pilot-core@0.1.0 test\n> node --test\n\nℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 14.4098\n\n> @openaegis/security-kit@0.1.0 test\n> node --test\n\nℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 13.6655\n\n> @openaegis/admin-console@0.1.0 test\n> node --test\n\nℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 30.7932\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "smoke",
+      "label": "Smoke Pilot",
+      "mandatory": true,
+      "weight": 8,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 803,
+      "stdoutTail": "\n> openaegis@0.1.0 smoke:pilot\n> node tools/scripts/smoke-pilot.mjs\n\nSMOKE TEST PASSED\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "proof",
+      "label": "Commercial Proof",
+      "mandatory": true,
+      "weight": 8,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 33237,
+      "stdoutTail": "\n> openaegis@0.1.0 proof:commercial\n> npm run build && node tools/scripts/commercial-proof.mjs\n\n\n> openaegis@0.1.0 build\n> npm run --workspaces build\n\n\n> @openaegis/agent-registry@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/api-gateway@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/approval-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/audit-ledger@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/auth-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/classification-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/context-retrieval-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/kill-switch-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/model-broker@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/notification-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/observability-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/policy-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/secrets-broker@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tenant-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tool-execution-service@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/tool-registry@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/workflow-orchestrator@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/contracts@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/events@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/pilot-core@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/security-kit@0.1.0 build\n> tsc -p tsconfig.json\n\n\n> @openaegis/admin-console@0.1.0 build\n> tsc -p tsconfig.json && vite build\n\n\u001b[36mvite v7.3.1 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n\u001b[32m✓\u001b[39m 60 modules transformed.\nrendering chunks...\ncomputing gzip size...\n\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.41 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   0.28 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-DzVgjHTR.css  \u001b[39m\u001b[1m\u001b[2m 13.59 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:   3.63 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-CseS2gqV.js   \u001b[39m\u001b[1m\u001b[2m351.82 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 108.07 kB\u001b[22m\n\u001b[32m✓ built in 1.67s\u001b[39m\n",
+      "stderrTail": "\u001b[33m../../../node_modules/react-router/dist/development/index.mjs (11:0): Module level directives cause errors when bundled, \"use client\" in \"../../../node_modules/react-router/dist/development/index.mjs\" was ignored.\u001b[39m\n\u001b[33m../../../node_modules/react-router/dist/development/dom-export.mjs (1:0): Module level directives cause errors when bundled, \"use client\" in \"../../../node_modules/react-router/dist/development/dom-export.mjs\" was ignored.\u001b[39m\n(node:60192) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/grump/EAOS/dist/services/api-gateway/src/index.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Users\\grump\\EAOS\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "id": "load",
+      "label": "Commercial Load",
+      "mandatory": true,
+      "weight": 5,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1036,
+      "stdoutTail": "\n> openaegis@0.1.0 load:commercial\n> node tools/scripts/load-commercial.mjs\n\n{\n  \"generatedAt\": \"2026-03-30T15:10:45.599Z\",\n  \"suite\": \"commercial-load-test\",\n  \"target\": \"http://127.0.0.1:3930\",\n  \"thresholds\": {\n    \"maxErrorRate\": 0.02,\n    \"maxP95Ms\": 450,\n    \"minThroughputRps\": 40\n  },\n  \"metrics\": {\n    \"requests\": 180,\n    \"concurrency\": 18,\n    \"elapsedSeconds\": 0.148,\n    \"successes\": 180,\n    \"failures\": 0,\n    \"errorRate\": 0,\n    \"throughputRps\": 1212.82,\n    \"p50Ms\": 12.07,\n    \"p95Ms\": 31.63,\n    \"p99Ms\": 37.83\n  },\n  \"scorePercent\": 100,\n  \"status\": \"PASS\",\n  \"components\": {\n    \"errorScore\": 100,\n    \"latencyScore\": 99,\n    \"throughputScore\": 100\n  }\n}\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "chaos",
+      "label": "Commercial Chaos",
+      "mandatory": true,
+      "weight": 5,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 823,
+      "stdoutTail": "\n> openaegis@0.1.0 chaos:commercial\n> node tools/scripts/chaos-commercial.mjs\n\n{\n  \"generatedAt\": \"2026-03-30T15:10:46.457Z\",\n  \"suite\": \"commercial-chaos-drill\",\n  \"endpoints\": {\n    \"audit\": \"http://127.0.0.1:3931\",\n    \"auditRestart\": \"http://127.0.0.1:3933\",\n    \"killSwitch\": \"http://127.0.0.1:3932\"\n  },\n  \"checks\": [\n    {\n      \"checkId\": \"audit_chain_valid_before_restart\",\n      \"passed\": true,\n      \"details\": {\n        \"valid\": true,\n        \"lastHash\": \"88393ca6b1b864d29aa9cdef5633ce029e0b0dad22f24b1f0f8708ffe910ed37\"\n      }\n    },\n    {\n      \"checkId\": \"audit_entries_persist_after_restart\",\n      \"passed\": true,\n      \"details\": {\n        \"entries\": 10\n      }\n    },\n    {\n      \"checkId\": \"audit_chain_valid_after_restart\",\n      \"passed\": true,\n      \"details\": {\n        \"valid\": true,\n        \"lastHash\": \"88393ca6b1b864d29aa9cdef5633ce029e0b0dad22f24b1f0f8708ffe910ed37\"\n      }\n    },\n    {\n      \"checkId\": \"kill_switch_trigger\",\n      \"passed\": true,\n      \"details\": {\n        \"circuit\": {\n          \"circuitId\": \"ks-5af048abba2814d6f2815fa2\",\n          \"scope\": {\n            \"tenantId\": \"tenant-starlight-health\",\n            \"workflowId\": \"wf-discharge-assistant\",\n            \"serviceName\": \"tool-execution-service\"\n          },\n          \"status\": \"triggered\",\n          \"reason\": \"chaos drill forced isolation\",\n          \"severity\": \"critical\",\n          \"triggeredBy\": \"user-security\",\n          \"triggeredAt\": \"2026-03-30T15:10:46.445Z\",\n          \"revision\": 1\n        },\n        \"event\": {\n          \"eventId\": \"kse-mndbs04t-9y0bwz\",\n          \"eventType\": \"TRIGGERED\",\n          \"circuitId\": \"ks-5af048abba2814d6f2815fa2\",\n          \"scope\": {\n            \"tenantId\": \"tenant-starlight-health\",\n            \"workflowId\": \"wf-discharge-assistant\",\n            \"serviceName\": \"tool-execution-service\"\n          },\n          \"tenantId\": \"tenant-starlight-health\",\n          \"actorId\": \"user-security\",\n          \"reason\": \"chaos drill forced isolation\",\n          \"severity\": \"critical\",\n          \"createdAt\": \"2026-03-30T15:10:46.445Z\",\n          \"hash\": \"0eee94ce98d0c8fdf0bed11f777bb706442dfb7e7fb72d6e14d5b5cf9bf31ad5\"\n        }\n      }\n    },\n    {\n      \"checkId\": \"kill_switch_release\",\n      \"passed\": true,\n      \"details\": {\n        \"circuit\": {\n          \"circuitId\": \"ks-5af048abba2814d6f2815fa2\",\n          \"scope\": {\n            \"tenantId\": \"tenant-starlight-health\",\n            \"workflowId\": \"wf-discharge-assistant\",\n            \"serviceName\": \"tool-execution-service\"\n          },\n          \"status\": \"released\",\n          \"reason\": \"chaos drill release\",\n          \"severity\": \"critical\",\n          \"triggeredBy\": \"user-security\",\n          \"triggeredAt\": \"2026-03-30T15:10:46.445Z\",\n          \"revision\": 2,\n          \"releasedBy\": \"user-security\",\n          \"releasedAt\": \"2026-03-30T15:10:46.451Z\"\n        },\n        \"event\": {\n          \"eventId\": \"kse-mndbs04z-jv7e5e\",\n          \"eventType\": \"RELEASED\",\n          \"circuitId\": \"ks-5af048abba2814d6f2815fa2\",\n          \"scope\": {\n            \"tenantId\": \"tenant-starlight-health\",\n            \"workflowId\": \"wf-discharge-assistant\",\n            \"serviceName\": \"tool-execution-service\"\n          },\n          \"tenantId\": \"tenant-starlight-health\",\n          \"actorId\": \"user-security\",\n          \"reason\": \"chaos drill release\",\n          \"severity\": \"critical\",\n          \"createdAt\": \"2026-03-30T15:10:46.451Z\",\n          \"prevHash\": \"0eee94ce98d0c8fdf0bed11f777bb706442dfb7e7fb72d6e14d5b5cf9bf31ad5\",\n          \"hash\": \"d3b561e59387983d4cec2e2e188590753f9c1f85be02c7c556fc9b7d1dd85e5a\"\n        }\n      }\n    },\n    {\n      \"checkId\": \"kill_switch_event_chain_valid\",\n      \"passed\": true,\n      \"details\": {\n        \"eventCount\": 2,\n        \"chain\": {\n          \"valid\": true\n        }\n      }\n    }\n  ],\n  \"summary\": {\n    \"totalChecks\": 6,\n    \"passedChecks\": 6,\n    \"failedChecks\": 0,\n    \"scorePercent\": 100,\n    \"status\": \"PASS\"\n  }\n}\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "backup",
+      "label": "Backup State",
+      "mandatory": true,
+      "weight": 6,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 587,
+      "stdoutTail": "\n> openaegis@0.1.0 backup:state\n> node tools/scripts/backup-state.mjs\n\n{\n  \"status\": \"PASS\",\n  \"backupDir\": \"C:\\\\Users\\\\grump\\\\EAOS\\\\backups\\\\2026-03-30T15-10-47-017Z\",\n  \"manifest\": {\n    \"createdAt\": \"2026-03-30T15:10:47.042Z\",\n    \"backupId\": \"2026-03-30T15-10-47-017Z\",\n    \"source\": {\n      \"volumesDir\": \"C:\\\\Users\\\\grump\\\\EAOS\\\\.volumes\",\n      \"demoAssetsDir\": \"C:\\\\Users\\\\grump\\\\EAOS\\\\docs\\\\assets\\\\demo\"\n    },\n    \"files\": {\n      \"volumeFiles\": [\n        \"audit-ledger-state.json\",\n        \"capture-err.log\",\n        \"capture-out.log\",\n        \"kill-switch-service-state.json\",\n        \"tool-execution-state.json\"\n      ],\n      \"demoFiles\": [\n        \"chaos-report.json\",\n        \"commercial-proof-report.json\",\n        \"load-test-report.json\",\n        \"pilot-demo-output.json\",\n        \"readiness-gate-report.json\"\n      ]\n    },\n    \"gitHead\": \"ref: refs/heads/master\"\n  }\n}\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "restore",
+      "label": "Restore State",
+      "mandatory": true,
+      "weight": 6,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 567,
+      "stdoutTail": "\n> openaegis@0.1.0 restore:state\n> node tools/scripts/restore-state.mjs latest\n\n{\n  \"status\": \"PASS\",\n  \"restoredFrom\": \"C:\\\\Users\\\\grump\\\\EAOS\\\\backups\\\\2026-03-30T15-10-47-017Z\",\n  \"restoredTargets\": [\n    \"C:\\\\Users\\\\grump\\\\EAOS\\\\.volumes\",\n    \"C:\\\\Users\\\\grump\\\\EAOS\\\\docs\\\\assets\\\\demo\"\n  ]\n}\n",
+      "stderrTail": ""
+    },
+    {
+      "id": "evidence",
+      "label": "Export Evidence Package",
+      "mandatory": true,
+      "weight": 5,
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 629,
+      "stdoutTail": ":46.445Z\\\",\\n          \\\"revision\\\": 2,\\n          \\\"releasedBy\\\": \\\"user-security\\\",\\n          \\\"releasedAt\\\": \\\"2026-03-30T15:10:46.451Z\\\"\\n        },\\n        \\\"event\\\": {\\n          \\\"eventId\\\": \\\"kse-mndbs04z-jv7e5e\\\",\\n          \\\"eventType\\\": \\\"RELEASED\\\",\\n          \\\"circuitId\\\": \\\"ks-5af048abba2814d6f2815fa2\\\",\\n          \\\"scope\\\": {\\n            \\\"tenantId\\\": \\\"tenant-starlight-health\\\",\\n            \\\"workflowId\\\": \\\"wf-discharge-assistant\\\",\\n            \\\"serviceName\\\": \\\"tool-execution-service\\\"\\n          },\\n          \\\"tenantId\\\": \\\"tenant-starlight-health\\\",\\n          \\\"actorId\\\": \\\"user-security\\\",\\n          \\\"reason\\\": \\\"chaos drill release\\\",\\n          \\\"severity\\\": \\\"critical\\\",\\n          \\\"createdAt\\\": \\\"2026-03-30T15:10:46.451Z\\\",\\n          \\\"prevHash\\\": \\\"0eee94ce98d0c8fdf0bed11f777bb706442dfb7e7fb72d6e14d5b5cf9bf31ad5\\\",\\n          \\\"hash\\\": \\\"d3b561e59387983d4cec2e2e188590753f9c1f85be02c7c556fc9b7d1dd85e5a\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"checkId\\\": \\\"kill_switch_event_chain_valid\\\",\\n      \\\"passed\\\": true,\\n      \\\"details\\\": {\\n        \\\"eventCount\\\": 2,\\n        \\\"chain\\\": {\\n          \\\"valid\\\": true\\n        }\\n      }\\n    }\\n  ],\\n  \\\"summary\\\": {\\n    \\\"totalChecks\\\": 6,\\n    \\\"passedChecks\\\": 6,\\n    \\\"failedChecks\\\": 0,\\n    \\\"scorePercent\\\": 100,\\n    \\\"status\\\": \\\"PASS\\\"\\n  }\\n}\\n\",\n            \"stderrTail\": \"\"\n          },\n          {\n            \"id\": \"backup\",\n            \"label\": \"Backup State\",\n            \"mandatory\": true,\n            \"weight\": 6,\n            \"status\": \"PASS\",\n            \"exitCode\": 0,\n            \"durationMs\": 587,\n            \"stdoutTail\": \"\\n> openaegis@0.1.0 backup:state\\n> node tools/scripts/backup-state.mjs\\n\\n{\\n  \\\"status\\\": \\\"PASS\\\",\\n  \\\"backupDir\\\": \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\backups\\\\\\\\2026-03-30T15-10-47-017Z\\\",\\n  \\\"manifest\\\": {\\n    \\\"createdAt\\\": \\\"2026-03-30T15:10:47.042Z\\\",\\n    \\\"backupId\\\": \\\"2026-03-30T15-10-47-017Z\\\",\\n    \\\"source\\\": {\\n      \\\"volumesDir\\\": \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\.volumes\\\",\\n      \\\"demoAssetsDir\\\": \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\docs\\\\\\\\assets\\\\\\\\demo\\\"\\n    },\\n    \\\"files\\\": {\\n      \\\"volumeFiles\\\": [\\n        \\\"audit-ledger-state.json\\\",\\n        \\\"capture-err.log\\\",\\n        \\\"capture-out.log\\\",\\n        \\\"kill-switch-service-state.json\\\",\\n        \\\"tool-execution-state.json\\\"\\n      ],\\n      \\\"demoFiles\\\": [\\n        \\\"chaos-report.json\\\",\\n        \\\"commercial-proof-report.json\\\",\\n        \\\"load-test-report.json\\\",\\n        \\\"pilot-demo-output.json\\\",\\n        \\\"readiness-gate-report.json\\\"\\n      ]\\n    },\\n    \\\"gitHead\\\": \\\"ref: refs/heads/master\\\"\\n  }\\n}\\n\",\n            \"stderrTail\": \"\"\n          },\n          {\n            \"id\": \"restore\",\n            \"label\": \"Restore State\",\n            \"mandatory\": true,\n            \"weight\": 6,\n            \"status\": \"PASS\",\n            \"exitCode\": 0,\n            \"durationMs\": 567,\n            \"stdoutTail\": \"\\n> openaegis@0.1.0 restore:state\\n> node tools/scripts/restore-state.mjs latest\\n\\n{\\n  \\\"status\\\": \\\"PASS\\\",\\n  \\\"restoredFrom\\\": \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\backups\\\\\\\\2026-03-30T15-10-47-017Z\\\",\\n  \\\"restoredTargets\\\": [\\n    \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\.volumes\\\",\\n    \\\"C:\\\\\\\\Users\\\\\\\\grump\\\\\\\\EAOS\\\\\\\\docs\\\\\\\\assets\\\\\\\\demo\\\"\\n  ]\\n}\\n\",\n            \"stderrTail\": \"\"\n          }\n        ],\n        \"signals\": {\n          \"commercialProof\": {\n            \"scorePercent\": 100,\n            \"status\": \"PASS\"\n          },\n          \"loadTest\": {\n            \"scorePercent\": 100,\n            \"status\": \"PASS\"\n          },\n          \"chaosDrill\": {\n            \"scorePercent\": 100,\n            \"status\": \"PASS\"\n          }\n        },\n        \"summary\": {\n          \"scorePercent\": 100,\n          \"pass\": true,\n          \"rawScore\": 101,\n          \"maxScore\": 101,\n          \"commandContribution\": 66,\n          \"weightedSignal\": 35,\n          \"mandatoryFailed\": false,\n          \"status\": \"PASS\"\n        }\n      }\n    }\n  }\n}\n",
+      "stderrTail": ""
+    }
+  ],
+  "signals": {
+    "commercialProof": {
+      "scorePercent": 100,
+      "status": "PASS"
+    },
+    "loadTest": {
+      "scorePercent": 100,
+      "status": "PASS"
+    },
+    "chaosDrill": {
+      "scorePercent": 100,
+      "status": "PASS"
+    }
+  },
+  "summary": {
+    "scorePercent": 100,
+    "pass": true,
+    "rawScore": 106,
+    "maxScore": 106,
+    "commandContribution": 71,
+    "weightedSignal": 35,
+    "mandatoryFailed": false,
+    "status": "PASS"
+  }
+}

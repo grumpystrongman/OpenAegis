@@ -104,6 +104,9 @@ npm run build
 npm run test
 npm run smoke:pilot
 npm run proof:commercial
+npm run load:commercial
+npm run chaos:commercial
+npm run readiness:gate
 ```
 
 Expected pass results:
@@ -113,12 +116,17 @@ Expected pass results:
 - `npm run test` exits 0
 - `npm run smoke:pilot` exits 0 and refreshes the pilot evidence bundle
 - `npm run proof:commercial` exits 0 and writes `docs/assets/demo/commercial-proof-report.json`
+- `npm run load:commercial` exits 0 and writes `docs/assets/demo/load-test-report.json`
+- `npm run chaos:commercial` exits 0 and writes `docs/assets/demo/chaos-report.json`
+- `npm run readiness:gate` exits 0, writes `docs/assets/demo/readiness-gate-report.json`, and enforces >= 98%
 
 Expected proof report fields:
 
 - `summary.status = PASS`
 - `summary.failedClaims = 0`
 - `summary.scorePercent = 100`
+- readiness gate `summary.status = PASS`
+- readiness gate `summary.scorePercent >= 98`
 
 If any one of those checks fails, the release is a no-go.
 

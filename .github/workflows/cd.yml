@@ -8,5 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Placeholder
-        run: echo "Add signed image build and deployment promotion gates."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install workspace deps
+        run: npm install
+      - name: Readiness gate
+        run: npm run readiness:gate
+      - name: Build evidence package
+        run: npm run evidence:package
+      - name: Upload deployment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: openaegis-deployment-evidence
+          path: docs/assets/evidence-packages

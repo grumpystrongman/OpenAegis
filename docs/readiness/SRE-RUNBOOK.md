@@ -88,6 +88,9 @@ npm run build
 npm run test
 npm run smoke:pilot
 npm run proof:commercial
+npm run load:commercial
+npm run chaos:commercial
+npm run readiness:gate
 ```
 
 If the incident is production-facing, run the most specific check first:
@@ -115,8 +118,10 @@ Recover in this order:
 1. Restore the failed dependency.
 2. Re-run the failing command or health probe.
 3. Re-run the smoke path.
-4. Re-run the commercial proof harness.
-5. Confirm the evidence bundle regenerates cleanly.
+4. Re-run the load and chaos drills.
+5. Re-run the commercial proof harness.
+6. Run the readiness gate and confirm score >= 98.
+7. Confirm the evidence bundle regenerates cleanly.
 
 ### 6. Post-incident review
 
@@ -198,6 +203,9 @@ After any deployment or configuration change:
 3. Run `npm run test`.
 4. Run `npm run smoke:pilot`.
 5. Run `npm run proof:commercial`.
-6. Verify the proof report score remains at 100.
+6. Run `npm run load:commercial`.
+7. Run `npm run chaos:commercial`.
+8. Run `npm run readiness:gate`.
+9. Verify readiness score remains at or above 98.
 
 If any step fails, revert the change or roll forward a fix before declaring success.

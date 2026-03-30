@@ -3,7 +3,7 @@ name: ci
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   validate:
@@ -19,6 +19,30 @@ jobs:
         run: npm run typecheck
       - name: Unit tests
         run: npm run test
+      - name: Commercial smoke
+        run: npm run smoke:pilot
+
+  readiness-gate:
+    runs-on: ubuntu-latest
+    needs: [validate]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install workspace deps
+        run: npm install
+      - name: Enforce 98% readiness gate
+        run: npm run readiness:gate
+      - name: Upload readiness artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openaegis-readiness-artifacts
+          path: |
+            docs/assets/demo/commercial-proof-report.json
+            docs/assets/demo/load-test-report.json
+            docs/assets/demo/chaos-report.json
+            docs/assets/demo/readiness-gate-report.json
 
   security:
     runs-on: ubuntu-latest

@@ -25,3 +25,5 @@ bin/
 .volumes/
 .playwright-cli/
 output/playwright/*.log
+backups/
+docs/assets/evidence-packages/

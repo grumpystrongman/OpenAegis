@@ -31,6 +31,12 @@ It does not replace security review, architecture review, or change management. 
 | Test suite | `npm run test` | Exit code 0 | All tests pass |
 | Pilot smoke test | `npm run smoke:pilot` | Exit code 0 | Pilot flow boots and completes the smoke scenario |
 | Commercial proof | `npm run proof:commercial` | Exit code 0 | `docs/assets/demo/commercial-proof-report.json` is generated |
+| Load test | `npm run load:commercial` | Exit code 0 | `docs/assets/demo/load-test-report.json` is generated |
+| Chaos drill | `npm run chaos:commercial` | Exit code 0 | `docs/assets/demo/chaos-report.json` is generated |
+| Backup drill | `npm run backup:state` | Exit code 0 | Backup manifest is generated under `backups/<timestamp>/manifest.json` |
+| Restore drill | `npm run restore:state -- latest` | Exit code 0 | `.volumes` and `docs/assets/demo` are restored from backup |
+| Evidence package export | `npm run evidence:package` | Exit code 0 | Evidence package is generated under `docs/assets/evidence-packages/<timestamp>` |
+| Readiness scoring gate | `npm run readiness:gate` | Exit code 0 and score >= 98 | `docs/assets/demo/readiness-gate-report.json` is generated |
 
 ## Required Pass Results
 
@@ -41,9 +47,14 @@ The release is only considered ready when all of the following are true:
 3. `npm run test` passes.
 4. `npm run smoke:pilot` passes.
 5. `npm run proof:commercial` passes.
-6. The commercial proof report records `summary.status = PASS`.
-7. The commercial proof report records `summary.failedClaims = 0`.
-8. The commercial proof report records `summary.scorePercent = 100`.
+6. `npm run load:commercial` passes.
+7. `npm run chaos:commercial` passes.
+8. `npm run readiness:gate` passes.
+9. The commercial proof report records `summary.status = PASS`.
+10. The commercial proof report records `summary.failedClaims = 0`.
+11. The commercial proof report records `summary.scorePercent = 100`.
+12. The readiness gate report records `summary.scorePercent >= 98`.
+13. The readiness gate report records `summary.status = PASS`.
 
 If any one of these checks fails, the gate is closed.
 
@@ -110,7 +121,13 @@ The expected evidence bundle for a gate review is:
 - `npm run test` output
 - `npm run smoke:pilot` output
 - `npm run proof:commercial` output
+- `npm run load:commercial` output
+- `npm run chaos:commercial` output
+- `npm run readiness:gate` output
 - `docs/assets/demo/commercial-proof-report.json`
+- `docs/assets/demo/load-test-report.json`
+- `docs/assets/demo/chaos-report.json`
+- `docs/assets/demo/readiness-gate-report.json`
 - `docs/assets/demo/pilot-demo-output.json`
 
 ## Gate Owner Responsibilities
