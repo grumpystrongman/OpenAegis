@@ -2,6 +2,7 @@
   "name": "openaegis",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "license": "AGPL-3.0-only",
   "description": "Enterprise Agent Orchestration and Trust Platform",
   "workspaces": [

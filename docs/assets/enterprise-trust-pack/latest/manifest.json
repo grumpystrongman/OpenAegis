@@ -1,6 +1,6 @@
 {
-  "packageId": "2026-03-30T18-45-59-469Z",
-  "generatedAt": "2026-03-30T18:45:59.541Z",
+  "packageId": "2026-03-30T18-52-36-118Z",
+  "generatedAt": "2026-03-30T18:52:36.181Z",
   "requiredFiles": [
     "docs/compliance/CONTROL-CROSSWALK.json",
     "docs/compliance/ENTERPRISE-TRUST-PACK.md",
@@ -67,27 +67,27 @@
     },
     {
       "file": "docs/assets/demo/readiness-gate-report.json",
-      "sha256": "535b6e7dac2e213293f035db338368b551f340ec4c34f3f37b5643514f6c4d9a",
-      "sizeBytes": 46843
+      "sha256": "2d68196bf0a6d996235951a39b6d577e359a5886feac310bc678cb3dae9770e9",
+      "sizeBytes": 46841
     },
     {
       "file": "docs/assets/demo/commercial-proof-report.json",
-      "sha256": "f130ad2e4276d80aae306b75eb59c1f63faa8fb7cedcfd86f17b67cefcacb119",
+      "sha256": "848cbe2087ec9d95808065c8521806917834a0ed65a3e9f9ee6f47f0320b3508",
       "sizeBytes": 7607
     },
     {
       "file": "docs/assets/demo/trust-layer-proof-report.json",
-      "sha256": "6072d0c01e76ae6fcaf8e6c1fd04f003dacef6dd3f2cbae39af56fa4010775b9",
-      "sizeBytes": 6960
+      "sha256": "b5bab246204c19f1f7b271e3068cc4cdb202b24dbbd8e1f642193bbefed4709f",
+      "sizeBytes": 6959
     },
     {
       "file": "docs/assets/demo/commercial-audit-report.json",
-      "sha256": "9228ad8d1c91c14a65eb3bfc0e4e13ad776bcdbb631904e9fdaa7a33debbbbd6",
+      "sha256": "d00e6018f84233b6409fcca2bdfce4ed7a9191ed2dd37754fad3843f116aed8a",
       "sizeBytes": 1351
     },
     {
       "file": "docs/assets/demo/codebase-line-audit-report.json",
-      "sha256": "d7879d5fe89c8ff487cc2ae08635184de593be458c636d0963daa372b2dcfdd3",
+      "sha256": "246ffaf261155a1e1719805574feb6d63b6d4e32273de5e9d4ff5f6744a5225c",
       "sizeBytes": 383
     },
     {
@@ -97,12 +97,12 @@
     },
     {
       "file": "docs/assets/demo/chaos-report.json",
-      "sha256": "92a43e3c136ddd91d76934e1b1c214f9807c99b571b3443fb313d997cbb8d99d",
+      "sha256": "b85ca648e586b14b5d08171bf77753c1a1ef1aa7671f29a73ddf17f984ce2d75",
       "sizeBytes": 3878
     },
     {
       "file": "docs/assets/demo/load-test-report.json",
-      "sha256": "82da3590af4ffedb7d290c6cb032f4cf41dbc96caf2376a6e092f15a885f968d",
+      "sha256": "5bb9a63aa472b634bb65d207c1ec828f92ba59a00b5b6fd3fcfb434e1260ce8b",
       "sizeBytes": 599
     }
   ],

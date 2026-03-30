@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:46:00.075Z",
+  "generatedAt": "2026-03-30T18:52:36.826Z",
   "suite": "enterprise-trust-pack-audit",
   "checks": [
     {
@@ -29,7 +29,7 @@
         {
           "file": "docs/assets/demo/readiness-gate-report.json",
           "passed": true,
-          "sizeBytes": 46843
+          "sizeBytes": 46841
         },
         {
           "file": "docs/assets/demo/commercial-audit-report.json",
