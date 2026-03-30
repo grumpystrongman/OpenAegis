@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:02:59.616Z",
+  "generatedAt": "2026-03-30T19:30:52.678Z",
   "suite": "design-partner-pilot-kpis",
   "thresholds": {
     "maxApprovalLatencyMs": 1500,
@@ -8,7 +8,7 @@
   },
   "pilots": {
     "healthcare": {
-      "approvalLatencyMs": 9,
+      "approvalLatencyMs": 6,
       "blockedRiskyActions": 1,
       "auditCompletenessPercent": 100
     },
@@ -24,7 +24,7 @@
     },
     "global": {
       "readinessScorePercent": 100,
-      "approvalLatencyMs": 9,
+      "approvalLatencyMs": 6,
       "blockedRiskyActions": 3,
       "auditCompletenessPercent": 100
     }
@@ -33,7 +33,7 @@
     {
       "checkId": "approval_latency",
       "expected": "<= 1500ms",
-      "actual": "9ms",
+      "actual": "6ms",
       "status": "PASS"
     },
     {

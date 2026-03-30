@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:02:55.355Z",
+  "generatedAt": "2026-03-30T19:28:09.679Z",
   "suite": "commercial-readiness-audit",
   "checks": [
     {
@@ -42,8 +42,17 @@
       "details": {
         "status": "PASS",
         "totalFindings": 0,
-        "filesReviewed": 161,
-        "linesReviewed": 20237
+        "filesReviewed": 162,
+        "linesReviewed": 21390
+      }
+    },
+    {
+      "checkId": "security_regression_passed",
+      "passed": true,
+      "details": {
+        "status": "PASS",
+        "scorePercent": 100,
+        "failedChecks": 0
       }
     },
     {
@@ -57,8 +66,8 @@
     }
   ],
   "summary": {
-    "totalChecks": 6,
-    "passedChecks": 6,
+    "totalChecks": 7,
+    "passedChecks": 7,
     "failedChecks": 0,
     "scorePercent": 100,
     "status": "PASS"

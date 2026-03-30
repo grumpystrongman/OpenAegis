@@ -13,7 +13,7 @@ The point of the matrix is traceability:
 | Control | Implemented service or endpoint | What it does | Validation |
 | --- | --- | --- | --- |
 | SSO and session assurance | `auth-service` - `POST /v1/auth/token`, `POST /v1/auth/introspect`, `POST /v1/auth/revoke` | Issues, validates, and revokes signed sessions with assurance checks | Token/introspection/revocation flow returns deterministic status |
-| Gateway authn and tenant binding | `api-gateway` - auth header handling and tenant context checks | Rejects unauthenticated requests and propagates tenant context | Requests without a valid token are denied |
+| Gateway authn and tenant binding | `api-gateway` - demo token + auth-service introspection (`OPENAEGIS_AUTH_INTROSPECTION_URL`) | Rejects unauthenticated requests and enforces tenant scope from token claims | Requests without a valid token are denied; cross-tenant writes fail with `tenant_scope_mismatch` |
 | Tenant isolation | `tenant-service` - `PATCH /v1/tenants/{id}/isolation`, `GET /v1/tenants/{id}/policy` | Enforces tenant boundary validation and posture state | Cross-tenant access is denied without platform admin role |
 | Policy enforcement outside the model | `policy-service` - `POST /v1/policies/evaluate` | Evaluates allow, require-approval, or deny decisions | Policy result is produced before execution continues |
 | Policy pre-checks in the gateway | `api-gateway` - `POST /v1/policy/evaluate` | Allows fast pre-checks at ingress | Gateway rejects unsafe requests before workflow work begins |
@@ -35,7 +35,11 @@ The point of the matrix is traceability:
 
 ### Identity and access
 
-`auth-service` and `api-gateway` are the front door for identity checks. The production expectation is SSO federation with short-lived sessions, step-up for sensitive actions, and server-side enforcement of tenant binding.
+`auth-service` and `api-gateway` are the front door for identity checks. The production expectation is SSO federation with short-lived sessions, step-up for sensitive actions, and server-side enforcement of tenant binding. In hardened mode, enable gateway introspection by setting:
+
+- `OPENAEGIS_AUTH_INTROSPECTION_URL`
+- `OPENAEGIS_REQUIRE_INTROSPECTION=true`
+- optional: `OPENAEGIS_AUTH_INTROSPECTOR_ACTOR_ID`, `OPENAEGIS_AUTH_INTROSPECTOR_TENANT_ID`, `OPENAEGIS_AUTH_INTROSPECTION_TIMEOUT_MS`
 
 ### Policy and approval
 

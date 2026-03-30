@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:00:32.645Z",
+  "generatedAt": "2026-03-30T19:30:54.705Z",
   "suite": "trust-proof-challenge-launch",
   "challengeWindow": {
     "startDate": "2026-03-30",
@@ -12,40 +12,48 @@
       "label": "Run trust proof",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 31654
+      "durationMs": 29394
+    },
+    {
+      "id": "security-regression",
+      "label": "Run security regression",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 696
     },
     {
       "id": "design-partner-kpis",
       "label": "Generate design-partner KPIs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 672
+      "durationMs": 516
     },
     {
       "id": "trust-pack",
       "label": "Generate enterprise trust pack",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 738
+      "durationMs": 750
     },
     {
       "id": "trust-pack-audit",
       "label": "Audit enterprise trust pack",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 617
+      "durationMs": 562
     },
     {
       "id": "security-evidence-pack",
       "label": "Publish security evidence pack",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 772
+      "durationMs": 676
     }
   ],
   "outputs": {
     "challengeGuide": "docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md",
     "trustProof": "docs/assets/demo/trust-layer-proof-report.json",
+    "securityRegression": "docs/assets/demo/security-regression-report.json",
     "designPartnerKpis": "docs/assets/demo/design-partner-kpis.json",
     "enterpriseTrustPackAudit": "docs/assets/demo/enterprise-trust-pack-audit-report.json",
     "securityEvidencePackPointer": "docs/assets/security-evidence-pack/latest.json"

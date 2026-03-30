@@ -1,6 +1,6 @@
 {
-  "packageId": "2026-03-30T18-02-54-200Z",
-  "generatedAt": "2026-03-30T18:02:54.255Z",
+  "packageId": "2026-03-30T19-30-53-317Z",
+  "generatedAt": "2026-03-30T19:30:53.378Z",
   "requiredFiles": [
     "docs/compliance/CONTROL-CROSSWALK.json",
     "docs/compliance/ENTERPRISE-TRUST-PACK.md",
@@ -12,6 +12,7 @@
     "docs/assets/demo/commercial-proof-report.json",
     "docs/assets/demo/trust-layer-proof-report.json",
     "docs/assets/demo/commercial-audit-report.json",
+    "docs/assets/demo/security-regression-report.json",
     "docs/assets/demo/codebase-line-audit-report.json",
     "docs/assets/demo/design-partner-kpis.json",
     "docs/assets/demo/chaos-report.json",
@@ -28,6 +29,7 @@
     "docs/assets/demo/commercial-proof-report.json",
     "docs/assets/demo/trust-layer-proof-report.json",
     "docs/assets/demo/commercial-audit-report.json",
+    "docs/assets/demo/security-regression-report.json",
     "docs/assets/demo/codebase-line-audit-report.json",
     "docs/assets/demo/design-partner-kpis.json",
     "docs/assets/demo/chaos-report.json",
@@ -52,8 +54,8 @@
     },
     {
       "file": "docs/security/HARDENING-CONTROLS-MATRIX.md",
-      "sha256": "cae0d596f0330c1287b89be258225c1cb9a67a97c910c10d69da656a261d81a3",
-      "sizeBytes": 6198
+      "sha256": "bab6210298032eb0d28e9bd00560d26443cf4175acbd565c14f5d3003f3c0fdd",
+      "sizeBytes": 6570
     },
     {
       "file": "docs/threat-model.md",
@@ -62,48 +64,53 @@
     },
     {
       "file": "docs/commercial/CISO-DECISION-BRIEF.md",
-      "sha256": "75e6a53c8e2d191cf4908576d2fc011fcefbadb057997a04d420bce939ca4957",
-      "sizeBytes": 3804
+      "sha256": "ffee38e3c21cb3cace5602c25242da76e2bbf44db4c474207dbbc724fa97e4ed",
+      "sizeBytes": 3857
     },
     {
       "file": "docs/assets/demo/readiness-gate-report.json",
-      "sha256": "b51d6719a4c245a59786e488f78f387339f743b0d39263e72aaeba408b9b4379",
-      "sizeBytes": 42843
+      "sha256": "e4aec4fc42bcd3ccc08506bb33d88f3d675bf455c5a30edbd9474415fcba0e86",
+      "sizeBytes": 47531
     },
     {
       "file": "docs/assets/demo/commercial-proof-report.json",
-      "sha256": "33403c9bf5646ceae0857e9479bd6a5bd4fd18e820983aefbf2542c2256cc10e",
+      "sha256": "bd6612d0222b4b234fd90665430ca3f95d8e2213ed88ee8ea7639634b184544f",
       "sizeBytes": 7607
     },
     {
       "file": "docs/assets/demo/trust-layer-proof-report.json",
-      "sha256": "5767a8cc4ca16fc352aa6585296bdc74f401df7ca52625fa88099d9dc636bcd3",
+      "sha256": "ed2ab65d4bd1c042e6ab201967023491396b4eb1da5a6d380ae38008d5627d04",
       "sizeBytes": 6959
     },
     {
       "file": "docs/assets/demo/commercial-audit-report.json",
-      "sha256": "c2f84e883acc96d20118c3e78e9ee8d94edc0c917144c36dfe49b81e787737e0",
-      "sizeBytes": 1153
+      "sha256": "3dba4eddc97e3e87415fff8e8007d150e5fa94c2de8ecce93c8329a210d371e2",
+      "sizeBytes": 1541
+    },
+    {
+      "file": "docs/assets/demo/security-regression-report.json",
+      "sha256": "bdd3649ec14ec7a28a4799a92afb91cc2c413da76ce5b75af4ac441032b5b73d",
+      "sizeBytes": 1809
     },
     {
       "file": "docs/assets/demo/codebase-line-audit-report.json",
-      "sha256": "554e31822180df9a936b04186faaa04a223a85ada9981fbb1a28196786fabb4c",
+      "sha256": "eb133cc43d37cd3235d58256e6f27e2d1c12ecfb92df459ad6766fa8cd221aaa",
       "sizeBytes": 383
     },
     {
       "file": "docs/assets/demo/design-partner-kpis.json",
-      "sha256": "5703e34678c0b755da1b7ee1449eb5ef0777ee976c1b61b1dcecb77a7a65a8ff",
-      "sizeBytes": 1389
+      "sha256": "2f3a969c52ebdb021c2f88aedb7c28456d185690df11f326e5524d45831869f1",
+      "sizeBytes": 1388
     },
     {
       "file": "docs/assets/demo/chaos-report.json",
-      "sha256": "bfac4b55fdaeacecccdae5cc42ca2ef47aa41b42c21124d2f6fe986a81ddf7ee",
+      "sha256": "ae6a00710c89d7da3db1458b8ce55b9a118a3f79a207b7a5741e477bc7b4b6c8",
       "sizeBytes": 3878
     },
     {
       "file": "docs/assets/demo/load-test-report.json",
-      "sha256": "74c78cec703aca0b4b88df35730bfea51a26c343ab5bb7ef76db496b0493fe3e",
-      "sizeBytes": 599
+      "sha256": "fa3ff51a18ed3661c20bfb200b46c3156f3bc2429b32b643021fe143762bc588",
+      "sizeBytes": 597
     }
   ],
   "summary": {

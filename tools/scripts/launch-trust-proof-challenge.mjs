@@ -7,6 +7,7 @@ const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
 
 const commandPlan = [
   { id: "trust-proof", label: "Run trust proof", args: ["run", "proof:trust-layer"] },
+  { id: "security-regression", label: "Run security regression", args: ["run", "security:regression"] },
   { id: "design-partner-kpis", label: "Generate design-partner KPIs", args: ["run", "pilot:kpis"] },
   { id: "trust-pack", label: "Generate enterprise trust pack", args: ["run", "trust:pack"] },
   { id: "trust-pack-audit", label: "Audit enterprise trust pack", args: ["run", "trust:audit"] },
@@ -55,6 +56,7 @@ const run = async () => {
     outputs: {
       challengeGuide: "docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md",
       trustProof: "docs/assets/demo/trust-layer-proof-report.json",
+      securityRegression: "docs/assets/demo/security-regression-report.json",
       designPartnerKpis: "docs/assets/demo/design-partner-kpis.json",
       enterpriseTrustPackAudit: "docs/assets/demo/enterprise-trust-pack-audit-report.json",
       securityEvidencePackPointer: "docs/assets/security-evidence-pack/latest.json"

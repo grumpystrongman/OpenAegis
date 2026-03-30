@@ -1,12 +1,13 @@
 {
-  "packageId": "2026-03-30T18-03-00-192Z",
-  "generatedAt": "2026-03-30T18:03:00.266Z",
+  "packageId": "2026-03-30T19-30-54-539Z",
+  "generatedAt": "2026-03-30T19:30:54.611Z",
   "status": "PASS",
   "missing": [],
   "copied": [
     "docs/assets/demo/readiness-gate-report.json",
     "docs/assets/demo/commercial-proof-report.json",
     "docs/assets/demo/trust-layer-proof-report.json",
+    "docs/assets/demo/security-regression-report.json",
     "docs/assets/demo/codebase-line-audit-report.json",
     "docs/assets/demo/commercial-audit-report.json",
     "docs/assets/demo/enterprise-trust-pack-audit-report.json",
@@ -24,63 +25,68 @@
   "checksums": [
     {
       "file": "docs/assets/demo/readiness-gate-report.json",
-      "sha256": "535b6e7dac2e213293f035db338368b551f340ec4c34f3f37b5643514f6c4d9a",
-      "sizeBytes": 46843
+      "sha256": "e4aec4fc42bcd3ccc08506bb33d88f3d675bf455c5a30edbd9474415fcba0e86",
+      "sizeBytes": 47531
     },
     {
       "file": "docs/assets/demo/commercial-proof-report.json",
-      "sha256": "33403c9bf5646ceae0857e9479bd6a5bd4fd18e820983aefbf2542c2256cc10e",
+      "sha256": "bd6612d0222b4b234fd90665430ca3f95d8e2213ed88ee8ea7639634b184544f",
       "sizeBytes": 7607
     },
     {
       "file": "docs/assets/demo/trust-layer-proof-report.json",
-      "sha256": "5767a8cc4ca16fc352aa6585296bdc74f401df7ca52625fa88099d9dc636bcd3",
+      "sha256": "ed2ab65d4bd1c042e6ab201967023491396b4eb1da5a6d380ae38008d5627d04",
       "sizeBytes": 6959
     },
     {
+      "file": "docs/assets/demo/security-regression-report.json",
+      "sha256": "bdd3649ec14ec7a28a4799a92afb91cc2c413da76ce5b75af4ac441032b5b73d",
+      "sizeBytes": 1809
+    },
+    {
       "file": "docs/assets/demo/codebase-line-audit-report.json",
-      "sha256": "554e31822180df9a936b04186faaa04a223a85ada9981fbb1a28196786fabb4c",
+      "sha256": "eb133cc43d37cd3235d58256e6f27e2d1c12ecfb92df459ad6766fa8cd221aaa",
       "sizeBytes": 383
     },
     {
       "file": "docs/assets/demo/commercial-audit-report.json",
-      "sha256": "9228ad8d1c91c14a65eb3bfc0e4e13ad776bcdbb631904e9fdaa7a33debbbbd6",
-      "sizeBytes": 1351
+      "sha256": "3dba4eddc97e3e87415fff8e8007d150e5fa94c2de8ecce93c8329a210d371e2",
+      "sizeBytes": 1541
     },
     {
       "file": "docs/assets/demo/enterprise-trust-pack-audit-report.json",
-      "sha256": "e37a20f4c231b6991875ef83e98cc2ea2e60c9bc44873951fd29f14818439eab",
-      "sizeBytes": 2235
+      "sha256": "5c96a94724cc22959c931eaf7d9927f2611bdffb4ff95ec037a2de425292f68e",
+      "sizeBytes": 2549
     },
     {
       "file": "docs/assets/demo/load-test-report.json",
-      "sha256": "82da3590af4ffedb7d290c6cb032f4cf41dbc96caf2376a6e092f15a885f968d",
-      "sizeBytes": 599
+      "sha256": "fa3ff51a18ed3661c20bfb200b46c3156f3bc2429b32b643021fe143762bc588",
+      "sizeBytes": 597
     },
     {
       "file": "docs/assets/demo/chaos-report.json",
-      "sha256": "92a43e3c136ddd91d76934e1b1c214f9807c99b571b3443fb313d997cbb8d99d",
+      "sha256": "ae6a00710c89d7da3db1458b8ce55b9a118a3f79a207b7a5741e477bc7b4b6c8",
       "sizeBytes": 3878
     },
     {
       "file": "docs/assets/demo/test-surface-report.json",
-      "sha256": "b1f6586caa29d4cbbd0321f861844dc0a503c88ca51e6f36031bac60e6f1d594",
+      "sha256": "e97b9b82811e640c918c1257fd004fc2c2210f3366500405896b5dabdbd8a20a",
       "sizeBytes": 4317
     },
     {
       "file": "docs/assets/demo/design-partner-kpis.json",
-      "sha256": "51b6103f334e914eb2263056eed7bd57fc110d8381f36cb0d45ea88dc21fb5c3",
+      "sha256": "2f3a969c52ebdb021c2f88aedb7c28456d185690df11f326e5524d45831869f1",
       "sizeBytes": 1388
     },
     {
       "file": "docs/assets/enterprise-trust-pack/latest/manifest.json",
-      "sha256": "672245e33ad63a4349f3d0fafa780f52188e7c2b8f1c41edcd4042a5ccd68a2c",
-      "sizeBytes": 4350
+      "sha256": "bbb84c42f831d56444cfb294a448e54fdae5efd0b362b8d9b5b068071ed0a493",
+      "sizeBytes": 4649
     },
     {
       "file": "docs/assets/enterprise-trust-pack/latest/EXECUTIVE-BRIEF.md",
-      "sha256": "41d47c8394a2163214a5215c924be5d3183bc3a652db3722816b8138e56495a2",
-      "sizeBytes": 668
+      "sha256": "e94e11a289c03f06a776cf50693650c0adf2a582b3879c3bda100b8dd2fe024b",
+      "sizeBytes": 703
     },
     {
       "file": "docs/threat-model.md",
@@ -94,22 +100,22 @@
     },
     {
       "file": "docs/readiness/HOSPITAL-PRODUCTION-GATE.md",
-      "sha256": "a5c4bf8b1da70bcd505b3de32a2aa404860a33e4af2d46c3c92bd72840d56775",
-      "sizeBytes": 7328
+      "sha256": "c2219bed56d6684d2bd242bffba10854f2f32dac9076d1588c37f4d9fd1ff98e",
+      "sizeBytes": 7688
     },
     {
       "file": "docs/security/HARDENING-CONTROLS-MATRIX.md",
-      "sha256": "cae0d596f0330c1287b89be258225c1cb9a67a97c910c10d69da656a261d81a3",
-      "sizeBytes": 6198
+      "sha256": "bab6210298032eb0d28e9bd00560d26443cf4175acbd565c14f5d3003f3c0fdd",
+      "sizeBytes": 6570
     }
   ],
   "snapshot": {
     "readiness": {
       "scorePercent": 100,
       "pass": true,
-      "rawScore": 150,
-      "maxScore": 150,
-      "commandContribution": 115,
+      "rawScore": 158,
+      "maxScore": 158,
+      "commandContribution": 123,
       "weightedSignal": 35,
       "mandatoryFailed": false,
       "status": "PASS"
@@ -118,6 +124,13 @@
       "totalExamples": 3,
       "passedExamples": 3,
       "failedExamples": 0,
+      "scorePercent": 100,
+      "status": "PASS"
+    },
+    "securityRegression": {
+      "totalChecks": 6,
+      "passedChecks": 6,
+      "failedChecks": 0,
       "scorePercent": 100,
       "status": "PASS"
     },
@@ -135,8 +148,8 @@
       "status": "PASS"
     },
     "enterpriseTrustPackAudit": {
-      "totalChecks": 6,
-      "passedChecks": 6,
+      "totalChecks": 7,
+      "passedChecks": 7,
       "failedChecks": 0,
       "scorePercent": 100,
       "status": "PASS"

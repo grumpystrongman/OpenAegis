@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:02:52.975Z",
+  "generatedAt": "2026-03-30T19:30:51.332Z",
   "suite": "trust-layer-end-to-end-proof",
   "product": "OpenAegis",
   "endpoints": {
@@ -28,16 +28,16 @@
           "status": 201,
           "latencyMs": 20,
           "data": {
-            "executionId": "ex-mndhxc61-4qiu8d",
+            "executionId": "ex-mndl2gz2-rzhrwi",
             "executionStatus": "blocked",
-            "approvalId": "ap-mndhxc6e-7fxdtl"
+            "approvalId": "ap-mndl2gze-djb1pl"
           }
         },
         {
           "step": "approve_high_risk_action",
           "expected": "approval decision accepted",
           "status": 200,
-          "latencyMs": 9,
+          "latencyMs": 6,
           "data": {
             "approvalStatus": "approved"
           }
@@ -46,7 +46,7 @@
           "step": "verify_execution_and_evidence",
           "expected": "completed execution with deterministic graph and audit evidence",
           "status": 200,
-          "latencyMs": 9,
+          "latencyMs": 8,
           "data": {
             "executionStatus": "completed",
             "graphStages": [
@@ -54,17 +54,17 @@
               "executor",
               "reviewer"
             ],
-            "evidenceId": "ev-ex-mndhxc61-4qiu8d",
+            "evidenceId": "ev-ex-mndl2gz2-rzhrwi",
             "auditEvents": 5
           }
         }
       ],
       "passed": true,
       "metrics": {
-        "approvalLatencyMs": 9,
+        "approvalLatencyMs": 6,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 39
+        "endToEndMs": 35
       },
       "summary": "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
     },
@@ -85,7 +85,7 @@
           "step": "discover_finance_connectors",
           "expected": "registry exposes enterprise analytics connectors",
           "status": 200,
-          "latencyMs": 4,
+          "latencyMs": 5,
           "data": {
             "hasFabric": true,
             "hasPowerBi": true,
@@ -96,7 +96,7 @@
           "step": "block_unapproved_finance_export",
           "expected": "runtime guard blocks outbound execution without approval",
           "status": 403,
-          "latencyMs": 8,
+          "latencyMs": 6,
           "data": {
             "guardReason": "approval_missing",
             "callStatus": "blocked"
@@ -106,10 +106,10 @@
           "step": "verify_idempotent_finance_automation",
           "expected": "duplicate submission replays prior tool call safely",
           "status": 200,
-          "latencyMs": 8,
+          "latencyMs": 9,
           "data": {
-            "firstCallId": "tc-mndhxc7g-2dw79l",
-            "replayCallId": "tc-mndhxc7g-2dw79l",
+            "firstCallId": "tc-mndl2h0d-yu1mqd",
+            "replayCallId": "tc-mndl2h0d-yu1mqd",
             "replayed": true
           }
         },
@@ -117,7 +117,7 @@
           "step": "validate_finance_policy_obligations",
           "expected": "decision includes outbound DLP/logging obligations",
           "status": 200,
-          "latencyMs": 3,
+          "latencyMs": 2,
           "data": {
             "effect": "ALLOW",
             "obligations": [
@@ -163,7 +163,7 @@
           "step": "allow_policy_change_with_dual_approval_break_glass",
           "expected": "200 response with breakGlassUsed=true",
           "status": 200,
-          "latencyMs": 5,
+          "latencyMs": 4,
           "data": {
             "breakGlassUsed": true,
             "profileVersion": 2
@@ -173,7 +173,7 @@
           "step": "trigger_and_release_kill_switch",
           "expected": "triggered then released with immutable event chain",
           "status": 200,
-          "latencyMs": 16,
+          "latencyMs": 14,
           "data": {
             "triggerStatus": "triggered",
             "releasedStatus": "released",
@@ -185,7 +185,7 @@
           "step": "restore_secure_policy_baseline",
           "expected": "secure defaults restored without break-glass",
           "status": 200,
-          "latencyMs": 3,
+          "latencyMs": 4,
           "data": {
             "enforceSecretDeny": true,
             "profileVersion": 3
@@ -198,7 +198,7 @@
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
         "containmentLatencyMs": 9,
-        "endToEndMs": 27
+        "endToEndMs": 25
       },
       "summary": "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
     }
@@ -211,7 +211,7 @@
     "status": "PASS"
   },
   "kpis": {
-    "approvalLatencyMs": 9,
+    "approvalLatencyMs": 6,
     "blockedRiskyActions": 3,
     "auditCompletenessPercent": 100
   }

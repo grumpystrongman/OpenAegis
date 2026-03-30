@@ -1,6 +1,6 @@
 {
-  "packageId": "2026-03-30T19-28-08-316Z",
-  "generatedAt": "2026-03-30T19:28:08.391Z",
+  "packageId": "2026-03-30T19-33-13-812Z",
+  "generatedAt": "2026-03-30T19:33:13.891Z",
   "requiredFiles": [
     "docs/compliance/CONTROL-CROSSWALK.json",
     "docs/compliance/ENTERPRISE-TRUST-PACK.md",
@@ -69,48 +69,48 @@
     },
     {
       "file": "docs/assets/demo/readiness-gate-report.json",
-      "sha256": "d7bf8b86fad67ec8c1daa772a6f29b569ed0f2e903c347ff10a69d7c05e1cffe",
-      "sizeBytes": 47533
+      "sha256": "e4aec4fc42bcd3ccc08506bb33d88f3d675bf455c5a30edbd9474415fcba0e86",
+      "sizeBytes": 47531
     },
     {
       "file": "docs/assets/demo/commercial-proof-report.json",
-      "sha256": "bd6612d0222b4b234fd90665430ca3f95d8e2213ed88ee8ea7639634b184544f",
+      "sha256": "5f4447491bf7471f53a949b7b9b1323b5ad416990b572d03c80f530b7485bbca",
       "sizeBytes": 7607
     },
     {
       "file": "docs/assets/demo/trust-layer-proof-report.json",
-      "sha256": "978d1e616b32699368f516b9d2d9d87b014dcb6d72426fadfa8ef1f2dd0b6512",
-      "sizeBytes": 6961
+      "sha256": "d09bdbed098a739ab070289bf3153b731ec8245c3a0d18f874a0620ecd1f3dc2",
+      "sizeBytes": 6960
     },
     {
       "file": "docs/assets/demo/commercial-audit-report.json",
-      "sha256": "228a8b25223992aa81ddcd7b4277601b90db421b4a9044442b21f07d9e47c8d9",
+      "sha256": "3dba4eddc97e3e87415fff8e8007d150e5fa94c2de8ecce93c8329a210d371e2",
       "sizeBytes": 1541
     },
     {
       "file": "docs/assets/demo/security-regression-report.json",
-      "sha256": "66c20552f48a079a086e9f9131ed31266983890699b1a2b977faea65a6b9ae25",
+      "sha256": "0b743e5b19bc006af065c94b76dee150b8f7cb200636f475356fc7f225b1446b",
       "sizeBytes": 1809
     },
     {
       "file": "docs/assets/demo/codebase-line-audit-report.json",
-      "sha256": "eb133cc43d37cd3235d58256e6f27e2d1c12ecfb92df459ad6766fa8cd221aaa",
+      "sha256": "4e2684c9a1281705ff58fe5beb0c350c4b17f773176a7cfd998b3cad532d8d6e",
       "sizeBytes": 383
     },
     {
       "file": "docs/assets/demo/design-partner-kpis.json",
-      "sha256": "51b6103f334e914eb2263056eed7bd57fc110d8381f36cb0d45ea88dc21fb5c3",
+      "sha256": "2f3a969c52ebdb021c2f88aedb7c28456d185690df11f326e5524d45831869f1",
       "sizeBytes": 1388
     },
     {
       "file": "docs/assets/demo/chaos-report.json",
-      "sha256": "1de8be538b6969d786b2e172d6592cc5bb2afc9af048e70f4d3f414f4ad9ae2a",
+      "sha256": "ae6a00710c89d7da3db1458b8ce55b9a118a3f79a207b7a5741e477bc7b4b6c8",
       "sizeBytes": 3878
     },
     {
       "file": "docs/assets/demo/load-test-report.json",
-      "sha256": "1db5ff16aab0aee38fce32f0523eb4fc2f3bc3c1e6c83d7a9e4e50685f85f21a",
-      "sizeBytes": 598
+      "sha256": "fa3ff51a18ed3661c20bfb200b46c3156f3bc2429b32b643021fe143762bc588",
+      "sizeBytes": 597
     }
   ],
   "summary": {

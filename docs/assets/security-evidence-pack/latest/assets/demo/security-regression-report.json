@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T19:32:15.218Z",
+  "generatedAt": "2026-03-30T19:30:52.164Z",
   "suite": "security-regression",
   "endpoints": {
     "gateway": "http://127.0.0.1:3970",
@@ -12,7 +12,7 @@
       "details": {
         "status": 401,
         "error": "missing_or_invalid_auth_token",
-        "latencyMs": 39
+        "latencyMs": 30
       }
     },
     {
@@ -30,8 +30,8 @@
       "passed": true,
       "details": {
         "status": 201,
-        "executionId": "ex-mndl49my-ms2v5o",
-        "latencyMs": 22
+        "executionId": "ex-mndl2hjw-vnefzf",
+        "latencyMs": 20
       }
     },
     {
@@ -40,7 +40,7 @@
       "details": {
         "status": 403,
         "error": "tenant_scope_mismatch",
-        "latencyMs": 5
+        "latencyMs": 6
       }
     },
     {

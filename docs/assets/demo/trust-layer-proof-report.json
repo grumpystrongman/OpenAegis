@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T19:28:07.007Z",
+  "generatedAt": "2026-03-30T19:33:12.370Z",
   "suite": "trust-layer-end-to-end-proof",
   "product": "OpenAegis",
   "endpoints": {
@@ -26,11 +26,11 @@
           "step": "start_live_execution",
           "expected": "blocked with approval requirement",
           "status": 201,
-          "latencyMs": 22,
+          "latencyMs": 21,
           "data": {
-            "executionId": "ex-mndkyy6f-0ii3qw",
+            "executionId": "ex-mndl5hsv-zrocz7",
             "executionStatus": "blocked",
-            "approvalId": "ap-mndkyy6u-7kixei"
+            "approvalId": "ap-mndl5ht7-lo41rh"
           }
         },
         {
@@ -46,7 +46,7 @@
           "step": "verify_execution_and_evidence",
           "expected": "completed execution with deterministic graph and audit evidence",
           "status": 200,
-          "latencyMs": 11,
+          "latencyMs": 9,
           "data": {
             "executionStatus": "completed",
             "graphStages": [
@@ -54,7 +54,7 @@
               "executor",
               "reviewer"
             ],
-            "evidenceId": "ev-ex-mndkyy6f-0ii3qw",
+            "evidenceId": "ev-ex-mndl5hsv-zrocz7",
             "auditEvents": 5
           }
         }
@@ -64,7 +64,7 @@
         "approvalLatencyMs": 7,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 41
+        "endToEndMs": 37
       },
       "summary": "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
     },
@@ -96,7 +96,7 @@
           "step": "block_unapproved_finance_export",
           "expected": "runtime guard blocks outbound execution without approval",
           "status": 403,
-          "latencyMs": 6,
+          "latencyMs": 7,
           "data": {
             "guardReason": "approval_missing",
             "callStatus": "blocked"
@@ -106,10 +106,10 @@
           "step": "verify_idempotent_finance_automation",
           "expected": "duplicate submission replays prior tool call safely",
           "status": 200,
-          "latencyMs": 8,
+          "latencyMs": 9,
           "data": {
-            "firstCallId": "tc-mndkyy7u-wmxhbg",
-            "replayCallId": "tc-mndkyy7u-wmxhbg",
+            "firstCallId": "tc-mndl5hu7-8hhbdv",
+            "replayCallId": "tc-mndl5hu7-8hhbdv",
             "replayed": true
           }
         },
@@ -117,7 +117,7 @@
           "step": "validate_finance_policy_obligations",
           "expected": "decision includes outbound DLP/logging obligations",
           "status": 200,
-          "latencyMs": 2,
+          "latencyMs": 3,
           "data": {
             "effect": "ALLOW",
             "obligations": [
@@ -133,7 +133,7 @@
         "approvalLatencyMs": null,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 21
+        "endToEndMs": 24
       },
       "summary": "Finance automation stayed controlled: unsafe export blocked, retries idempotent, obligations attached."
     },
@@ -154,7 +154,7 @@
           "step": "block_unsafe_policy_change_without_break_glass",
           "expected": "422 response requiring break-glass",
           "status": 422,
-          "latencyMs": 2,
+          "latencyMs": 3,
           "data": {
             "error": "break_glass_required_for_blocking_policy_changes"
           }
@@ -185,7 +185,7 @@
           "step": "restore_secure_policy_baseline",
           "expected": "secure defaults restored without break-glass",
           "status": 200,
-          "latencyMs": 4,
+          "latencyMs": 5,
           "data": {
             "enforceSecretDeny": true,
             "profileVersion": 3
@@ -198,7 +198,7 @@
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
         "containmentLatencyMs": 10,
-        "endToEndMs": 25
+        "endToEndMs": 27
       },
       "summary": "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
     }

@@ -31,6 +31,7 @@ It does not replace security review, architecture review, or change management. 
 | Test suite | `npm run test` | Exit code 0 | All tests pass |
 | Test surface validation | `npm run validate:test-surface` | Exit code 0 | Every workspace package has at least one executable test file |
 | Infrastructure packaging validation | `npm run validate:infra` | Exit code 0 | Docker/Kubernetes/Helm artifacts are complete and internally consistent |
+| Security regression gate | `npm run security:regression` | Exit code 0 | `docs/assets/demo/security-regression-report.json` is generated with PASS status |
 | Pilot smoke test | `npm run smoke:pilot` | Exit code 0 | Pilot flow boots and completes the smoke scenario |
 | Commercial proof | `npm run proof:commercial` | Exit code 0 | `docs/assets/demo/commercial-proof-report.json` is generated |
 | Trust-layer proof (3 examples) | `npm run proof:trust-layer` | Exit code 0 | `docs/assets/demo/trust-layer-proof-report.json` is generated |
@@ -54,25 +55,27 @@ The release is only considered ready when all of the following are true:
 3. `npm run test` passes.
 4. `npm run validate:test-surface` passes.
 5. `npm run validate:infra` passes.
-6. `npm run smoke:pilot` passes.
-7. `npm run proof:commercial` passes.
-8. `npm run proof:trust-layer` passes.
-9. `npm run audit:codebase` passes.
-10. `npm run trust:pack` passes.
-11. `npm run trust:audit` passes.
-12. `npm run audit:commercial` passes.
-13. `npm run load:commercial` passes.
-14. `npm run chaos:commercial` passes.
-15. `npm run readiness:gate` passes.
-16. The commercial proof report records `summary.status = PASS`.
-17. The commercial proof report records `summary.failedClaims = 0`.
-18. The commercial proof report records `summary.scorePercent = 100`.
-19. The trust-layer proof report records `summary.totalExamples = 3`.
-20. The trust-layer proof report records `summary.status = PASS`.
-21. The codebase line audit report records `summary.totalFindings = 0`.
-22. The enterprise trust pack audit report records `summary.status = PASS`.
-23. The readiness gate report records `summary.scorePercent >= 98`.
-24. The readiness gate report records `summary.status = PASS`.
+6. `npm run security:regression` passes.
+7. `npm run smoke:pilot` passes.
+8. `npm run proof:commercial` passes.
+9. `npm run proof:trust-layer` passes.
+10. `npm run audit:codebase` passes.
+11. `npm run trust:pack` passes.
+12. `npm run trust:audit` passes.
+13. `npm run audit:commercial` passes.
+14. `npm run load:commercial` passes.
+15. `npm run chaos:commercial` passes.
+16. `npm run readiness:gate` passes.
+17. The security regression report records `summary.status = PASS`.
+18. The commercial proof report records `summary.status = PASS`.
+19. The commercial proof report records `summary.failedClaims = 0`.
+20. The commercial proof report records `summary.scorePercent = 100`.
+21. The trust-layer proof report records `summary.totalExamples = 3`.
+22. The trust-layer proof report records `summary.status = PASS`.
+23. The codebase line audit report records `summary.totalFindings = 0`.
+24. The enterprise trust pack audit report records `summary.status = PASS`.
+25. The readiness gate report records `summary.scorePercent >= 98`.
+26. The readiness gate report records `summary.status = PASS`.
 
 If any one of these checks fails, the gate is closed.
 
@@ -138,6 +141,7 @@ The expected evidence bundle for a gate review is:
 - `npm run build` output
 - `npm run test` output
 - `npm run validate:test-surface` output
+- `npm run security:regression` output
 - `npm run smoke:pilot` output
 - `npm run proof:commercial` output
 - `npm run proof:trust-layer` output
@@ -152,6 +156,7 @@ The expected evidence bundle for a gate review is:
 - `docs/assets/demo/trust-layer-proof-report.json`
 - `docs/assets/demo/codebase-line-audit-report.json`
 - `docs/assets/demo/commercial-audit-report.json`
+- `docs/assets/demo/security-regression-report.json`
 - `docs/assets/demo/enterprise-trust-pack-audit-report.json`
 - `docs/assets/enterprise-trust-pack/latest/manifest.json`
 - `docs/assets/demo/load-test-report.json`

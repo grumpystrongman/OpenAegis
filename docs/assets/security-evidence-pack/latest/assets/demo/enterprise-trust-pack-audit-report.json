@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T18:02:54.795Z",
+  "generatedAt": "2026-03-30T19:30:53.992Z",
   "suite": "enterprise-trust-pack-audit",
   "checks": [
     {
@@ -9,12 +9,12 @@
         {
           "file": "docs/assets/enterprise-trust-pack/latest/manifest.json",
           "passed": true,
-          "sizeBytes": 4350
+          "sizeBytes": 4649
         },
         {
           "file": "docs/assets/enterprise-trust-pack/latest/EXECUTIVE-BRIEF.md",
           "passed": true,
-          "sizeBytes": 668
+          "sizeBytes": 703
         },
         {
           "file": "docs/assets/enterprise-trust-pack/latest/compliance/CONTROL-CROSSWALK.json",
@@ -29,12 +29,17 @@
         {
           "file": "docs/assets/demo/readiness-gate-report.json",
           "passed": true,
-          "sizeBytes": 42843
+          "sizeBytes": 47531
         },
         {
           "file": "docs/assets/demo/commercial-audit-report.json",
           "passed": true,
-          "sizeBytes": 1153
+          "sizeBytes": 1541
+        },
+        {
+          "file": "docs/assets/demo/security-regression-report.json",
+          "passed": true,
+          "sizeBytes": 1809
         }
       ]
     },
@@ -85,11 +90,19 @@
         "status": "PASS",
         "scorePercent": 100
       }
+    },
+    {
+      "checkId": "security_regression_still_passed",
+      "passed": true,
+      "details": {
+        "status": "PASS",
+        "scorePercent": 100
+      }
     }
   ],
   "summary": {
-    "totalChecks": 6,
-    "passedChecks": 6,
+    "totalChecks": 7,
+    "passedChecks": 7,
     "failedChecks": 0,
     "scorePercent": 100,
     "status": "PASS"

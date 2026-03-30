@@ -1,13 +1,14 @@
 # OpenAegis Enterprise Trust Pack
 
-Generated: 2026-03-30T18:02:54.255Z
-Package ID: 2026-03-30T18-02-54-200Z
+Generated: 2026-03-30T19:30:53.378Z
+Package ID: 2026-03-30T19-30-53-317Z
 Status: PASS
 
 ## Readiness Snapshot
 - Readiness gate: PASS (100%)
 - Commercial proof: PASS (100%)
 - Trust proof: PASS (3/3 examples)
+- Security regression: PASS (100%)
 - Codebase audit: PASS (findings=0)
 
 ## Compliance Mapping Snapshot

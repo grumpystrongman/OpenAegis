@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T19:27:38.151Z",
+  "generatedAt": "2026-03-30T19:32:43.360Z",
   "profile": "commercial-readiness",
   "scope": {
     "product": "OpenAegis",
@@ -25,8 +25,8 @@
       "whyItMatters": "Prevents unsafe autonomous execution on sensitive actions.",
       "howTested": "Run live discharge workflow and assert blocked state with approval ticket.",
       "evidence": {
-        "executionId": "ex-mndkybx2-pavxek",
-        "approvalId": "ap-mndkybxe-tzghp9",
+        "executionId": "ex-mndl4vez-xmnb2v",
+        "approvalId": "ap-mndl4vfb-qvrkrl",
         "status": "blocked"
       }
     },
@@ -39,7 +39,7 @@
       "evidence": {
         "approvalStatus": "approved",
         "executionStatusAfterApproval": "completed",
-        "evidenceId": "ev-ex-mndkybx2-pavxek"
+        "evidenceId": "ev-ex-mndl4vez-xmnb2v"
       }
     },
     {
@@ -49,7 +49,7 @@
       "whyItMatters": "Allows post-incident replay and operational predictability.",
       "howTested": "Query graph endpoint and verify stage chain.",
       "evidence": {
-        "graphExecutionId": "gx-mndkybx2-ryco9n",
+        "graphExecutionId": "gx-mndl4vez-0ggfvx",
         "stages": [
           "planner",
           "executor",
@@ -65,7 +65,7 @@
       "howTested": "List audit events and verify evidence IDs are present.",
       "evidence": {
         "eventCount": 5,
-        "latestEvidenceId": "ev-mndkybxo-5kybf6"
+        "latestEvidenceId": "ev-mndl4vfk-kghiki"
       }
     },
     {
@@ -104,8 +104,8 @@
       "whyItMatters": "Improves reliability for enterprise automation retries and outage recovery.",
       "howTested": "Submit duplicate tool call with same idempotency key and assert replay semantics.",
       "evidence": {
-        "firstCallId": "tc-mndkybyh-d2ln7l",
-        "replayCallId": "tc-mndkybyh-d2ln7l",
+        "firstCallId": "tc-mndl4vgc-0sjvjo",
+        "replayCallId": "tc-mndl4vgc-0sjvjo",
         "replayed": true
       }
     }
@@ -126,8 +126,8 @@
       "whyItMatters": "Prevents unsafe autonomous execution on sensitive actions.",
       "howTested": "Run live discharge workflow and assert blocked state with approval ticket.",
       "evidence": {
-        "executionId": "ex-mndkybx2-pavxek",
-        "approvalId": "ap-mndkybxe-tzghp9",
+        "executionId": "ex-mndl4vez-xmnb2v",
+        "approvalId": "ap-mndl4vfb-qvrkrl",
         "status": "blocked"
       }
     },
@@ -140,7 +140,7 @@
       "evidence": {
         "approvalStatus": "approved",
         "executionStatusAfterApproval": "completed",
-        "evidenceId": "ev-ex-mndkybx2-pavxek"
+        "evidenceId": "ev-ex-mndl4vez-xmnb2v"
       }
     },
     {
@@ -150,7 +150,7 @@
       "whyItMatters": "Allows post-incident replay and operational predictability.",
       "howTested": "Query graph endpoint and verify stage chain.",
       "evidence": {
-        "graphExecutionId": "gx-mndkybx2-ryco9n",
+        "graphExecutionId": "gx-mndl4vez-0ggfvx",
         "stages": [
           "planner",
           "executor",
@@ -166,7 +166,7 @@
       "howTested": "List audit events and verify evidence IDs are present.",
       "evidence": {
         "eventCount": 5,
-        "latestEvidenceId": "ev-mndkybxo-5kybf6"
+        "latestEvidenceId": "ev-mndl4vfk-kghiki"
       }
     },
     {
@@ -205,8 +205,8 @@
       "whyItMatters": "Improves reliability for enterprise automation retries and outage recovery.",
       "howTested": "Submit duplicate tool call with same idempotency key and assert replay semantics.",
       "evidence": {
-        "firstCallId": "tc-mndkybyh-d2ln7l",
-        "replayCallId": "tc-mndkybyh-d2ln7l",
+        "firstCallId": "tc-mndl4vgc-0sjvjo",
+        "replayCallId": "tc-mndl4vgc-0sjvjo",
         "replayed": true
       }
     }
