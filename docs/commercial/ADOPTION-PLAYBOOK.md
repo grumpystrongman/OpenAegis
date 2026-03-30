@@ -1,68 +1,88 @@
 # OpenAegis Adoption Playbook
 
-This playbook focuses on getting real users and design partners, not vanity traffic.
+This is the execution plan to drive real usage now, with concrete commands and measurable gates.
 
-## 1) Get First 10 Design Partners
-
-Target profile:
-
-- Hospitals and health systems with active AI governance programs
-- Security/compliance teams blocked by "AI policy theatre"
-- Operations teams already piloting copilots but lacking evidence controls
-
-Offer:
-
-- 30-day pilot with 3 trust proof scenarios
-- Joint success criteria tied to policy, approvals, and audit replay
-
-## 2) Product-Led Trial That Actually Converts
-
-Publish a reproducible `proof:trust-layer` flow:
+## 1) Launch a 14-Day Trust Proof Challenge
 
 ```bash
 npm install
-npm run proof:trust-layer
-npm run readiness:gate
+npm run challenge:launch
 ```
 
-Trial conversion trigger:
+Challenge assets:
 
-- Team runs the proof locally
-- Team sees `PASS` on trust controls
-- Team maps controls to internal security checklist
+- `docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md`
+- `docs/challenge/TRUST-PROOF-SCORECARD.csv`
+- `docs/assets/challenge/trust-proof-challenge-launch.json`
 
-## 3) Packaging for Buyers
+Success signal:
 
-Ship a buyer-ready bundle:
+- 3/3 trust examples pass and challenge launch report is `PASS`.
 
-- `docs/assets/demo/trust-layer-proof-report.json`
-- `docs/assets/demo/commercial-proof-report.json`
-- `docs/assets/demo/readiness-gate-report.json`
-- `docs/readiness/HOSPITAL-PRODUCTION-GATE.md`
-- `docs/security/HARDENING-CONTROLS-MATRIX.md`
+## 2) Publish a Security Evidence Pack for CTO/CISO
 
-## 4) Distribution Channels
+```bash
+npm run evidence:security-pack
+```
 
-- GitHub release with executable proof artifacts
-- Security engineering communities (talks/blogs focused on controls, not hype)
-- Healthcare IT and compliance forums with live walkthroughs
-- Partner with integration consultancies for first implementations
+Primary outputs:
 
-## 5) Fastest Path to Credibility
+- `docs/assets/security-evidence-pack/latest/EXECUTIVE-SUMMARY.md`
+- `docs/assets/security-evidence-pack/latest/manifest.json`
 
-1. Publish passing proof artifacts for every release.
-2. Keep a public issues board with response SLAs.
-3. Publish security roadmap with concrete deadlines.
-4. Run community office hours showing real trust-layer failures and fixes.
+Success signal:
 
-## 6) Conversion Messaging
+- `manifest.status = PASS` and checksums are present for every required artifact.
 
-Lead with measurable outcomes:
+## 3) Offer One-Command Local Pilot
 
-- "Unsafe high-risk actions are blocked by policy before execution."
-- "Approvals are required where risk demands human control."
-- "Every action has evidence you can replay."
-- "The trust layer is provider-neutral and infrastructure-portable."
+```bash
+npm run pilot:local
+```
 
-Avoid claims like "autonomous AI" without controls evidence.
+What it runs:
 
+- readiness gate
+- design-partner KPI generation
+- security evidence-pack publication
+
+Success signal:
+
+- local pilot summary reports `PASS`.
+
+## 4) Run 3 Design-Partner Pilots with KPI Gates
+
+```bash
+npm run pilot:design-partners
+```
+
+Pilot tracks:
+
+- hospital operations
+- finance operations
+- secops containment
+
+KPI report:
+
+- `docs/assets/demo/design-partner-kpis.json`
+
+Required KPI thresholds:
+
+- approval latency <= 1500 ms
+- blocked risky actions >= 3 (global)
+- audit completeness >= 98%
+
+## 5) Monetization and Commercial Motion
+
+Keep the AGPL core open while monetizing:
+
+- commercial license for closed-source deployment rights
+- enterprise support tiers
+- compliance evidence support and architecture reviews
+- premium connectors and managed deployment options
+
+See:
+
+- `LICENSE`
+- `LICENSE-COMMERCIAL.md`
+- `docs/commercial/LICENSING.md`

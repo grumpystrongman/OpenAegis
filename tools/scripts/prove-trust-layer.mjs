@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { once } from "node:events";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { createAppServer as createGatewayServer } from "../../dist/services/api-gateway/src/index.js";
 import { createAppServer as createToolRegistryServer } from "../../dist/services/tool-registry/src/index.js";
 import { createAppServer as createToolExecutionServer } from "../../dist/services/tool-execution-service/src/index.js";
@@ -40,6 +41,12 @@ const call = async (baseUrl, path, method = "GET", options = {}) => {
   return { status: response.status, payload };
 };
 
+const callTimed = async (baseUrl, path, method = "GET", options = {}) => {
+  const startedAt = Date.now();
+  const result = await call(baseUrl, path, method, options);
+  return { ...result, elapsedMs: Date.now() - startedAt };
+};
+
 const makeExample = (input) => ({
   exampleId: input.exampleId,
   title: input.title,
@@ -49,12 +56,14 @@ const makeExample = (input) => ({
   trustControlsProven: input.trustControlsProven,
   steps: input.steps,
   passed: Boolean(input.passed),
+  metrics: input.metrics ?? {},
   summary: input.summary
 });
 
 const runHealthcareDischargeExample = async (tokens) => {
+  const startedAt = Date.now();
   const steps = [];
-  const liveExecution = await call(baseUrls.gateway, "/v1/executions", "POST", {
+  const liveExecution = await callTimed(baseUrls.gateway, "/v1/executions", "POST", {
     headers: { authorization: `Bearer ${tokens.clinician}` },
     body: {
       mode: "live",
@@ -70,6 +79,7 @@ const runHealthcareDischargeExample = async (tokens) => {
     step: "start_live_execution",
     expected: "blocked with approval requirement",
     status: liveExecution.status,
+    latencyMs: liveExecution.elapsedMs,
     data: {
       executionId: liveExecution.payload.executionId,
       executionStatus: liveExecution.payload.status,
@@ -77,7 +87,7 @@ const runHealthcareDischargeExample = async (tokens) => {
     }
   });
 
-  const decision = await call(baseUrls.gateway, `/v1/approvals/${liveExecution.payload.approvalId}/decide`, "POST", {
+  const decision = await callTimed(baseUrls.gateway, `/v1/approvals/${liveExecution.payload.approvalId}/decide`, "POST", {
     headers: { authorization: `Bearer ${tokens.security}` },
     body: { decision: "approve", reason: "Trust proof: discharge criteria validated" }
   });
@@ -86,19 +96,20 @@ const runHealthcareDischargeExample = async (tokens) => {
     step: "approve_high_risk_action",
     expected: "approval decision accepted",
     status: decision.status,
+    latencyMs: decision.elapsedMs,
     data: { approvalStatus: decision.payload.status }
   });
 
-  const executionAfter = await call(
+  const executionAfter = await callTimed(
     baseUrls.gateway,
     `/v1/executions/${liveExecution.payload.executionId}`,
     "GET",
     { headers: { authorization: `Bearer ${tokens.clinician}` } }
   );
-  const graph = await call(baseUrls.gateway, `/v1/executions/${liveExecution.payload.executionId}/graph`, "GET", {
+  const graph = await callTimed(baseUrls.gateway, `/v1/executions/${liveExecution.payload.executionId}/graph`, "GET", {
     headers: { authorization: `Bearer ${tokens.clinician}` }
   });
-  const audit = await call(baseUrls.gateway, "/v1/audit/events", "GET", {
+  const audit = await callTimed(baseUrls.gateway, "/v1/audit/events", "GET", {
     headers: { authorization: `Bearer ${tokens.clinician}` }
   });
 
@@ -120,6 +131,7 @@ const runHealthcareDischargeExample = async (tokens) => {
     step: "verify_execution_and_evidence",
     expected: "completed execution with deterministic graph and audit evidence",
     status: executionAfter.status,
+    latencyMs: executionAfter.elapsedMs + graph.elapsedMs + audit.elapsedMs,
     data: {
       executionStatus: executionAfter.payload.status,
       graphStages,
@@ -127,6 +139,13 @@ const runHealthcareDischargeExample = async (tokens) => {
       auditEvents: audit.payload.events?.length ?? 0
     }
   });
+
+  const auditCompletenessPercent =
+    executionAfter.payload.evidenceId &&
+    (audit.payload.events?.length ?? 0) > 0 &&
+    JSON.stringify(graphStages) === JSON.stringify(["planner", "executor", "reviewer"])
+      ? 100
+      : 0;
 
   return makeExample({
     exampleId: "healthcare-discharge-orchestration",
@@ -142,6 +161,12 @@ const runHealthcareDischargeExample = async (tokens) => {
     ],
     steps,
     passed,
+    metrics: {
+      approvalLatencyMs: decision.elapsedMs,
+      blockedRiskyActions: liveExecution.payload.status === "blocked" ? 1 : 0,
+      auditCompletenessPercent,
+      endToEndMs: Date.now() - startedAt
+    },
     summary: passed
       ? "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
       : "Healthcare trust controls did not fully validate."
@@ -149,12 +174,14 @@ const runHealthcareDischargeExample = async (tokens) => {
 };
 
 const runFinanceOpsExample = async (tokens) => {
+  const startedAt = Date.now();
   const steps = [];
-  const registry = await call(baseUrls.toolRegistry, "/v1/tools?status=published");
+  const registry = await callTimed(baseUrls.toolRegistry, "/v1/tools?status=published");
   steps.push({
     step: "discover_finance_connectors",
     expected: "registry exposes enterprise analytics connectors",
     status: registry.status,
+    latencyMs: registry.elapsedMs,
     data: {
       hasFabric: registry.payload.manifests?.some((manifest) => manifest.toolId === "connector-ms-fabric-read") ?? false,
       hasPowerBi: registry.payload.manifests?.some((manifest) => manifest.toolId === "connector-powerbi-export") ?? false,
@@ -162,7 +189,7 @@ const runFinanceOpsExample = async (tokens) => {
     }
   });
 
-  const blockedEmailExecution = await call(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+  const blockedEmailExecution = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
     headers: {
       "x-actor-id": "user-clinician",
       "x-tenant-id": "tenant-starlight-health"
@@ -186,6 +213,7 @@ const runFinanceOpsExample = async (tokens) => {
     step: "block_unapproved_finance_export",
     expected: "runtime guard blocks outbound execution without approval",
     status: blockedEmailExecution.status,
+    latencyMs: blockedEmailExecution.elapsedMs,
     data: {
       guardReason: blockedEmailExecution.payload.guardReason,
       callStatus: blockedEmailExecution.payload.status
@@ -209,11 +237,11 @@ const runFinanceOpsExample = async (tokens) => {
       owner: "Finance Ops"
     }
   };
-  const firstCall = await call(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+  const firstCall = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
     headers: idemHeaders,
     body: idemBody
   });
-  const replayCall = await call(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+  const replayCall = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
     headers: idemHeaders,
     body: idemBody
   });
@@ -222,6 +250,7 @@ const runFinanceOpsExample = async (tokens) => {
     step: "verify_idempotent_finance_automation",
     expected: "duplicate submission replays prior tool call safely",
     status: replayCall.status,
+    latencyMs: firstCall.elapsedMs + replayCall.elapsedMs,
     data: {
       firstCallId: firstCall.payload.toolCallId,
       replayCallId: replayCall.payload.toolCallId,
@@ -229,7 +258,7 @@ const runFinanceOpsExample = async (tokens) => {
     }
   });
 
-  const policyDecision = await call(baseUrls.gateway, "/v1/policy/evaluate", "POST", {
+  const policyDecision = await callTimed(baseUrls.gateway, "/v1/policy/evaluate", "POST", {
     headers: { authorization: `Bearer ${tokens.admin}` },
     body: {
       action: "finance.close.review",
@@ -245,6 +274,7 @@ const runFinanceOpsExample = async (tokens) => {
     step: "validate_finance_policy_obligations",
     expected: "decision includes outbound DLP/logging obligations",
     status: policyDecision.status,
+    latencyMs: policyDecision.elapsedMs,
     data: {
       effect: policyDecision.payload.decision?.effect,
       obligations: policyDecision.payload.decision?.obligations ?? []
@@ -263,6 +293,13 @@ const runFinanceOpsExample = async (tokens) => {
     Array.isArray(policyDecision.payload.decision?.obligations) &&
     policyDecision.payload.decision.obligations.includes("dlp_scan_required");
 
+  const obligations = policyDecision.payload.decision?.obligations ?? [];
+  const auditCompletenessPercent = ["log_audit_event", "classify_output", "dlp_scan_required"].every((obligation) =>
+    obligations.includes(obligation)
+  )
+    ? 100
+    : 66;
+
   return makeExample({
     exampleId: "finance-operations-guardrails",
     title: "Finance Close Guardrail Assistant",
@@ -277,6 +314,12 @@ const runFinanceOpsExample = async (tokens) => {
     ],
     steps,
     passed,
+    metrics: {
+      approvalLatencyMs: null,
+      blockedRiskyActions: blockedEmailExecution.status === 403 ? 1 : 0,
+      auditCompletenessPercent,
+      endToEndMs: Date.now() - startedAt
+    },
     summary: passed
       ? "Finance automation stayed controlled: unsafe export blocked, retries idempotent, obligations attached."
       : "Finance guardrail scenario did not fully validate."
@@ -284,9 +327,10 @@ const runFinanceOpsExample = async (tokens) => {
 };
 
 const runSecOpsExample = async (tokens) => {
+  const startedAt = Date.now();
   const steps = [];
 
-  const saveWithoutBreakGlass = await call(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
+  const saveWithoutBreakGlass = await callTimed(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
     headers: { authorization: `Bearer ${tokens.security}` },
     body: {
       profileName: "SecOps emergency draft",
@@ -299,10 +343,11 @@ const runSecOpsExample = async (tokens) => {
     step: "block_unsafe_policy_change_without_break_glass",
     expected: "422 response requiring break-glass",
     status: saveWithoutBreakGlass.status,
+    latencyMs: saveWithoutBreakGlass.elapsedMs,
     data: { error: saveWithoutBreakGlass.payload.error }
   });
 
-  const saveWithBreakGlass = await call(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
+  const saveWithBreakGlass = await callTimed(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
     headers: { authorization: `Bearer ${tokens.security}` },
     body: {
       profileName: "SecOps emergency draft",
@@ -320,6 +365,7 @@ const runSecOpsExample = async (tokens) => {
     step: "allow_policy_change_with_dual_approval_break_glass",
     expected: "200 response with breakGlassUsed=true",
     status: saveWithBreakGlass.status,
+    latencyMs: saveWithBreakGlass.elapsedMs,
     data: {
       breakGlassUsed: saveWithBreakGlass.payload.breakGlassUsed,
       profileVersion: saveWithBreakGlass.payload.profile?.profileVersion
@@ -331,7 +377,7 @@ const runSecOpsExample = async (tokens) => {
     "x-tenant-id": "tenant-starlight-health",
     "x-roles": "security_admin,platform_admin"
   };
-  const trigger = await call(baseUrls.killSwitch, "/v1/kill-switch/trigger", "POST", {
+  const trigger = await callTimed(baseUrls.killSwitch, "/v1/kill-switch/trigger", "POST", {
     headers: killHeaders,
     body: {
       tenantId: "tenant-starlight-health",
@@ -341,21 +387,21 @@ const runSecOpsExample = async (tokens) => {
       severity: "critical"
     }
   });
-  const statusAfterTrigger = await call(
+  const statusAfterTrigger = await callTimed(
     baseUrls.killSwitch,
     "/v1/kill-switch/status?tenantId=tenant-starlight-health&status=triggered",
     "GET",
     { headers: killHeaders }
   );
 
-  const release = await call(baseUrls.killSwitch, "/v1/kill-switch/release", "POST", {
+  const release = await callTimed(baseUrls.killSwitch, "/v1/kill-switch/release", "POST", {
     headers: killHeaders,
     body: {
       circuitId: trigger.payload.circuit?.circuitId,
       reason: "Containment drill complete"
     }
   });
-  const events = await call(baseUrls.killSwitch, "/v1/kill-switch/events?tenantId=tenant-starlight-health", "GET", {
+  const events = await callTimed(baseUrls.killSwitch, "/v1/kill-switch/events?tenantId=tenant-starlight-health", "GET", {
     headers: killHeaders
   });
 
@@ -363,6 +409,7 @@ const runSecOpsExample = async (tokens) => {
     step: "trigger_and_release_kill_switch",
     expected: "triggered then released with immutable event chain",
     status: release.status,
+    latencyMs: trigger.elapsedMs + statusAfterTrigger.elapsedMs + release.elapsedMs + events.elapsedMs,
     data: {
       triggerStatus: trigger.payload.circuit?.status,
       releasedStatus: release.payload.circuit?.status,
@@ -371,7 +418,7 @@ const runSecOpsExample = async (tokens) => {
     }
   });
 
-  const restoreBaseline = await call(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
+  const restoreBaseline = await callTimed(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
     headers: { authorization: `Bearer ${tokens.security}` },
     body: {
       profileName: "Hospital Safe Baseline",
@@ -384,6 +431,7 @@ const runSecOpsExample = async (tokens) => {
     step: "restore_secure_policy_baseline",
     expected: "secure defaults restored without break-glass",
     status: restoreBaseline.status,
+    latencyMs: restoreBaseline.elapsedMs,
     data: {
       enforceSecretDeny: restoreBaseline.payload.profile?.controls?.enforceSecretDeny,
       profileVersion: restoreBaseline.payload.profile?.profileVersion
@@ -404,6 +452,9 @@ const runSecOpsExample = async (tokens) => {
     restoreBaseline.status === 200 &&
     restoreBaseline.payload.profile?.controls?.enforceSecretDeny === true;
 
+  const auditCompletenessPercent =
+    events.payload.chainVerification?.valid === true && (events.payload.events?.length ?? 0) >= 2 ? 100 : 0;
+
   return makeExample({
     exampleId: "secops-containment-and-governance",
     title: "SecOps Containment and Policy Governance",
@@ -418,6 +469,13 @@ const runSecOpsExample = async (tokens) => {
     ],
     steps,
     passed,
+    metrics: {
+      approvalLatencyMs: null,
+      blockedRiskyActions: saveWithoutBreakGlass.status === 422 ? 1 : 0,
+      auditCompletenessPercent,
+      containmentLatencyMs: trigger.elapsedMs + release.elapsedMs,
+      endToEndMs: Date.now() - startedAt
+    },
     summary: passed
       ? "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
       : "SecOps trust controls did not fully validate."
@@ -460,6 +518,11 @@ export const runTrustLayerProof = async () => {
       failedExamples: 0,
       scorePercent: 0,
       status: "FAIL"
+    },
+    kpis: {
+      approvalLatencyMs: null,
+      blockedRiskyActions: 0,
+      auditCompletenessPercent: 0
     }
   };
 
@@ -498,6 +561,21 @@ export const runTrustLayerProof = async () => {
     report.summary.failedExamples = report.summary.totalExamples - report.summary.passedExamples;
     report.summary.scorePercent = Math.round((report.summary.passedExamples / report.summary.totalExamples) * 100);
     report.summary.status = report.summary.failedExamples === 0 ? "PASS" : "FAIL";
+    const healthcare = examples.find((example) => example.exampleId === "healthcare-discharge-orchestration");
+    const blockedRiskyActions = examples.reduce(
+      (sum, example) => sum + Number(example.metrics?.blockedRiskyActions ?? 0),
+      0
+    );
+    const auditScores = examples
+      .map((example) => Number(example.metrics?.auditCompletenessPercent ?? 0))
+      .filter((value) => Number.isFinite(value));
+    report.kpis = {
+      approvalLatencyMs: Number(healthcare?.metrics?.approvalLatencyMs ?? 0),
+      blockedRiskyActions,
+      auditCompletenessPercent: auditScores.length
+        ? Number((auditScores.reduce((sum, value) => sum + value, 0) / auditScores.length).toFixed(2))
+        : 0
+    };
   } finally {
     servers.gateway.close();
     servers.toolRegistry.close();
@@ -516,7 +594,7 @@ export const runTrustLayerProof = async () => {
   return report;
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runTrustLayerProof()
     .then((report) => {
       console.log(JSON.stringify(report, null, 2));
@@ -527,4 +605,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       process.exitCode = 1;
     });
 }
-

@@ -1,0 +1,114 @@
+{
+  "packageId": "2026-03-30T17-05-27-194Z",
+  "generatedAt": "2026-03-30T17:05:27.253Z",
+  "status": "PASS",
+  "missing": [],
+  "copied": [
+    "docs/assets/demo/readiness-gate-report.json",
+    "docs/assets/demo/commercial-proof-report.json",
+    "docs/assets/demo/trust-layer-proof-report.json",
+    "docs/assets/demo/commercial-audit-report.json",
+    "docs/assets/demo/load-test-report.json",
+    "docs/assets/demo/chaos-report.json",
+    "docs/assets/demo/test-surface-report.json",
+    "docs/assets/demo/design-partner-kpis.json",
+    "docs/threat-model.md",
+    "docs/data-governance.md",
+    "docs/readiness/HOSPITAL-PRODUCTION-GATE.md",
+    "docs/security/HARDENING-CONTROLS-MATRIX.md"
+  ],
+  "checksums": [
+    {
+      "file": "docs/assets/demo/readiness-gate-report.json",
+      "sha256": "f8f96494e8261889f6146dddac4bc4e400ef5f0572cdee136b5ef768f9c00a80",
+      "sizeBytes": 41777
+    },
+    {
+      "file": "docs/assets/demo/commercial-proof-report.json",
+      "sha256": "d4c5571884b77ee1cb3e5beeb212326ae5f9ff98155df4e2699dcad8e01e2122",
+      "sizeBytes": 7607
+    },
+    {
+      "file": "docs/assets/demo/trust-layer-proof-report.json",
+      "sha256": "0a02769418ad6b250ac410d65a067da7ac439191380d952e6ac193295b3ffe6a",
+      "sizeBytes": 6961
+    },
+    {
+      "file": "docs/assets/demo/commercial-audit-report.json",
+      "sha256": "176c6570aa697d8f263a5eb1142f1411051d956c841cd4fe2370fb103df69bf7",
+      "sizeBytes": 929
+    },
+    {
+      "file": "docs/assets/demo/load-test-report.json",
+      "sha256": "44714c0747832038ed8916f5c2d12f36052dc31d22524ffc4719eedd8e00ebe9",
+      "sizeBytes": 599
+    },
+    {
+      "file": "docs/assets/demo/chaos-report.json",
+      "sha256": "1120d6a4c06e6ed8743b80c18648a62c5ea49937eaef5f4faeb5ecf93622a785",
+      "sizeBytes": 3878
+    },
+    {
+      "file": "docs/assets/demo/test-surface-report.json",
+      "sha256": "3653bc6f9126c05cf4ea4c41ca80f18567fcd2d33f540e3af6b9b7437ab9b5d9",
+      "sizeBytes": 4317
+    },
+    {
+      "file": "docs/assets/demo/design-partner-kpis.json",
+      "sha256": "16ec84b263fcf3a3f210f1c7910de2cb4ba2cc19c36a047b84f906832eeecce4",
+      "sizeBytes": 1389
+    },
+    {
+      "file": "docs/threat-model.md",
+      "sha256": "50d61c1670d73d2908e3227fc73e07d1758baf3b595399f9598922995eef5823",
+      "sizeBytes": 61
+    },
+    {
+      "file": "docs/data-governance.md",
+      "sha256": "40dc76feed80cb9bb29277ee650f5daa4e3ed37c1cdff2415d10eb7d4cea9850",
+      "sizeBytes": 64
+    },
+    {
+      "file": "docs/readiness/HOSPITAL-PRODUCTION-GATE.md",
+      "sha256": "f942f04816986514f92e44d3c3368517d57e55698d635b49365fe9c70bea870a",
+      "sizeBytes": 6387
+    },
+    {
+      "file": "docs/security/HARDENING-CONTROLS-MATRIX.md",
+      "sha256": "cae0d596f0330c1287b89be258225c1cb9a67a97c910c10d69da656a261d81a3",
+      "sizeBytes": 6198
+    }
+  ],
+  "snapshot": {
+    "readiness": {
+      "scorePercent": 100,
+      "pass": true,
+      "rawScore": 132,
+      "maxScore": 132,
+      "commandContribution": 97,
+      "weightedSignal": 35,
+      "mandatoryFailed": false,
+      "status": "PASS"
+    },
+    "trust": {
+      "totalExamples": 3,
+      "passedExamples": 3,
+      "failedExamples": 0,
+      "scorePercent": 100,
+      "status": "PASS"
+    },
+    "commercial": {
+      "totalClaims": 7,
+      "passedClaims": 7,
+      "failedClaims": 0,
+      "score": 100,
+      "scorePercent": 100,
+      "status": "PASS"
+    },
+    "designPartnerKpis": {
+      "totalChecks": 4,
+      "failedChecks": 0,
+      "status": "PASS"
+    }
+  }
+}

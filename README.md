@@ -114,6 +114,18 @@ Capture screenshots:
 npm run screenshots:commercial
 ```
 
+One-command local pilot (readiness + KPI + security pack):
+
+```bash
+npm run pilot:local
+```
+
+Launch the 14-day trust proof challenge:
+
+```bash
+npm run challenge:launch
+```
+
 ## Production Readiness Gate
 
 Use these checks before a release candidate is promoted:
@@ -165,7 +177,11 @@ If any one of those checks fails, the release is a no-go.
 - [Commercial readiness](docs/commercial/COMMERCIAL-READINESS.md)
 - [Why OpenAegis](docs/commercial/WHY-OPENAEGIS.md)
 - [Adoption playbook](docs/commercial/ADOPTION-PLAYBOOK.md)
+- [Security evidence pack guide](docs/commercial/SECURITY-EVIDENCE-PACK.md)
 - [Licensing model](docs/commercial/LICENSING.md)
+- [Trademark policy](docs/commercial/TRADEMARK-POLICY.md)
+- [14-day trust proof challenge](docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md)
+- [Design-partner pilots](docs/pilot/DESIGN-PARTNER-PILOTS.md)
 - [Hospital production gate](docs/readiness/HOSPITAL-PRODUCTION-GATE.md)
 - [SRE runbook](docs/readiness/SRE-RUNBOOK.md)
 - [Hardening controls matrix](docs/security/HARDENING-CONTROLS-MATRIX.md)

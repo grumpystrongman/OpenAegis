@@ -11,6 +11,7 @@ npm run proof:trust-layer
 Output artifact:
 
 - `docs/assets/demo/trust-layer-proof-report.json`
+- includes KPI fields for each example (`approvalLatencyMs`, `blockedRiskyActions`, `auditCompletenessPercent`)
 
 ## Example 1: Hospital Discharge Assistant (Healthcare)
 
@@ -73,4 +74,3 @@ This is not a toy demo. These examples prove operational controls buyers ask for
 - "Can we audit and replay what happened?"
 
 If all three examples pass, OpenAegis proves real trust-plane behavior under realistic workflows.
-

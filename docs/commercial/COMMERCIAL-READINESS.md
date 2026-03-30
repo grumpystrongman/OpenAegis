@@ -37,6 +37,7 @@ Most products only solve part of this.
 | Commercial scorecard and proof bundle export | Proven now | `docs/assets/demo/commercial-proof-report.json` | Run `npm run proof:commercial` |
 | Three distinct trust-layer examples pass end-to-end | Proven now | `docs/assets/demo/trust-layer-proof-report.json` | Run `npm run proof:trust-layer` |
 | Repository-level commercial audit has no placeholder gaps | Proven now | `docs/assets/demo/commercial-audit-report.json` | Run `npm run audit:commercial` |
+| One-command local pilot produces readiness + KPI + security evidence pack | Proven now | `docs/assets/security-evidence-pack/latest/manifest.json` | Run `npm run pilot:local` |
 | Full enterprise connector depth and formal certifications | Roadmap | n/a | Not claimed as complete in this MVP |
 
 ## Policy Configuration Experience (Buyer-Facing)
@@ -63,6 +64,8 @@ This is intentionally explicit so a non-expert can operate safely.
 - `docs/assets/demo/commercial-proof-report.json`
 - `docs/assets/demo/trust-layer-proof-report.json`
 - `docs/assets/demo/commercial-audit-report.json`
+- `docs/assets/demo/design-partner-kpis.json`
+- `docs/assets/security-evidence-pack/latest/EXECUTIVE-SUMMARY.md`
 
 ## Buyer Evaluation Runbook
 
@@ -75,6 +78,7 @@ Use this sequence for technical due diligence:
 5. Trigger copilot review and apply suggested safe controls.
 6. Re-run live workflow and compare behavior.
 7. Inspect audit/incident traces and export proof artifacts.
+8. Run `npm run pilot:local` and verify all gate summaries are `PASS`.
 
 If these steps are not observable, treat claims as unproven.
 

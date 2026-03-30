@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-03-30T17:03:02.717Z",
+  "suite": "trust-proof-challenge-launch",
+  "challengeWindow": {
+    "startDate": "2026-03-30",
+    "endDate": "2026-04-13",
+    "durationDays": 14
+  },
+  "commands": [
+    {
+      "id": "trust-proof",
+      "label": "Run trust proof",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 27813
+    },
+    {
+      "id": "design-partner-kpis",
+      "label": "Generate design-partner KPIs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 488
+    },
+    {
+      "id": "security-evidence-pack",
+      "label": "Publish security evidence pack",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 600
+    }
+  ],
+  "outputs": {
+    "challengeGuide": "docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md",
+    "trustProof": "docs/assets/demo/trust-layer-proof-report.json",
+    "designPartnerKpis": "docs/assets/demo/design-partner-kpis.json",
+    "securityEvidencePackPointer": "docs/assets/security-evidence-pack/latest.json"
+  },
+  "summary": {
+    "status": "PASS",
+    "message": "Challenge launch successful. Share the challenge guide and evidence artifacts."
+  }
+}

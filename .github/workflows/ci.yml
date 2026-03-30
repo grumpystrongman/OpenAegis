@@ -38,6 +38,10 @@ jobs:
         run: npm install
       - name: Enforce 98% readiness gate
         run: npm run readiness:gate
+      - name: Generate design-partner KPI report
+        run: npm run pilot:kpis
+      - name: Publish security evidence pack
+        run: npm run evidence:security-pack
       - name: Upload readiness artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,9 +50,12 @@ jobs:
             docs/assets/demo/commercial-proof-report.json
             docs/assets/demo/trust-layer-proof-report.json
             docs/assets/demo/commercial-audit-report.json
+            docs/assets/demo/design-partner-kpis.json
             docs/assets/demo/load-test-report.json
             docs/assets/demo/chaos-report.json
             docs/assets/demo/readiness-gate-report.json
+            docs/assets/security-evidence-pack/latest/manifest.json
+            docs/assets/security-evidence-pack/latest/EXECUTIVE-SUMMARY.md
 
   security:
     runs-on: ubuntu-latest

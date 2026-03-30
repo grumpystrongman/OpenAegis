@@ -27,5 +27,9 @@ bin/
 output/playwright/*.log
 backups/
 docs/assets/evidence-packages/
+docs/assets/security-evidence-pack/*
+!docs/assets/security-evidence-pack/latest/
+!docs/assets/security-evidence-pack/latest/**
+!docs/assets/security-evidence-pack/latest.json
 .tmp-test/
 frontend/apps/admin-console/.tmp-test/

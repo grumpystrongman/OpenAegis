@@ -17,9 +17,10 @@ Goal:
 
 - If you deploy and modify OpenAegis under AGPL, you must comply with AGPL obligations.
 - If your business model requires proprietary operation without AGPL obligations, use a commercial license.
+- Name/logo rights are governed separately by trademark policy:
+  - `docs/commercial/TRADEMARK-POLICY.md`
 
 ## Important Note
 
 This file is operational guidance for project users, not legal advice.
 Organizations should have counsel review license obligations before production rollout.
-

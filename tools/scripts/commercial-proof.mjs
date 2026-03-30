@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { once } from "node:events";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { createAppServer as createGatewayServer } from "../../dist/services/api-gateway/src/index.js";
 import { createAppServer as createToolRegistryServer } from "../../dist/services/tool-registry/src/index.js";
 import { createAppServer as createToolExecutionServer } from "../../dist/services/tool-execution-service/src/index.js";
@@ -320,7 +321,7 @@ export const runCommercialProof = async () => {
   return report;
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCommercialProof()
     .then((report) => {
       console.log(JSON.stringify(report, null, 2));

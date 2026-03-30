@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-03-30T17:05:26.647Z",
+  "suite": "design-partner-pilot-kpis",
+  "thresholds": {
+    "maxApprovalLatencyMs": 1500,
+    "minBlockedRiskyActions": 3,
+    "minAuditCompletenessPercent": 98
+  },
+  "pilots": {
+    "healthcare": {
+      "approvalLatencyMs": 8,
+      "blockedRiskyActions": 1,
+      "auditCompletenessPercent": 100
+    },
+    "finance": {
+      "blockedRiskyActions": 1,
+      "auditCompletenessPercent": 100,
+      "idempotencyReplayVerified": true
+    },
+    "secops": {
+      "blockedRiskyActions": 1,
+      "auditCompletenessPercent": 100,
+      "containmentLatencyMs": 10
+    },
+    "global": {
+      "readinessScorePercent": 100,
+      "approvalLatencyMs": 8,
+      "blockedRiskyActions": 3,
+      "auditCompletenessPercent": 100
+    }
+  },
+  "checks": [
+    {
+      "checkId": "approval_latency",
+      "expected": "<= 1500ms",
+      "actual": "8ms",
+      "status": "PASS"
+    },
+    {
+      "checkId": "blocked_risky_actions",
+      "expected": ">= 3",
+      "actual": "3",
+      "status": "PASS"
+    },
+    {
+      "checkId": "audit_completeness",
+      "expected": ">= 98%",
+      "actual": "100%",
+      "status": "PASS"
+    },
+    {
+      "checkId": "readiness_score",
+      "expected": ">= 98%",
+      "actual": "100%",
+      "status": "PASS"
+    }
+  ],
+  "summary": {
+    "totalChecks": 4,
+    "failedChecks": 0,
+    "status": "PASS"
+  }
+}
