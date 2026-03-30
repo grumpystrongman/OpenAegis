@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T17:05:22.878Z",
+  "generatedAt": "2026-03-30T17:19:37.306Z",
   "suite": "commercial-load-test",
   "target": "http://127.0.0.1:3930",
   "thresholds": {
@@ -10,14 +10,14 @@
   "metrics": {
     "requests": 180,
     "concurrency": 18,
-    "elapsedSeconds": 0.158,
+    "elapsedSeconds": 0.116,
     "successes": 180,
     "failures": 0,
     "errorRate": 0,
-    "throughputRps": 1140.71,
-    "p50Ms": 12.6,
-    "p95Ms": 32.66,
-    "p99Ms": 35.24
+    "throughputRps": 1555.01,
+    "p50Ms": 9.17,
+    "p95Ms": 24.98,
+    "p99Ms": 26.68
   },
   "scorePercent": 100,
   "status": "PASS",

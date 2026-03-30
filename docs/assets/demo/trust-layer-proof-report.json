@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T17:05:21.082Z",
+  "generatedAt": "2026-03-30T17:19:35.071Z",
   "suite": "trust-layer-end-to-end-proof",
   "product": "OpenAegis",
   "endpoints": {
@@ -28,9 +28,9 @@
           "status": 201,
           "latencyMs": 23,
           "data": {
-            "executionId": "ex-mndfvco5-874v8z",
+            "executionId": "ex-mndgdnm0-iu21v5",
             "executionStatus": "blocked",
-            "approvalId": "ap-mndfvcoj-79uryx"
+            "approvalId": "ap-mndgdnme-j531zv"
           }
         },
         {
@@ -54,7 +54,7 @@
               "executor",
               "reviewer"
             ],
-            "evidenceId": "ev-ex-mndfvco5-874v8z",
+            "evidenceId": "ev-ex-mndgdnm0-iu21v5",
             "auditEvents": 5
           }
         }
@@ -64,7 +64,7 @@
         "approvalLatencyMs": 8,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 41
+        "endToEndMs": 39
       },
       "summary": "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
     },
@@ -85,7 +85,7 @@
           "step": "discover_finance_connectors",
           "expected": "registry exposes enterprise analytics connectors",
           "status": 200,
-          "latencyMs": 4,
+          "latencyMs": 5,
           "data": {
             "hasFabric": true,
             "hasPowerBi": true,
@@ -106,10 +106,10 @@
           "step": "verify_idempotent_finance_automation",
           "expected": "duplicate submission replays prior tool call safely",
           "status": 200,
-          "latencyMs": 10,
+          "latencyMs": 9,
           "data": {
-            "firstCallId": "tc-mndfvcpl-mykvrs",
-            "replayCallId": "tc-mndfvcpl-mykvrs",
+            "firstCallId": "tc-mndgdnnf-jhkp6m",
+            "replayCallId": "tc-mndgdnnf-jhkp6m",
             "replayed": true
           }
         },
@@ -163,7 +163,7 @@
           "step": "allow_policy_change_with_dual_approval_break_glass",
           "expected": "200 response with breakGlassUsed=true",
           "status": 200,
-          "latencyMs": 5,
+          "latencyMs": 9,
           "data": {
             "breakGlassUsed": true,
             "profileVersion": 2
@@ -198,7 +198,7 @@
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
         "containmentLatencyMs": 10,
-        "endToEndMs": 30
+        "endToEndMs": 34
       },
       "summary": "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
     }

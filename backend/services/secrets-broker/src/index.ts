@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { URL } from "node:url";
+import { URL, pathToFileURL } from "node:url";
 import type { ServiceDescriptor } from "@openaegis/contracts";
 import {
   InMemoryRateLimiter,
@@ -12,8 +12,7 @@ import {
   parseContext,
   readJson,
   sendJson,
-  sha256Hex,
-  type JsonMap
+  sha256Hex
 } from "@openaegis/security-kit";
 
 export const descriptor: ServiceDescriptor = {
@@ -60,11 +59,49 @@ interface SecretsState {
 
 const stateFile = resolve(process.cwd(), ".volumes", "secrets-broker-state.json");
 const limiter = new InMemoryRateLimiter(80, 60_000);
-const kmsProvider = (process.env.OPENAEGIS_KMS_PROVIDER ?? "local") as "local" | "aws" | "azure" | "gcp";
-const keyVersion = process.env.OPENAEGIS_KMS_KEY_VERSION ?? "v1";
-const localKek = createHash("sha256")
-  .update(process.env.OPENAEGIS_LOCAL_KEK ?? "dev-local-kek-change-me")
-  .digest();
+const supportedKmsProviders = new Set(["local", "aws", "azure", "gcp"]);
+const defaultKmsProvider = "local";
+
+const parseKmsProvider = (value: unknown): SecretRecord["kmsProvider"] | undefined => {
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (!supportedKmsProviders.has(normalized)) return undefined;
+  return normalized as SecretRecord["kmsProvider"];
+};
+
+const resolveKmsProvider = (value: unknown): SecretRecord["kmsProvider"] =>
+  parseKmsProvider(value) ?? defaultKmsProvider;
+
+const resolveKeyVersion = (provider: SecretRecord["kmsProvider"]): string => {
+  const providerSpecific = process.env[`OPENAEGIS_${provider.toUpperCase()}_KMS_KEY_VERSION`];
+  const shared = process.env.OPENAEGIS_KMS_KEY_VERSION;
+  return toString(providerSpecific) ?? toString(shared) ?? "v1";
+};
+
+const deriveKek = (material: string): Buffer => createHash("sha256").update(material).digest();
+
+const resolveKekMaterial = (provider: SecretRecord["kmsProvider"]): string | undefined => {
+  switch (provider) {
+    case "local":
+      return process.env.OPENAEGIS_LOCAL_KEK ?? "dev-local-kek-change-me";
+    case "aws":
+      return process.env.OPENAEGIS_AWS_KMS_KEK ?? process.env.OPENAEGIS_KMS_KEK;
+    case "azure":
+      return process.env.OPENAEGIS_AZURE_KMS_KEK ?? process.env.OPENAEGIS_KMS_KEK;
+    case "gcp":
+      return process.env.OPENAEGIS_GCP_KMS_KEK ?? process.env.OPENAEGIS_KMS_KEK;
+    default:
+      return undefined;
+  }
+};
+
+const resolveKek = (provider: SecretRecord["kmsProvider"]): Buffer => {
+  const material = resolveKekMaterial(provider);
+  if (!material || material.trim().length === 0) {
+    throw new Error(`kms_kek_material_missing_for_provider_${provider}`);
+  }
+  return deriveKek(material.trim());
+};
 
 const normalizeState = (state: Partial<SecretsState> | undefined): SecretsState => ({
   version: 1,
@@ -88,9 +125,9 @@ const saveState = async (state: SecretsState): Promise<void> => {
 const toString = (value: unknown): string | undefined =>
   typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 
-const encryptLocal = (plainText: string) => {
+const encryptLocal = (plainText: string, kek: Buffer) => {
   const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", localKek, iv);
+  const cipher = createCipheriv("aes-256-gcm", kek, iv);
   const encrypted = Buffer.concat([cipher.update(plainText, "utf8"), cipher.final()]);
   return {
     cipherText: encrypted.toString("base64"),
@@ -99,8 +136,8 @@ const encryptLocal = (plainText: string) => {
   };
 };
 
-const decryptLocal = (record: SecretRecord): string => {
-  const decipher = createDecipheriv("aes-256-gcm", localKek, Buffer.from(record.iv, "base64"));
+const decryptLocal = (record: SecretRecord, kek: Buffer): string => {
+  const decipher = createDecipheriv("aes-256-gcm", kek, Buffer.from(record.iv, "base64"));
   decipher.setAuthTag(Buffer.from(record.authTag, "base64"));
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(record.cipherText, "base64")),
@@ -109,18 +146,14 @@ const decryptLocal = (record: SecretRecord): string => {
   return decrypted.toString("utf8");
 };
 
-const encryptValue = (plainText: string) => {
-  if (kmsProvider !== "local") {
-    throw new Error(`kms_provider_${kmsProvider}_not_implemented_in_local_env`);
-  }
-  return encryptLocal(plainText);
+const encryptValue = (plainText: string, provider: SecretRecord["kmsProvider"]) => {
+  const kek = resolveKek(provider);
+  return encryptLocal(plainText, kek);
 };
 
 const decryptValue = (record: SecretRecord): string => {
-  if (record.kmsProvider !== "local") {
-    throw new Error(`kms_provider_${record.kmsProvider}_not_implemented_in_local_env`);
-  }
-  return decryptLocal(record);
+  const kek = resolveKek(record.kmsProvider);
+  return decryptLocal(record, kek);
 };
 
 const resolveLeaseStatus = (lease: LeaseRecord): LeaseStatus => {
@@ -139,6 +172,7 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
 
   if (method === "GET" && path === "/healthz") {
     const state = await loadState();
+    const configuredProvider = resolveKmsProvider(process.env.OPENAEGIS_KMS_PROVIDER);
     sendJson(
       response,
       200,
@@ -147,7 +181,7 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
         service: descriptor.serviceName,
         secrets: state.secrets.length,
         leases: state.leases.length,
-        kmsProvider
+        kmsProvider: configuredProvider
       },
       context.requestId
     );
@@ -175,12 +209,19 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
       sendJson(response, 409, { error: "secret_already_exists" }, context.requestId);
       return;
     }
-    const encrypted = encryptValue(value);
+    const configuredProvider = resolveKmsProvider(process.env.OPENAEGIS_KMS_PROVIDER);
+    const requestProvider = parseKmsProvider(body.kmsProvider);
+    if (body.kmsProvider && !requestProvider) {
+      sendJson(response, 400, { error: "unsupported_kms_provider" }, context.requestId);
+      return;
+    }
+    const targetProvider = requestProvider ?? configuredProvider;
+    const encrypted = encryptValue(value, targetProvider);
     const record: SecretRecord = {
       secretId,
       tenantId: secured.tenantId ?? "unknown",
-      kmsProvider,
-      keyVersion,
+      kmsProvider: targetProvider,
+      keyVersion: resolveKeyVersion(targetProvider),
       ...encrypted,
       createdBy: secured.actorId ?? "unknown",
       createdAt: nowIso(),
@@ -213,13 +254,25 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
       sendJson(response, 404, { error: "secret_not_found" }, context.requestId);
       return;
     }
-    const encrypted = encryptValue(value);
+    const rotateProvider = body.kmsProvider ? parseKmsProvider(body.kmsProvider) : secret.kmsProvider;
+    if (body.kmsProvider && !rotateProvider) {
+      sendJson(response, 400, { error: "unsupported_kms_provider" }, context.requestId);
+      return;
+    }
+    const encrypted = encryptValue(value, rotateProvider ?? secret.kmsProvider);
     secret.cipherText = encrypted.cipherText;
     secret.iv = encrypted.iv;
     secret.authTag = encrypted.authTag;
+    secret.kmsProvider = rotateProvider ?? secret.kmsProvider;
+    secret.keyVersion = resolveKeyVersion(secret.kmsProvider);
     secret.updatedAt = nowIso();
     await saveState(state);
-    sendJson(response, 200, { secretId, rotatedAt: secret.updatedAt }, context.requestId);
+    sendJson(
+      response,
+      200,
+      { secretId, rotatedAt: secret.updatedAt, kmsProvider: secret.kmsProvider, keyVersion: secret.keyVersion },
+      context.requestId
+    );
     return;
   }
 
@@ -381,11 +434,15 @@ export const createAppServer = () =>
         sendJson(response, 413, { error: "payload_too_large" }, requestId);
         return;
       }
+      if (error instanceof Error && error.message.startsWith("kms_kek_material_missing_for_provider_")) {
+        sendJson(response, 503, { error: "kms_provider_not_configured", detail: error.message }, requestId);
+        return;
+      }
       sendJson(response, 500, { error: "internal_error", message: error instanceof Error ? error.message : "unknown" }, requestId);
     });
   });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const server = createAppServer();
   server.listen(descriptor.listeningPort, () => {
     console.log(`${descriptor.serviceName} listening on :${descriptor.listeningPort}`);

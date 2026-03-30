@@ -19,6 +19,7 @@ Generated outputs:
 
 - readiness gate results
 - trust-layer proof results
+- codebase line-audit results
 - commercial proof and audit reports
 - load and chaos reports
 - design-partner KPI report

@@ -6,6 +6,8 @@ This document explains what OpenAegis does, why it is different, and how to veri
 
 OpenAegis is a control plane that lets enterprises run AI agents with policy, approvals, and evidence enforced outside the model.
 
+For security leaders, see the buyer-focused brief: `docs/commercial/CISO-DECISION-BRIEF.md`.
+
 ## What Problem It Solves
 
 Most agent stacks can generate actions but cannot prove safe operation in regulated environments. OpenAegis closes that gap by requiring:
@@ -37,6 +39,7 @@ npm run smoke:pilot
 npm run proof:commercial
 npm run load:commercial
 npm run chaos:commercial
+npm run audit:codebase
 npm run readiness:gate
 ```
 
@@ -44,6 +47,7 @@ Expected results:
 
 - all commands exit `0`
 - `docs/assets/demo/commercial-proof-report.json` has `summary.status = PASS`
+- `docs/assets/demo/codebase-line-audit-report.json` has `summary.status = PASS`
 - `docs/assets/demo/readiness-gate-report.json` has `summary.scorePercent >= 98`
 
 ## How Non-Experts Can Operate It Safely
@@ -64,4 +68,3 @@ Use this list in a security and operations review:
 5. Can we prove these controls through automated checks in CI?
 
 If any answer is no, treat rollout as no-go until the gap is closed.
-

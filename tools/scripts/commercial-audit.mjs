@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 const auditableRoots = ["backend/services", "backend/shared", "frontend/apps", "tools/scripts", "tests/commercial"];
 const excludedDirs = new Set(["dist", "node_modules", ".git", ".brv", "docs", ".tmp-test"]);
 const placeholderPattern = /\b(placeholder|skeleton)\b/i;
-const excludedFiles = new Set(["commercial-audit.mjs"]);
+const excludedFiles = new Set(["commercial-audit.mjs", "codebase-line-audit.mjs"]);
 
 const readJson = async (path, fallback) => {
   try {
@@ -62,6 +62,7 @@ const detectPlaceholders = async () => {
 const run = async () => {
   const commercialProof = await readJson("docs/assets/demo/commercial-proof-report.json", null);
   const trustProof = await readJson("docs/assets/demo/trust-layer-proof-report.json", null);
+  const codebaseAudit = await readJson("docs/assets/demo/codebase-line-audit-report.json", null);
   const placeholderFindings = await detectPlaceholders();
 
   const checks = [
@@ -100,6 +101,18 @@ const run = async () => {
         status: trustProof?.summary?.status ?? "MISSING",
         totalExamples: Number(trustProof?.summary?.totalExamples ?? 0),
         passedExamples: Number(trustProof?.summary?.passedExamples ?? 0)
+      }
+    },
+    {
+      checkId: "codebase_line_audit_passed",
+      passed:
+        String(codebaseAudit?.summary?.status ?? "FAIL") === "PASS" &&
+        Number(codebaseAudit?.summary?.totalFindings ?? 1) === 0,
+      details: {
+        status: codebaseAudit?.summary?.status ?? "MISSING",
+        totalFindings: Number(codebaseAudit?.summary?.totalFindings ?? -1),
+        filesReviewed: Number(codebaseAudit?.scope?.filesReviewed ?? 0),
+        linesReviewed: Number(codebaseAudit?.scope?.linesReviewed ?? 0)
       }
     }
   ];

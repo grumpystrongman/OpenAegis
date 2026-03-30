@@ -18,6 +18,7 @@ Challenge assets:
 Success signal:
 
 - 3/3 trust examples pass and challenge launch report is `PASS`.
+- CISO-ready narrative is available in `docs/commercial/CISO-DECISION-BRIEF.md`.
 
 ## 2) Publish a Security Evidence Pack for CTO/CISO
 

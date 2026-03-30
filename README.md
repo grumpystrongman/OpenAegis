@@ -100,6 +100,7 @@ npm run build
 npm run smoke:pilot
 npm run validate:test-surface
 npm run proof:trust-layer
+npm run audit:codebase
 ```
 
 Run pilot demo output:
@@ -139,6 +140,7 @@ npm run validate:infra
 npm run smoke:pilot
 npm run proof:commercial
 npm run proof:trust-layer
+npm run audit:codebase
 npm run audit:commercial
 npm run load:commercial
 npm run chaos:commercial
@@ -155,6 +157,7 @@ Expected pass results:
 - `npm run smoke:pilot` exits 0 and refreshes the pilot evidence bundle
 - `npm run proof:commercial` exits 0 and writes `docs/assets/demo/commercial-proof-report.json`
 - `npm run proof:trust-layer` exits 0 and writes `docs/assets/demo/trust-layer-proof-report.json`
+- `npm run audit:codebase` exits 0 and writes `docs/assets/demo/codebase-line-audit-report.json`
 - `npm run audit:commercial` exits 0 and writes `docs/assets/demo/commercial-audit-report.json`
 - `npm run load:commercial` exits 0 and writes `docs/assets/demo/load-test-report.json`
 - `npm run chaos:commercial` exits 0 and writes `docs/assets/demo/chaos-report.json`
@@ -176,6 +179,7 @@ If any one of those checks fails, the release is a no-go.
 - [MVP plan](docs/mvp-plan.md)
 - [Commercial readiness](docs/commercial/COMMERCIAL-READINESS.md)
 - [Why OpenAegis](docs/commercial/WHY-OPENAEGIS.md)
+- [CISO decision brief](docs/commercial/CISO-DECISION-BRIEF.md)
 - [Adoption playbook](docs/commercial/ADOPTION-PLAYBOOK.md)
 - [Security evidence pack guide](docs/commercial/SECURITY-EVIDENCE-PACK.md)
 - [Licensing model](docs/commercial/LICENSING.md)

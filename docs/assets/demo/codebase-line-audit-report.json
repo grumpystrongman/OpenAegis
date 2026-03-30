@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-03-30T17:21:16.338Z",
+  "suite": "codebase-line-audit",
+  "scope": {
+    "roots": [
+      "backend",
+      "frontend",
+      "tools",
+      "tests",
+      "infra",
+      "deployments"
+    ],
+    "filesReviewed": 159,
+    "linesReviewed": 19937
+  },
+  "findings": [],
+  "summary": {
+    "totalFindings": 0,
+    "scorePercent": 100,
+    "status": "PASS"
+  }
+}

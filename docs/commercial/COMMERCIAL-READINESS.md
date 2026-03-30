@@ -36,6 +36,7 @@ Most products only solve part of this.
 | End-to-end hospital workflow remains operational | Proven now | smoke script output | Run `npm run smoke:pilot` |
 | Commercial scorecard and proof bundle export | Proven now | `docs/assets/demo/commercial-proof-report.json` | Run `npm run proof:commercial` |
 | Three distinct trust-layer examples pass end-to-end | Proven now | `docs/assets/demo/trust-layer-proof-report.json` | Run `npm run proof:trust-layer` |
+| Codebase line audit reports zero skeleton markers across auditable code | Proven now | `docs/assets/demo/codebase-line-audit-report.json` | Run `npm run audit:codebase` |
 | Repository-level commercial audit has no placeholder gaps | Proven now | `docs/assets/demo/commercial-audit-report.json` | Run `npm run audit:commercial` |
 | One-command local pilot produces readiness + KPI + security evidence pack | Proven now | `docs/assets/security-evidence-pack/latest/manifest.json` | Run `npm run pilot:local` |
 | Full enterprise connector depth and formal certifications | Roadmap | n/a | Not claimed as complete in this MVP |
@@ -63,6 +64,7 @@ This is intentionally explicit so a non-expert can operate safely.
 - `docs/assets/demo/pilot-demo-output.json`
 - `docs/assets/demo/commercial-proof-report.json`
 - `docs/assets/demo/trust-layer-proof-report.json`
+- `docs/assets/demo/codebase-line-audit-report.json`
 - `docs/assets/demo/commercial-audit-report.json`
 - `docs/assets/demo/design-partner-kpis.json`
 - `docs/assets/security-evidence-pack/latest/EXECUTIVE-SUMMARY.md`

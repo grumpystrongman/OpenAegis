@@ -23,6 +23,8 @@ jobs:
         run: npm run validate:test-surface
       - name: Infrastructure validation
         run: npm run validate:infra
+      - name: Codebase line audit
+        run: npm run audit:codebase
       - name: Commercial smoke
         run: npm run smoke:pilot
 
@@ -49,6 +51,7 @@ jobs:
           path: |
             docs/assets/demo/commercial-proof-report.json
             docs/assets/demo/trust-layer-proof-report.json
+            docs/assets/demo/codebase-line-audit-report.json
             docs/assets/demo/commercial-audit-report.json
             docs/assets/demo/design-partner-kpis.json
             docs/assets/demo/load-test-report.json

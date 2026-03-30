@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T17:05:21.946Z",
+  "generatedAt": "2026-03-30T17:21:16.360Z",
   "suite": "commercial-readiness-audit",
   "checks": [
     {
@@ -35,11 +35,21 @@
         "totalExamples": 3,
         "passedExamples": 3
       }
+    },
+    {
+      "checkId": "codebase_line_audit_passed",
+      "passed": true,
+      "details": {
+        "status": "PASS",
+        "totalFindings": 0,
+        "filesReviewed": 159,
+        "linesReviewed": 19937
+      }
     }
   ],
   "summary": {
-    "totalChecks": 4,
-    "passedChecks": 4,
+    "totalChecks": 5,
+    "passedChecks": 5,
     "failedChecks": 0,
     "scorePercent": 100,
     "status": "PASS"

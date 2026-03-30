@@ -15,6 +15,7 @@
 - [Design-Partner Pilots](./pilot/DESIGN-PARTNER-PILOTS.md)
 - [14-Day Trust Proof Challenge](./challenge/TRUST-PROOF-CHALLENGE-14-DAY.md)
 - [Adoption Playbook](./commercial/ADOPTION-PLAYBOOK.md)
+- [CISO Decision Brief](./commercial/CISO-DECISION-BRIEF.md)
 - [Security Evidence Pack](./commercial/SECURITY-EVIDENCE-PACK.md)
 - [Licensing Model](./commercial/LICENSING.md)
 - [Trademark Policy](./commercial/TRADEMARK-POLICY.md)

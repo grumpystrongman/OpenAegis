@@ -8,7 +8,9 @@ const outputDir = resolve("docs", "assets", "evidence-packages", packageId);
 const requiredFiles = [
   "docs/assets/demo/commercial-proof-report.json",
   "docs/assets/demo/trust-layer-proof-report.json",
+  "docs/assets/demo/codebase-line-audit-report.json",
   "docs/assets/demo/commercial-audit-report.json",
+  "docs/assets/demo/design-partner-kpis.json",
   "docs/assets/demo/load-test-report.json",
   "docs/assets/demo/chaos-report.json",
   "docs/assets/demo/pilot-demo-output.json",
