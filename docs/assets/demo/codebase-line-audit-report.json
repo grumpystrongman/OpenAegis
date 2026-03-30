@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T20:20:16.600Z",
+  "generatedAt": "2026-03-30T20:27:24.639Z",
   "suite": "codebase-line-audit",
   "scope": {
     "roots": [
@@ -11,7 +11,7 @@
       "deployments"
     ],
     "filesReviewed": 162,
-    "linesReviewed": 22126
+    "linesReviewed": 22214
   },
   "findings": [],
   "summary": {

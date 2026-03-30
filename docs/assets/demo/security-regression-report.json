@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T20:19:18.620Z",
+  "generatedAt": "2026-03-30T20:26:26.445Z",
   "suite": "security-regression",
   "endpoints": {
     "gateway": "http://127.0.0.1:3970",
@@ -13,7 +13,7 @@
       "details": {
         "status": 404,
         "error": "demo_auth_disabled",
-        "latencyMs": 28
+        "latencyMs": 24
       }
     },
     {
@@ -22,7 +22,7 @@
       "details": {
         "status": 401,
         "error": "missing_or_invalid_auth_token",
-        "latencyMs": 5
+        "latencyMs": 4
       }
     },
     {
@@ -40,8 +40,8 @@
       "passed": true,
       "details": {
         "status": 201,
-        "executionId": "ex-mndmss57-o0umbv",
-        "latencyMs": 26
+        "executionId": "ex-mndn1y9j-qy8han",
+        "latencyMs": 20
       }
     },
     {
@@ -59,7 +59,7 @@
       "details": {
         "executionStatus": 201,
         "workflowStatus": "blocked",
-        "approvalId": "ap-mndmss5y-wff3tb",
+        "approvalId": "ap-mndn1ya8-sus7uf",
         "deniedStatus": 403,
         "deniedError": "insufficient_role_for_approval_decision"
       }
@@ -84,7 +84,7 @@
         "clinicianStatus": 403,
         "clinicianError": "insufficient_role_for_approval_list",
         "securityStatus": 200,
-        "approvalCount": 2
+        "approvalCount": 3
       }
     },
     {
@@ -116,7 +116,7 @@
       "checkId": "tool_call_lookup_is_tenant_scoped",
       "passed": true,
       "details": {
-        "createdToolCallId": "tc-mndmss74-5h26dt",
+        "createdToolCallId": "tc-mndmz1he-peigw7",
         "status": 404,
         "error": "tool_call_not_found"
       }

@@ -93,3 +93,42 @@ test("requires security context for introspection", async () => {
   assert.equal(introspect.status, 400);
 });
 
+test("rejects custom token minting by default", async () => {
+  const response = await fetch(`${baseUrl}/v1/auth/token`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      subject: "user-arbitrary",
+      tenantId: "tenant-any",
+      roles: ["platform_admin"]
+    })
+  });
+
+  assert.equal(response.status, 403);
+  const body = (await response.json()) as { error: string };
+  assert.equal(body.error, "custom_token_mint_disabled");
+});
+
+test("allows custom token minting only when insecure flag is enabled", async () => {
+  process.env.OPENAEGIS_ENABLE_INSECURE_CUSTOM_TOKEN_MINT = "true";
+  try {
+    const response = await fetch(`${baseUrl}/v1/auth/token`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        subject: "user-temp",
+        tenantId: "tenant-lab",
+        roles: ["approver"]
+      })
+    });
+
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as { subject: string; tenantId: string; roles: string[] };
+    assert.equal(body.subject, "user-temp");
+    assert.equal(body.tenantId, "tenant-lab");
+    assert.deepEqual(body.roles, ["approver"]);
+  } finally {
+    delete process.env.OPENAEGIS_ENABLE_INSECURE_CUSTOM_TOKEN_MINT;
+  }
+});
+

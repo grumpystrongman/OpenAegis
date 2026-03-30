@@ -84,6 +84,7 @@ When enabled:
 Secure default:
 
 - if `OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH` is not set to `true`, `/v1/auth/login` is disabled and demo tokens are rejected.
+- if `OPENAEGIS_ENABLE_INSECURE_CUSTOM_TOKEN_MINT` is not set to `true`, `auth-service` denies arbitrary subject/tenant/role token mint requests.
 ## 7. Generate Demo Artifacts
 
 ```bash

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { once } from "node:events";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createAppServer as createGatewayServer } from "../../dist/services/api-gateway/src/index.js";
 import { createAppServer as createAuthServer } from "../../dist/services/auth-service/src/index.js";
@@ -59,6 +59,7 @@ export const runSecurityRegression = async () => {
   process.env.OPENAEGIS_AUTH_INTROSPECTOR_TENANT_ID = "tenant-platform";
   process.env.OPENAEGIS_AUTH_ISSUER = baseUrls.auth;
   process.env.OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH = "false";
+  await rm(".volumes/auth-service-state.json", { force: true });
 
   const servers = {
     auth: createAuthServer(),
@@ -206,9 +207,7 @@ export const runSecurityRegression = async () => {
 
     const crossTenantApproverToken = await callTimed(baseUrls.auth, "/v1/auth/token", "POST", {
       body: {
-        subject: "user-other-approver",
-        tenantId: "tenant-other-health",
-        roles: ["approver"]
+        email: "approver@otherhealth.org"
       }
     });
     const crossTenantApproverAccessToken =

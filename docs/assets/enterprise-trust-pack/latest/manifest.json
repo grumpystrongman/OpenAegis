@@ -1,6 +1,6 @@
 {
-  "packageId": "2026-03-30T20-20-55-280Z",
-  "generatedAt": "2026-03-30T20:20:55.345Z",
+  "packageId": "2026-03-30T20-27-25-206Z",
+  "generatedAt": "2026-03-30T20:27:25.271Z",
   "requiredFiles": [
     "docs/compliance/CONTROL-CROSSWALK.json",
     "docs/compliance/ENTERPRISE-TRUST-PACK.md",
@@ -54,8 +54,8 @@
     },
     {
       "file": "docs/security/HARDENING-CONTROLS-MATRIX.md",
-      "sha256": "789ad72a3f80428e36482b1af88d705927a7fa0227ed4b513a5a61e2bf9d9b81",
-      "sizeBytes": 7063
+      "sha256": "fda281535492e441648875640903a5f2bfe32e97497e022f5f96328636cb4ad4",
+      "sizeBytes": 7188
     },
     {
       "file": "docs/threat-model.md",
@@ -74,13 +74,13 @@
     },
     {
       "file": "docs/assets/demo/commercial-proof-report.json",
-      "sha256": "e91363cba94eb708ea8427cc514a7ccd2fe8a797f2523bc3bf227aba64e7cefd",
+      "sha256": "dbee3cd90f07cdcbcbbcf8c9edee79e821471fc55f9caa314c38c67403a2eaa0",
       "sizeBytes": 7607
     },
     {
       "file": "docs/assets/demo/trust-layer-proof-report.json",
-      "sha256": "ea81a3a3bc2d96af8754de43154a71beead7237020d03955655d8ba2340f6222",
-      "sizeBytes": 6965
+      "sha256": "2c74ac688cadb90117588e35e429a564135e2f5f4c08bc4f2d3450aa2efa317a",
+      "sizeBytes": 6963
     },
     {
       "file": "docs/assets/demo/commercial-audit-report.json",
@@ -89,12 +89,12 @@
     },
     {
       "file": "docs/assets/demo/security-regression-report.json",
-      "sha256": "713fdba94d3ed4a087c320e698a57732f1ec79da6972b7bc5d1b2e65f49874f6",
+      "sha256": "7edf8602804a96f07e0943bda6639eccf25d32162e3926ded8c73f31f7420537",
       "sizeBytes": 3979
     },
     {
       "file": "docs/assets/demo/codebase-line-audit-report.json",
-      "sha256": "dc63e441b2ca15aeb0f38f66576253735d6f09597278d110e3113167675be9d8",
+      "sha256": "496964a33a92e4b6148e426884035b12a63551080bd9717c738c4ef9a02687c1",
       "sizeBytes": 383
     },
     {

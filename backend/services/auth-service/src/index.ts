@@ -79,12 +79,39 @@ const defaultUsers: ServiceUser[] = [
     tenantId: "tenant-platform",
     roles: ["service_account", "token_introspect"],
     assurance: "aal3"
+  },
+  {
+    subject: "user-other-approver",
+    email: "approver@otherhealth.org",
+    tenantId: "tenant-other-health",
+    roles: ["approver"],
+    assurance: "aal2"
   }
 ];
 
+const mergeUsers = (users: unknown): ServiceUser[] => {
+  const seeded = new Map(defaultUsers.map((user) => [user.subject, user]));
+  if (!Array.isArray(users)) return [...seeded.values()];
+
+  for (const candidate of users) {
+    if (
+      candidate &&
+      typeof candidate === "object" &&
+      typeof (candidate as ServiceUser).subject === "string" &&
+      typeof (candidate as ServiceUser).email === "string" &&
+      typeof (candidate as ServiceUser).tenantId === "string" &&
+      Array.isArray((candidate as ServiceUser).roles)
+    ) {
+      seeded.set((candidate as ServiceUser).subject, candidate as ServiceUser);
+    }
+  }
+
+  return [...seeded.values()];
+};
+
 const normalizeState = (state: Partial<AuthState> | undefined): AuthState => ({
   version: 1,
-  users: Array.isArray(state?.users) ? state.users : defaultUsers,
+  users: mergeUsers(state?.users),
   sessions: Array.isArray(state?.sessions) ? state.sessions : [],
   activeKid: typeof state?.activeKid === "string" ? state.activeKid : "kid-main"
 });
@@ -167,6 +194,7 @@ const mintToken = (input: {
 };
 
 const handleTokenIssue = async (body: JsonMap, response: ServerResponse, requestId: string) => {
+  const insecureCustomMintEnabled = process.env.OPENAEGIS_ENABLE_INSECURE_CUSTOM_TOKEN_MINT === "true";
   const email = toString(body.email);
   const subject = toString(body.subject);
   const tenantId = toString(body.tenantId);
@@ -176,13 +204,27 @@ const handleTokenIssue = async (body: JsonMap, response: ServerResponse, request
   const ttlSeconds = Math.max(60, Math.min(8 * 60 * 60, Math.floor(ttlSecondsRaw)));
 
   const state = await loadState();
-  const user = email ? state.users.find((item) => item.email.toLowerCase() === email.toLowerCase()) : undefined;
+  const user =
+    (email ? state.users.find((item) => item.email.toLowerCase() === email.toLowerCase()) : undefined) ??
+    (subject ? state.users.find((item) => item.subject === subject) : undefined);
+
+  if (!user && !insecureCustomMintEnabled) {
+    sendJson(response, 403, { error: "custom_token_mint_disabled" }, requestId);
+    return;
+  }
+
   const resolvedSubject = user?.subject ?? subject;
   const resolvedTenant = user?.tenantId ?? tenantId;
   const resolvedRoles = user?.roles ?? roles;
   const resolvedAssurance = user?.assurance ?? assurance ?? "aal2";
 
-  if (!resolvedSubject || !resolvedTenant || !resolvedRoles || resolvedRoles.length === 0) {
+  if (
+    !resolvedSubject ||
+    !resolvedTenant ||
+    !resolvedRoles ||
+    resolvedRoles.length === 0 ||
+    !resolvedRoles.every((role) => typeof role === "string" && role.trim().length > 0)
+  ) {
     sendJson(response, 400, { error: "insufficient_identity_context" }, requestId);
     return;
   }

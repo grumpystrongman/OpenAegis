@@ -12,7 +12,7 @@ The point of the matrix is traceability:
 
 | Control | Implemented service or endpoint | What it does | Validation |
 | --- | --- | --- | --- |
-| SSO and session assurance | `auth-service` - `POST /v1/auth/token`, `POST /v1/auth/introspect`, `POST /v1/auth/revoke` | Issues, validates, and revokes signed sessions with assurance checks | Token/introspection/revocation flow returns deterministic status |
+| SSO and session assurance | `auth-service` - `POST /v1/auth/token`, `POST /v1/auth/introspect`, `POST /v1/auth/revoke` | Issues, validates, and revokes signed sessions with assurance checks; unknown identities are denied by default | Token/introspection/revocation flow returns deterministic status; arbitrary custom token minting is blocked unless explicitly enabled for test mode |
 | Gateway authn and tenant binding | `api-gateway` - auth-service introspection (`OPENAEGIS_AUTH_INTROSPECTION_URL`) + optional insecure demo auth toggle (`OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH`) | Rejects unauthenticated requests, enforces tenant scope from token claims, and disables demo auth unless explicitly enabled | Requests without a valid token are denied; cross-tenant writes fail with `tenant_scope_mismatch`; demo login returns `demo_auth_disabled` by default |
 | Tenant isolation | `tenant-service` - `PATCH /v1/tenants/{id}/isolation`, `GET /v1/tenants/{id}/policy` | Enforces tenant boundary validation and posture state | Cross-tenant access is denied without platform admin role |
 | Policy enforcement outside the model | `policy-service` - `POST /v1/policies/evaluate` | Evaluates allow, require-approval, or deny decisions | Policy result is produced before execution continues |
