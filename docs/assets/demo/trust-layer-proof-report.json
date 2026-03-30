@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-30T20:02:14.119Z",
+  "generatedAt": "2026-03-30T20:20:15.850Z",
   "suite": "trust-layer-end-to-end-proof",
   "product": "OpenAegis",
   "endpoints": {
@@ -26,11 +26,11 @@
           "step": "start_live_execution",
           "expected": "blocked with approval requirement",
           "status": 201,
-          "latencyMs": 25,
+          "latencyMs": 19,
           "data": {
-            "executionId": "ex-mndm6tqx-ayu92g",
+            "executionId": "ex-mndmu0eq-8cc1vj",
             "executionStatus": "blocked",
-            "approvalId": "ap-mndm6trb-acello"
+            "approvalId": "ap-mndmu0f1-fa7t57"
           }
         },
         {
@@ -46,7 +46,7 @@
           "step": "verify_execution_and_evidence",
           "expected": "completed execution with deterministic graph and audit evidence",
           "status": 200,
-          "latencyMs": 12,
+          "latencyMs": 11,
           "data": {
             "executionStatus": "completed",
             "graphStages": [
@@ -54,7 +54,7 @@
               "executor",
               "reviewer"
             ],
-            "evidenceId": "ev-ex-mndm6tqx-ayu92g",
+            "evidenceId": "ev-ex-mndmu0eq-8cc1vj",
             "auditEvents": 5
           }
         }
@@ -64,7 +64,7 @@
         "approvalLatencyMs": 10,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 47
+        "endToEndMs": 41
       },
       "summary": "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
     },
@@ -85,7 +85,7 @@
           "step": "discover_finance_connectors",
           "expected": "registry exposes enterprise analytics connectors",
           "status": 200,
-          "latencyMs": 6,
+          "latencyMs": 5,
           "data": {
             "hasFabric": true,
             "hasPowerBi": true,
@@ -106,10 +106,10 @@
           "step": "verify_idempotent_finance_automation",
           "expected": "duplicate submission replays prior tool call safely",
           "status": 200,
-          "latencyMs": 9,
+          "latencyMs": 10,
           "data": {
-            "firstCallId": "tc-mndm6tsk-8fw2uh",
-            "replayCallId": "tc-mndm6tsk-8fw2uh",
+            "firstCallId": "tc-mndmu0g8-o8ud4t",
+            "replayCallId": "tc-mndmu0g8-o8ud4t",
             "replayed": true
           }
         },
@@ -154,7 +154,7 @@
           "step": "block_unsafe_policy_change_without_break_glass",
           "expected": "422 response requiring break-glass",
           "status": 422,
-          "latencyMs": 4,
+          "latencyMs": 3,
           "data": {
             "error": "break_glass_required_for_blocking_policy_changes"
           }
@@ -173,7 +173,7 @@
           "step": "trigger_and_release_kill_switch",
           "expected": "triggered then released with immutable event chain",
           "status": 200,
-          "latencyMs": 18,
+          "latencyMs": 16,
           "data": {
             "triggerStatus": "triggered",
             "releasedStatus": "released",
@@ -185,7 +185,7 @@
           "step": "restore_secure_policy_baseline",
           "expected": "secure defaults restored without break-glass",
           "status": 200,
-          "latencyMs": 4,
+          "latencyMs": 5,
           "data": {
             "enforceSecretDeny": true,
             "profileVersion": 3
@@ -197,8 +197,8 @@
         "approvalLatencyMs": null,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "containmentLatencyMs": 11,
-        "endToEndMs": 31
+        "containmentLatencyMs": 10,
+        "endToEndMs": 30
       },
       "summary": "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
     }

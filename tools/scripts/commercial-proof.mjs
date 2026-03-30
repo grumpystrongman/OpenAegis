@@ -225,7 +225,12 @@ export const runCommercialProof = async () => {
     });
 
     const guardedToolCall = await call(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
-      headers: { "x-actor-id": "user-clinician", "x-tenant-id": "tenant-starlight-health" },
+      headers: {
+        "x-actor-id": "user-workflow",
+        "x-tenant-id": "tenant-starlight-health",
+        "x-roles": "workflow_operator",
+        "idempotency-key": "proof-email-guard-001"
+      },
       body: {
         toolId: "connector-email-notify",
         action: "EXECUTE",
@@ -252,6 +257,7 @@ export const runCommercialProof = async () => {
     const idemHeaders = {
       "x-actor-id": "user-security",
       "x-tenant-id": "tenant-starlight-health",
+      "x-roles": "security_admin",
       "idempotency-key": "proof-linear-001"
     };
     const idemBody = {

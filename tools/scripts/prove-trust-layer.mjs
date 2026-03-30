@@ -191,8 +191,10 @@ const runFinanceOpsExample = async (tokens) => {
 
   const blockedEmailExecution = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
     headers: {
-      "x-actor-id": "user-clinician",
-      "x-tenant-id": "tenant-starlight-health"
+      "x-actor-id": "user-workflow",
+      "x-tenant-id": "tenant-starlight-health",
+      "x-roles": "workflow_operator",
+      "idempotency-key": "trust-finance-email-guard-001"
     },
     body: {
       toolId: "connector-email-notify",
@@ -223,6 +225,7 @@ const runFinanceOpsExample = async (tokens) => {
   const idemHeaders = {
     "x-actor-id": "user-admin",
     "x-tenant-id": "tenant-starlight-health",
+    "x-roles": "platform_admin",
     "idempotency-key": "trust-finance-close-001"
   };
   const idemBody = {

@@ -1,9 +1,10 @@
 {
-  "generatedAt": "2026-03-30T20:01:20.199Z",
+  "generatedAt": "2026-03-30T20:19:18.620Z",
   "suite": "security-regression",
   "endpoints": {
     "gateway": "http://127.0.0.1:3970",
-    "auth": "http://127.0.0.1:3971"
+    "auth": "http://127.0.0.1:3971",
+    "toolExecution": "http://127.0.0.1:3972"
   },
   "checks": [
     {
@@ -12,7 +13,7 @@
       "details": {
         "status": 404,
         "error": "demo_auth_disabled",
-        "latencyMs": 29
+        "latencyMs": 28
       }
     },
     {
@@ -39,8 +40,8 @@
       "passed": true,
       "details": {
         "status": 201,
-        "executionId": "ex-mndm5o1p-4110ff",
-        "latencyMs": 20
+        "executionId": "ex-mndmss57-o0umbv",
+        "latencyMs": 26
       }
     },
     {
@@ -58,7 +59,7 @@
       "details": {
         "executionStatus": 201,
         "workflowStatus": "blocked",
-        "approvalId": "ap-mndm5o2d-32zbc7",
+        "approvalId": "ap-mndmss5y-wff3tb",
         "deniedStatus": 403,
         "deniedError": "insufficient_role_for_approval_decision"
       }
@@ -83,7 +84,41 @@
         "clinicianStatus": 403,
         "clinicianError": "insufficient_role_for_approval_list",
         "securityStatus": 200,
-        "approvalCount": 1
+        "approvalCount": 2
+      }
+    },
+    {
+      "checkId": "tool_execution_requires_tenant_and_actor_context",
+      "passed": true,
+      "details": {
+        "status": 400,
+        "error": "tenant_context_required"
+      }
+    },
+    {
+      "checkId": "live_tool_execute_requires_idempotency_key",
+      "passed": true,
+      "details": {
+        "status": 400,
+        "error": "idempotency_key_required_for_live_execute"
+      }
+    },
+    {
+      "checkId": "tool_idempotency_reuse_mismatch_blocked",
+      "passed": true,
+      "details": {
+        "firstStatus": 200,
+        "mismatchStatus": 409,
+        "mismatchError": "idempotency_key_reuse_mismatch"
+      }
+    },
+    {
+      "checkId": "tool_call_lookup_is_tenant_scoped",
+      "passed": true,
+      "details": {
+        "createdToolCallId": "tc-mndmss74-5h26dt",
+        "status": 404,
+        "error": "tool_call_not_found"
       }
     },
     {
@@ -108,8 +143,8 @@
     }
   ],
   "summary": {
-    "totalChecks": 10,
-    "passedChecks": 10,
+    "totalChecks": 14,
+    "passedChecks": 14,
     "failedChecks": 0,
     "scorePercent": 100,
     "status": "PASS"

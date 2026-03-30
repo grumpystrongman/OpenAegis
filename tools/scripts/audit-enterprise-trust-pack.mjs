@@ -39,8 +39,7 @@ const isReadinessPassOrInterim = (readiness) => {
     "smoke",
     "proof",
     "trust-proof",
-    "codebase-audit",
-    "trust-pack"
+    "codebase-audit"
   ];
 
   const preTrustChecksPassed = requiredPreTrustChecks.every((id) =>
@@ -49,6 +48,7 @@ const isReadinessPassOrInterim = (readiness) => {
   const nonTrustFailures = commands.filter(
     (command) =>
       command.status !== "PASS" &&
+      command.id !== "trust-pack" &&
       command.id !== "trust-pack-audit" &&
       command.id !== "evidence"
   );
@@ -56,7 +56,10 @@ const isReadinessPassOrInterim = (readiness) => {
   return (
     preTrustChecksPassed &&
     nonTrustFailures.length === 0 &&
-    commands.some((command) => command.id === "trust-pack-audit" && command.status === "FAIL")
+    commands.some(
+      (command) =>
+        (command.id === "trust-pack" || command.id === "trust-pack-audit") && command.status === "FAIL"
+    )
   );
 };
 

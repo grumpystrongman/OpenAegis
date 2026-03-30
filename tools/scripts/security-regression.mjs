@@ -4,15 +4,18 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { createAppServer as createGatewayServer } from "../../dist/services/api-gateway/src/index.js";
 import { createAppServer as createAuthServer } from "../../dist/services/auth-service/src/index.js";
+import { createAppServer as createToolExecutionServer } from "../../dist/services/tool-execution-service/src/index.js";
 
 const ports = {
   gateway: Number(process.env.OPENAEGIS_SECURITY_GATEWAY_PORT ?? 3970),
-  auth: Number(process.env.OPENAEGIS_SECURITY_AUTH_PORT ?? 3971)
+  auth: Number(process.env.OPENAEGIS_SECURITY_AUTH_PORT ?? 3971),
+  toolExecution: Number(process.env.OPENAEGIS_SECURITY_TOOL_EXECUTION_PORT ?? 3972)
 };
 
 const baseUrls = {
   gateway: `http://127.0.0.1:${ports.gateway}`,
-  auth: `http://127.0.0.1:${ports.auth}`
+  auth: `http://127.0.0.1:${ports.auth}`,
+  toolExecution: `http://127.0.0.1:${ports.toolExecution}`
 };
 
 const call = async (baseUrl, path, method = "GET", options = {}) => {
@@ -59,12 +62,14 @@ export const runSecurityRegression = async () => {
 
   const servers = {
     auth: createAuthServer(),
-    gateway: createGatewayServer()
+    gateway: createGatewayServer(),
+    toolExecution: createToolExecutionServer()
   };
 
   servers.auth.listen(ports.auth);
   servers.gateway.listen(ports.gateway);
-  await Promise.all([once(servers.auth, "listening"), once(servers.gateway, "listening")]);
+  servers.toolExecution.listen(ports.toolExecution);
+  await Promise.all([once(servers.auth, "listening"), once(servers.gateway, "listening"), once(servers.toolExecution, "listening")]);
 
   const checks = [];
 
@@ -271,6 +276,125 @@ export const runSecurityRegression = async () => {
       }
     });
 
+    const toolNoContext = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+      body: {
+        toolId: "connector-fhir-read",
+        action: "READ",
+        mode: "simulate",
+        requestedNetworkProfile: "clinical-internal",
+        stepBudgetRemaining: 1
+      }
+    });
+    checks.push({
+      checkId: "tool_execution_requires_tenant_and_actor_context",
+      passed: toolNoContext.status === 400 && normalizeError(toolNoContext.payload) === "tenant_context_required",
+      details: {
+        status: toolNoContext.status,
+        error: normalizeError(toolNoContext.payload)
+      }
+    });
+
+    const toolExecuteWithoutIdem = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+      headers: {
+        "x-actor-id": "user-security",
+        "x-tenant-id": "tenant-starlight-health",
+        "x-roles": "security_admin"
+      },
+      body: {
+        toolId: "connector-linear-project",
+        action: "EXECUTE",
+        mode: "execute",
+        requestedNetworkProfile: "project-ops",
+        stepBudgetRemaining: 2,
+        parameters: {
+          project: "OpenAegis Security Regression"
+        }
+      }
+    });
+    checks.push({
+      checkId: "live_tool_execute_requires_idempotency_key",
+      passed:
+        toolExecuteWithoutIdem.status === 400 &&
+        normalizeError(toolExecuteWithoutIdem.payload) === "idempotency_key_required_for_live_execute",
+      details: {
+        status: toolExecuteWithoutIdem.status,
+        error: normalizeError(toolExecuteWithoutIdem.payload)
+      }
+    });
+
+    const idemHeaders = {
+      "idempotency-key": "security-regression-linear-001",
+      "x-actor-id": "user-security",
+      "x-tenant-id": "tenant-starlight-health",
+      "x-roles": "security_admin"
+    };
+
+    const toolFirst = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+      headers: idemHeaders,
+      body: {
+        toolId: "connector-linear-project",
+        action: "EXECUTE",
+        mode: "simulate",
+        requestedNetworkProfile: "project-ops",
+        stepBudgetRemaining: 2,
+        parameters: {
+          project: "OpenAegis Security Regression A"
+        }
+      }
+    });
+
+    const toolMismatch = await callTimed(baseUrls.toolExecution, "/v1/tool-calls", "POST", {
+      headers: idemHeaders,
+      body: {
+        toolId: "connector-linear-project",
+        action: "EXECUTE",
+        mode: "simulate",
+        requestedNetworkProfile: "project-ops",
+        stepBudgetRemaining: 2,
+        parameters: {
+          project: "OpenAegis Security Regression B"
+        }
+      }
+    });
+    checks.push({
+      checkId: "tool_idempotency_reuse_mismatch_blocked",
+      passed:
+        toolFirst.status === 200 &&
+        toolMismatch.status === 409 &&
+        normalizeError(toolMismatch.payload) === "idempotency_key_reuse_mismatch",
+      details: {
+        firstStatus: toolFirst.status,
+        mismatchStatus: toolMismatch.status,
+        mismatchError: normalizeError(toolMismatch.payload)
+      }
+    });
+
+    const createdToolCallId = typeof toolFirst.payload.toolCallId === "string" ? toolFirst.payload.toolCallId : "";
+    const crossTenantLookup = await callTimed(
+      baseUrls.toolExecution,
+      `/v1/tool-calls/${createdToolCallId}`,
+      "GET",
+      {
+        headers: {
+          "x-actor-id": "user-other-security",
+          "x-tenant-id": "tenant-other-health",
+          "x-roles": "security_admin"
+        }
+      }
+    );
+    checks.push({
+      checkId: "tool_call_lookup_is_tenant_scoped",
+      passed:
+        createdToolCallId.length > 0 &&
+        crossTenantLookup.status === 404 &&
+        normalizeError(crossTenantLookup.payload) === "tool_call_not_found",
+      details: {
+        createdToolCallId,
+        status: crossTenantLookup.status,
+        error: normalizeError(crossTenantLookup.payload)
+      }
+    });
+
     const policyWithoutBreakGlass = await callTimed(baseUrls.gateway, "/v1/policies/profile/save", "POST", {
       headers: { authorization: `Bearer ${securityAccessToken}` },
       body: {
@@ -348,7 +472,8 @@ export const runSecurityRegression = async () => {
   } finally {
     servers.auth.close();
     servers.gateway.close();
-    await Promise.all([once(servers.auth, "close"), once(servers.gateway, "close")]);
+    servers.toolExecution.close();
+    await Promise.all([once(servers.auth, "close"), once(servers.gateway, "close"), once(servers.toolExecution, "close")]);
 
     for (const [key, value] of Object.entries(envBackup)) {
       if (typeof value === "string") {
