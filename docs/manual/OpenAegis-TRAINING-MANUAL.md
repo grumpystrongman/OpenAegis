@@ -1,54 +1,82 @@
 # OpenAegis Training Manual
 
+## Before You Start
+
+OpenAegis is a safety-first agent platform.
+
+Think of it as a guarded workflow engine:
+
+- the AI suggests
+- OpenAegis checks
+- humans approve risky live actions
+- evidence is recorded
+
 ## Training Path
 
-### Module 1: Platform Orientation
+### Module 1: Understand the Safety Model
 
-- Understand trust planes and runtime boundaries
-- Learn policy-first execution model
-- Learn approval and audit lifecycle
+Goal: explain in one minute how OpenAegis prevents unsafe automation.
 
-### Module 2: Running a Simulation
+Checklist:
 
-1. Login as operator
-2. Open Simulation Lab
-3. Start discharge workflow in simulation mode
-4. Review output, model route, and evidence tags
+- describe policy outside model
+- describe approval gate
+- describe audit evidence chain
 
-### Module 3: Running Live with Approval
+### Module 2: Run Simulation First
 
-1. Start live workflow
-2. Observe blocked status for high-risk action
-3. Approve from Approval Inbox
-4. Confirm completion in execution timeline
+1. Open Simulation Lab.
+2. Run discharge workflow in simulation mode.
+3. Confirm execution result and model route.
+4. Review evidence IDs.
 
-### Module 4: Audit and Forensics
+Pass condition: simulation completes and evidence is visible.
 
-1. Open Audit Explorer
-2. Filter by execution ID
-3. Follow evidence IDs and policy decision IDs
-4. Build incident timeline report
+### Module 3: Run Live with Approval
 
-### Module 5: Operational Safety
+1. Run workflow in live mode.
+2. Confirm status blocks for high-risk action.
+3. Open Approval Inbox.
+4. Approve request.
+5. Confirm workflow completes after approval.
 
-- Use least privilege roles
-- Validate policy changes in simulation
-- Escalate abnormal behavior quickly
+Pass condition: completion only happens after approval.
 
-## Practical Exercise
+### Module 4: Change Policy Safely
 
-Complete one full run:
+1. Open Security Console -> Policy Studio.
+2. Change one control.
+3. Run Preview Impact.
+4. Read warnings.
+5. Ask Copilot and compare recommendation.
+6. Apply policy.
 
-- simulation run
-- live blocked run
-- approval decision
-- final completion validation
-- audit review and summary
+Pass condition: trainee can explain impact in plain language.
 
-## Competency Checklist
+### Module 5: Audit and Incident Review
 
-- Can explain why execution was blocked
-- Can find approval reason and approver identity
-- Can identify model route and sensitivity constraints
-- Can locate evidence references in audit logs
-- Can generate demo report from script
+1. Open Audit Explorer.
+2. Filter by execution ID.
+3. Open Incident Review Explorer.
+4. Map evidence ID -> policy decision -> approval -> final outcome.
+
+Pass condition: trainee can reconstruct workflow timeline from evidence.
+
+## Practical Lab (Single Flow)
+
+Run one full cycle:
+
+1. simulation
+2. live block
+3. approval decision
+4. final completion
+5. policy preview
+6. audit review
+
+## If You Remember Only Five Things
+
+1. Run simulation before live.
+2. Policy is outside the model.
+3. High-risk live actions need approvals.
+4. Every major action must be traceable by evidence ID.
+5. If unsure, keep safer defaults.

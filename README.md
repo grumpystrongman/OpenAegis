@@ -2,58 +2,75 @@
 
 ![OpenAegis Logo](docs/assets/branding/OpenAegisLogo.png)
 
-OpenAegis is an open-source, vendor-neutral platform for running AI agents inside regulated enterprises with zero-trust controls, approval gates, and immutable evidence.
+OpenAegis is an open-source control layer for enterprise AI agents in regulated environments.
 
-## Why OpenAegis
+In plain English: the model can suggest work, but OpenAegis decides what is allowed, what must be approved, and what must be recorded as evidence.
 
-OpenAegis is built for healthcare and other high-regulation environments where data leakage is unacceptable.
+## Why Use OpenAegis
 
-- Vendor-agnostic model routing across OpenAI, Anthropic, Google, Azure, and self-hosted models
-- Policy and approvals enforced **outside** the model
-- Per-action audit evidence with replay-ready event history
-- Multi-tenant isolation and deny-by-default runtime controls
-- Simulation mode before live execution
-- Signed connector registry with reference manifests (FHIR, HL7, SQL, Fabric, Power BI, SharePoint, Email, Ticketing, Linear)
+OpenAegis is built for organizations where data leakage is a business and compliance failure, not just a bug.
 
-## Pilot Use Case (Live Today)
+| Option | Good at | Gap in regulated enterprise use | OpenAegis advantage |
+| --- | --- | --- | --- |
+| Generic agent frameworks | Fast prototyping | Usually weak policy, approvals, and audit replay | Policy enforced outside model + evidence chain |
+| Vendor-specific copilots | Convenience | Vendor lock-in and limited control portability | Vendor-neutral model broker |
+| DIY scripts | Custom logic | Hard to prove safety and control coverage | Built-in approvals, audit, incidents, simulation |
+| OpenAegis | Controlled automation | Early-stage project, expanding coverage | Security-first defaults and executable proof |
+
+## Core Value (What Is Different)
+
+- Policy and approvals are enforced outside the model.
+- High-risk live actions can be blocked pending human approval.
+- Security and compliance teams get evidence IDs for replay and review.
+- Sensitive routing can require zero-retention providers.
+- Multi-tenant context is explicit and carried across requests.
+- Simulation mode exists before live execution.
+
+## How Policy Configuration Works
+
+OpenAegis now includes a guided **Policy Studio** in the Security Console.
+
+1. Edit beginner-safe controls with plain-language explanations.
+2. Run **Preview Impact** to see `ALLOW / REQUIRE_APPROVAL / DENY` changes.
+3. Review warnings before saving.
+4. Use **LLM Copilot** to review and suggest safer settings.
+5. Apply the policy profile (break-glass fields are required for blocking-risk changes).
+
+See detailed guide: [docs/policy-studio.md](docs/policy-studio.md)
+
+## Pilot Use Case (Live)
 
 The included pilot demonstrates a **Hospital Discharge Readiness Assistant**:
 
-1. Reads patient context from FHIR + SQL connectors
-2. Routes model inference based on sensitivity policy
-3. Blocks high-risk outbound follow-up actions pending human approval
-4. Captures immutable audit/evidence for every major action
+1. Read patient context from FHIR + SQL connectors.
+2. Route model inference based on sensitivity policy.
+3. Block high-risk outbound follow-up actions pending human approval.
+4. Capture immutable audit/evidence for every major action.
+
+## Proof Map
+
+| Claim | Where it is proven |
+| --- | --- |
+| Policy gates enforced outside model | `backend/services/api-gateway/src/index.test.ts` |
+| High-risk live approval gating | `backend/services/api-gateway/src/index.test.ts` |
+| Break-glass required for blocking policy downgrades | `backend/services/api-gateway/src/index.test.ts` |
+| Copilot guidance for policy edits | `/v1/policies/profile/copilot` + Security Console |
+| End-to-end pilot still operational | `npm run smoke:pilot` |
+| Commercial evidence output | `docs/assets/demo/commercial-proof-report.json` |
 
 ## Screenshots
 
-All screenshots below are captured from live route-specific pages in the running pilot app after seeding real workflow state.
+All screenshots are generated from live route interactions:
 
-### KPI Dashboard
-![KPI Dashboard](docs/assets/screenshots/commercial-dashboard.png)
-
-### Commercial Readiness
-![Commercial Readiness](docs/assets/screenshots/commercial-readiness.png)
-
-### Admin Console
-![Admin Console](docs/assets/screenshots/commercial-admin.png)
-
-### Workflow Designer
-![Workflow Designer](docs/assets/screenshots/commercial-workflow.png)
-
-### Approval Inbox
-![Approval Inbox](docs/assets/screenshots/commercial-approvals.png)
-
-### Incident Review Explorer
-![Incident Review Explorer](docs/assets/screenshots/commercial-incidents.png)
-
-### Audit Explorer
-![Audit Explorer](docs/assets/screenshots/commercial-audit.png)
-
-### Security Console
-![Security Console](docs/assets/screenshots/commercial-security.png)
-
-### Simulation Lab
-![Simulation Lab](docs/assets/screenshots/commercial-simulation.png)
+- KPI Dashboard: `docs/assets/screenshots/commercial-dashboard.png`
+- Commercial Readiness: `docs/assets/screenshots/commercial-readiness.png`
+- Security Console (Policy Studio): `docs/assets/screenshots/commercial-security.png`
+- Approval Inbox: `docs/assets/screenshots/commercial-approvals.png`
+- Incident Review Explorer: `docs/assets/screenshots/commercial-incidents.png`
+- Audit Explorer: `docs/assets/screenshots/commercial-audit.png`
+- Workflow Designer: `docs/assets/screenshots/commercial-workflow.png`
+- Simulation Lab: `docs/assets/screenshots/commercial-simulation.png`
+- Admin Console: `docs/assets/screenshots/commercial-admin.png`
 
 ## Quick Start
 
@@ -65,44 +82,32 @@ npm run build
 npm run smoke:pilot
 ```
 
-Run the full pilot demo report:
+Run pilot demo output:
 
 ```bash
 node tools/scripts/pilot-demo.mjs
 ```
 
-Regenerate commercial screenshots:
+Capture screenshots:
 
 ```bash
 npm run screenshots:commercial
 ```
 
-### Connector Control APIs (Pilot)
-
-- `tool-registry`: `GET /v1/tools`, `POST /v1/tools`, `POST /v1/tools/{id}/publish`
-- `tool-execution-service`: `POST /v1/tool-calls`, `GET /v1/tool-calls`, `GET /v1/tool-calls/{toolCallId}`
-
-The demo output is saved to:
-
-- `docs/assets/demo/pilot-demo-output.json`
-
-## Architecture
-
-The full architecture and threat model are documented in:
-
-- `docs/openaegis-blueprint.md`
-
 ## Documentation Map
 
-- `docs/pilot/PILOT-RUNBOOK.md`
-- `docs/tests/SMOKE-AND-PILOT-TEST-REPORT.md`
-- `docs/manual/OpenAegis-OPERATOR-MANUAL.md`
-- `docs/manual/OpenAegis-TRAINING-MANUAL.md`
-- `docs/manual/OpenAegis-FAQ.md`
-- `docs/manual/OpenAegis-SETUP-SUPPORT-GUIDE.md`
-- `docs/i18n/` multilingual document packs (top 20 language coverage)
+- [Platform blueprint](docs/openaegis-blueprint.md)
+- [Commercial readiness](docs/commercial/COMMERCIAL-READINESS.md)
+- [Policy Studio guide](docs/policy-studio.md)
+- [Pilot runbook](docs/pilot/PILOT-RUNBOOK.md)
+- [Smoke and pilot report](docs/tests/SMOKE-AND-PILOT-TEST-REPORT.md)
+- [Operator manual](docs/manual/OpenAegis-OPERATOR-MANUAL.md)
+- [Training manual](docs/manual/OpenAegis-TRAINING-MANUAL.md)
+- [FAQ](docs/manual/OpenAegis-FAQ.md)
+- [Setup support guide](docs/manual/OpenAegis-SETUP-SUPPORT-GUIDE.md)
+- [Top-20 language packs](docs/i18n/README.md)
 
-## Current Build Status
+## Build Status
 
 Validated in this repository:
 
@@ -110,18 +115,7 @@ Validated in this repository:
 - `npm run test` passes
 - `npm run build` passes
 - `npm run smoke:pilot` passes
-- Pilot end-to-end demo run saved with evidence output
 
 ## Contributing
 
-OpenAegis is early and evolving. Contributions are welcome for:
-
-- additional enterprise connectors
-- hardened runtime isolation
-- policy packs for regulated workflows
-- observability and replay tooling
-- localization quality improvements
-
-
-
-
+OpenAegis is early and evolving. Contributions are welcome for runtime hardening, connectors, policy packs, observability, and localization quality.

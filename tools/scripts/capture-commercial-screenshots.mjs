@@ -240,7 +240,17 @@ export const captureCommercialScreenshots = async () => {
     await page.getByRole("button", { name: "Security" }).first().click();
     await page.waitForTimeout(400);
 
-    await captureRoute(page, urls.app, "/security", "Security Console", "commercial-security.png");
+    await page.goto(`${urls.app}/security`, { waitUntil: "networkidle" });
+    await waitForHeading(page, "Security Console");
+    const approvalToggle = page.getByLabel("Require human approval for high-risk live actions");
+    if (await approvalToggle.isVisible().catch(() => false)) {
+      await approvalToggle.uncheck();
+      await page.getByRole("button", { name: "Preview impact" }).first().click();
+      await page.waitForTimeout(700);
+      await page.getByRole("button", { name: "Ask copilot" }).first().click();
+      await page.waitForTimeout(900);
+    }
+    await page.screenshot({ path: path.join(screenshotDir, "commercial-security.png"), fullPage: true });
     await captureRoute(page, urls.app, "/approvals", "Approval Inbox", "commercial-approvals.png");
 
     const rejectButton = page.getByRole("button", { name: "Reject" });

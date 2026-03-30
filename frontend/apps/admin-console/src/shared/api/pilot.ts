@@ -139,6 +139,78 @@ export interface CommercialVerificationClaim {
   evidence: Record<string, unknown>;
 }
 
+export interface PolicyProfileControls {
+  enforceSecretDeny: boolean;
+  requireZeroRetentionForPhi: boolean;
+  requireApprovalForHighRiskLive: boolean;
+  requireDlpOnOutbound: boolean;
+  restrictExternalProvidersToZeroRetention: boolean;
+  maxToolCallsPerExecution: number;
+}
+
+export interface PolicyProfile {
+  profileId: string;
+  tenantId: string;
+  profileName: string;
+  profileVersion: number;
+  controls: PolicyProfileControls;
+  changeSummary: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface PolicyValidationIssue {
+  severity: "blocking" | "warning" | "info";
+  code: string;
+  title: string;
+  message: string;
+  remediation: string;
+  affectedControls: Array<keyof PolicyProfileControls>;
+}
+
+export interface PolicySimulationResult {
+  generatedAt: string;
+  totals: {
+    allow: number;
+    requireApproval: number;
+    deny: number;
+  };
+  riskyDeltaDetected: boolean;
+  warnings: string[];
+  scenarios: Array<{
+    scenarioId: string;
+    title: string;
+    decision: {
+      effect: "ALLOW" | "REQUIRE_APPROVAL" | "DENY";
+      reasons: string[];
+      obligations: string[];
+    };
+  }>;
+}
+
+export interface PolicyValidationResult {
+  valid: boolean;
+  issues: PolicyValidationIssue[];
+  simulation: PolicySimulationResult;
+}
+
+export interface PolicyProfileSnapshot {
+  profile: PolicyProfile;
+  validation: PolicyValidationResult;
+}
+
+export interface PolicyCopilotReview {
+  source: "local-llm" | "builtin";
+  operatorGoal: string;
+  summary: string;
+  riskNarrative: string;
+  hints: string[];
+  suggestedControls: PolicyProfileControls;
+  suggestedReason: string;
+  confidence: number;
+  previewValidation: PolicyValidationResult;
+}
+
 export interface CommercialClaimsSnapshot {
   generatedAt: string;
   executionTotals: {
@@ -215,5 +287,28 @@ export const pilotApi = {
       { classification: "EPHI", zeroRetentionRequired: true }
     ),
   getCommercialReadiness: (token: string) =>
-    jsonRequest<CommercialReadinessSnapshot>("/v1/commercial/readiness", "GET", token)
+    jsonRequest<CommercialReadinessSnapshot>("/v1/commercial/readiness", "GET", token),
+  getPolicyProfile: (token: string) =>
+    jsonRequest<PolicyProfileSnapshot>("/v1/policies/profile", "GET", token),
+  previewPolicyProfile: (token: string, payload: { profileName?: string; controls: Partial<PolicyProfileControls> }) =>
+    jsonRequest<PolicyProfileSnapshot>("/v1/policies/profile/preview", "POST", token, payload),
+  reviewPolicyWithCopilot: (
+    token: string,
+    payload: { operatorGoal: string; profileName?: string; controls: Partial<PolicyProfileControls> }
+  ) => jsonRequest<PolicyCopilotReview>("/v1/policies/profile/copilot", "POST", token, payload),
+  savePolicyProfile: (
+    token: string,
+    payload: {
+      profileName?: string;
+      changeSummary: string;
+      controls: Partial<PolicyProfileControls>;
+      breakGlass?: { ticketId: string; justification: string; approverIds: string[] };
+    }
+  ) =>
+    jsonRequest<{ profile: PolicyProfile; validation: PolicyValidationResult; breakGlassUsed: boolean }>(
+      "/v1/policies/profile/save",
+      "POST",
+      token,
+      payload
+    )
 };

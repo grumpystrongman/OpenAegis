@@ -4,70 +4,115 @@
 
 - Node.js 22+
 - npm 10+
-- Docker (optional for full dependency stack)
+- Playwright dependencies (for screenshot automation)
+- Docker optional
 
-## 2. Local Setup
+## 2. Install and Validate
 
 ```bash
 npm install
 npm run typecheck
 npm run test
 npm run build
-```
-
-## 3. Run Validation
-
-```bash
 npm run smoke:pilot
-node tools/scripts/pilot-demo.mjs
 ```
 
-## 4. Start UI for Manual Demo
+## 3. Run Local Demo
 
 Terminal A:
+
 ```bash
 PORT=4300 node tools/scripts/run-gateway.mjs
 ```
 
 Terminal B:
+
 ```bash
 VITE_API_URL=http://127.0.0.1:4300 npm run --workspace @openaegis/admin-console dev -- --host 127.0.0.1 --port 4273
 ```
 
 Open `http://127.0.0.1:4273`.
 
-## 5. Common Issues
+## 4. Policy Studio Demo Steps
 
-### `Failed to fetch` in browser
-- Ensure gateway is running
-- Ensure `VITE_API_URL` points to the gateway
-- Ensure CORS headers are enabled (already configured in gateway)
+1. Connect demo sessions.
+2. Open Security Console.
+3. Change one policy control.
+4. Click Preview impact.
+5. Click Ask copilot.
+6. Apply policy.
 
-### `No configured push destination`
-- Add a git remote:
-```bash
-git remote add origin <repository-url>
-git push -u origin master
+Expected behavior:
+
+- warnings appear for risky controls
+- blocking downgrades require break-glass fields
+- policy profile version increases after successful save
+
+## 5. Optional Local LLM Copilot Backend
+
+Set `OPENAEGIS_LOCAL_LLM_ENDPOINT` before starting gateway.
+
+Example (PowerShell):
+
+```powershell
+$env:OPENAEGIS_LOCAL_LLM_ENDPOINT = "http://127.0.0.1:11434/v1/chat/completions"
+PORT=4300 node tools/scripts/run-gateway.mjs
 ```
 
-### Port conflicts (`EADDRINUSE`)
-- Change service ports using environment variables
-- Stop conflicting local services
+If not set, copilot uses built-in fallback logic.
 
-## 6. Support Escalation Template
+## 6. Generate Demo Artifacts
 
-When opening an issue include:
+```bash
+node tools/scripts/pilot-demo.mjs
+npm run screenshots:commercial
+```
+
+Artifacts:
+
+- `docs/assets/demo/pilot-demo-output.json`
+- `docs/assets/demo/commercial-proof-report.json`
+- `docs/assets/screenshots/commercial-*.png`
+
+## 7. Common Issues
+
+### Browser shows `Failed to fetch`
+
+- confirm gateway is running
+- confirm `VITE_API_URL` points to gateway
+- confirm no port conflict
+
+### Policy save fails with break-glass error
+
+- check ticket ID is set
+- check justification length is at least 20 characters
+- check at least two approver IDs are provided
+
+### Port conflict (`EADDRINUSE`)
+
+- change UI/API ports
+- stop conflicting process
+
+### `git push` fails
+
+- confirm remote:
+
+```bash
+git remote -v
+```
+
+- add missing remote if needed:
+
+```bash
+git remote add origin <repository-url>
+```
+
+## 8. Support Escalation Template
+
+Include:
 
 - OS and Node version
 - command executed
-- error output
-- expected result
-- screenshot/log file
-
-## 7. Operational Support Checklist
-
-- Confirm service health endpoint responds
-- Confirm policy evaluation endpoint responds
-- Confirm approval endpoint returns pending tickets
-- Confirm audit endpoint returns events
-- Confirm UI reflects execution state transitions
+- full error output
+- expected vs actual behavior
+- screenshot path or log snippet

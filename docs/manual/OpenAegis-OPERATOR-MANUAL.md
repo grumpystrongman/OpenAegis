@@ -1,57 +1,89 @@
 # OpenAegis Operator Manual
 
-## 1. Platform Purpose
+## 1. What This Platform Is
 
-OpenAegis orchestrates enterprise AI agents with externalized policy, approvals, and auditability. It is built for regulated environments where trust and evidence are non-negotiable.
+OpenAegis is the control system around enterprise AI agents.
 
-## 2. Core Concepts
+It is not a chatbot UI and not an autonomous agent playground.
 
-- Tenant: isolated organizational boundary
-- Workflow: deterministic multi-step execution plan
-- Agent Runtime: sandboxed step execution environment
-- Policy Decision: `ALLOW`, `DENY`, or `REQUIRE_APPROVAL`
-- Approval Ticket: human gate for high-risk actions
-- Evidence Envelope: immutable audit record for major actions
+Its job is to make sure every important action is:
 
-## 3. Operator Responsibilities
+- checked by policy
+- blocked if unsafe
+- approval-gated when high risk
+- logged with evidence for later review
 
-1. Maintain policy bundles and review changes
-2. Monitor pending approvals and blocked executions
-3. Validate model routing constraints for sensitive data
-4. Investigate incidents using audit + evidence explorer
-5. Run simulation before enabling live workflows
+## 2. Core Terms (Simple)
 
-## 4. Secure Operating Rules
+- Tenant: one organization boundary.
+- Workflow: a sequence of controlled steps.
+- Policy decision: `ALLOW`, `REQUIRE_APPROVAL`, or `DENY`.
+- Approval: human decision required for risky live actions.
+- Evidence ID: immutable reference used for audit and replay.
+- Incident: a tracked security or control failure signal.
 
-- Never bypass policy checks in production
-- Never use external models for sensitive data without explicit policy allow
-- Never grant break-glass access without dual approval
-- Always preserve evidence chain integrity
-- Always apply least privilege for operators and connectors
+## 3. Daily Operator Responsibilities
 
-## 5. Daily Operations Checklist
+1. Check dashboard health and blocked counts.
+2. Review pending approvals.
+3. Review new incidents.
+4. Confirm policy profile is still safe.
+5. Confirm audit stream is active.
 
-- Review dashboard KPI trends
-- Review pending approvals
-- Review blocked executions
-- Check audit stream for anomalies
-- Verify service health and queue depth
+## 4. Policy Operations
 
-## 6. Incident Response Basics
+Use **Security Console -> Policy Studio** for policy changes.
 
-1. Activate scoped kill-switch if needed
-2. Capture incident timeline and evidence IDs
-3. Replay execution checkpoints
-4. Record containment actions
-5. Complete post-incident review package
+Safe flow:
+
+1. Change controls.
+2. Run Preview Impact.
+3. Read warnings.
+4. Ask Copilot when needed.
+5. Apply policy.
+
+Rules:
+
+- Do not apply risky changes without preview.
+- Do not bypass blocking warnings without break-glass documentation.
+- Keep zero-retention safeguards on for PHI/EPHI.
+
+## 5. Secure Operating Rules
+
+- Never disable secret-data deny in normal operation.
+- Never route PHI/EPHI externally without zero-retention safeguards.
+- Never skip approval requirements for high-risk live actions unless break-glass is approved.
+- Never delete or tamper with evidence records.
+- Always use least-privilege roles for operators and connectors.
+
+## 6. Incident Response Playbook
+
+1. Detect: identify blocked action or failure signal.
+2. Contain: pause risky workflows or activate kill switch.
+3. Investigate: inspect audit events and evidence IDs.
+4. Replay: run simulation/review timeline from evidence chain.
+5. Report: create incident package for security/compliance.
 
 ## 7. Compliance Evidence Exports
 
-OpenAegis supports export packages for:
+For each case, include:
 
-- Security review
-- Compliance review
-- Incident response
-- Executive reporting
+- initiator identity
+- policy decision(s)
+- approval record(s)
+- tool/model route metadata
+- audit event chain
+- final disposition
 
-Use the evidence IDs shown in the Audit Explorer to package chain-of-custody artifacts.
+Primary sources:
+
+- Audit Explorer
+- Incident Review Explorer
+- `docs/assets/demo/commercial-proof-report.json`
+
+## 8. What Never to Do
+
+- Do not treat model output as policy truth.
+- Do not grant broad connector permissions by default.
+- Do not run new live changes without simulation.
+- Do not close incidents without evidence linkage.

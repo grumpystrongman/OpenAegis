@@ -9,7 +9,10 @@ import {
   type CommercialReadinessSnapshot,
   type ExecutionRecord,
   type LoginResponse,
-  type ModelRoutePreview
+  type ModelRoutePreview,
+  type PolicyCopilotReview,
+  type PolicyProfileControls,
+  type PolicyProfileSnapshot
 } from "../shared/api/pilot.js";
 import { DEMO_PERSONAS, PILOT_USE_CASE, AGENT_BLUEPRINTS, CONNECTOR_BLUEPRINTS, EXECUTIVE_KPIS, POLICY_BLUEPRINTS, WORKFLOW_BLUEPRINTS } from "./pilot-data.js";
 
@@ -44,6 +47,8 @@ interface WorkspaceState {
   commercialProof?: CommercialProofSnapshot;
   commercialClaims?: CommercialClaimsSnapshot;
   commercialReadiness?: CommercialReadinessSnapshot;
+  policySnapshot?: PolicyProfileSnapshot;
+  policyCopilot?: PolicyCopilotReview;
   modelPreview?: { selected: ModelRoutePreview; fallback: ModelRoutePreview[] };
   lastSyncedAt?: string;
   isBootstrapping: boolean;
@@ -56,6 +61,14 @@ interface WorkspaceActions {
   refreshWorkspace: () => Promise<void>;
   runWorkflow: (mode: "simulation" | "live", requestFollowupEmail?: boolean) => Promise<ExecutionRecord | null>;
   decideApproval: (approvalId: string, decision: Decision, reason: string) => Promise<ApprovalRecord | null>;
+  previewPolicy: (controls: Partial<PolicyProfileControls>, profileName?: string) => Promise<PolicyProfileSnapshot | null>;
+  reviewPolicyWithCopilot: (controls: Partial<PolicyProfileControls>, operatorGoal: string, profileName?: string) => Promise<PolicyCopilotReview | null>;
+  savePolicy: (payload: {
+    controls: Partial<PolicyProfileControls>;
+    changeSummary: string;
+    profileName?: string;
+    breakGlass?: { ticketId: string; justification: string; approverIds: string[] };
+  }) => Promise<PolicyProfileSnapshot | null>;
   setActivePersona: (persona: PersonaKey) => void;
   boot: () => Promise<void>;
 }
@@ -227,13 +240,14 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
 
         set({ isSyncing: true, error: undefined });
         try {
-          const [approvalsResponse, auditResponse, previewResponse, commercialProof, commercialClaims, commercialReadiness] = await Promise.all([
+          const [approvalsResponse, auditResponse, previewResponse, commercialProof, commercialClaims, commercialReadiness, policySnapshot] = await Promise.all([
             pilotApi.listApprovals(token),
             pilotApi.listAuditEvents(token),
             pilotApi.previewModelRoute(token),
             pilotApi.getCommercialProof(token),
             pilotApi.getCommercialClaims(token),
-            pilotApi.getCommercialReadiness(token)
+            pilotApi.getCommercialReadiness(token),
+            pilotApi.getPolicyProfile(token)
           ]);
 
           const approvals = sortLatestFirst(approvalsResponse.approvals);
@@ -268,6 +282,7 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
             commercialProof,
             commercialClaims,
             commercialReadiness,
+            policySnapshot,
             modelPreview: previewResponse,
             trackedExecutionIds: executionIds,
             lastSyncedAt: toIso()
@@ -315,6 +330,72 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
           return approval;
         } catch (error) {
           set({ error: error instanceof Error ? error.message : "approval_failed" });
+          return null;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+      previewPolicy: async (controls, profileName) => {
+        const token = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
+        if (!token) {
+          set({ error: "security_session_required" });
+          return null;
+        }
+
+        set({ isSyncing: true, error: undefined });
+        try {
+          const snapshot = await pilotApi.previewPolicyProfile(token, { controls, ...(profileName ? { profileName } : {}) });
+          set({ policySnapshot: snapshot });
+          return snapshot;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "policy_preview_failed" });
+          return null;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+      reviewPolicyWithCopilot: async (controls, operatorGoal, profileName) => {
+        const token = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
+        if (!token) {
+          set({ error: "security_session_required" });
+          return null;
+        }
+
+        set({ isSyncing: true, error: undefined });
+        try {
+          const review = await pilotApi.reviewPolicyWithCopilot(token, {
+            controls,
+            operatorGoal,
+            ...(profileName ? { profileName } : {})
+          });
+          set({ policyCopilot: review });
+          return review;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "policy_copilot_failed" });
+          return null;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+      savePolicy: async (payload) => {
+        const token = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
+        if (!token) {
+          set({ error: "security_session_required" });
+          return null;
+        }
+
+        set({ isSyncing: true, error: undefined });
+        try {
+          const result = await pilotApi.savePolicyProfile(token, payload);
+          const snapshot: PolicyProfileSnapshot = {
+            profile: result.profile,
+            validation: result.validation
+          };
+          set({ policySnapshot: snapshot });
+          await get().refreshWorkspace();
+          return snapshot;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "policy_save_failed" });
           return null;
         } finally {
           set({ isSyncing: false });

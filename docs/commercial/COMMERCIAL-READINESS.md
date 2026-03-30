@@ -1,195 +1,85 @@
 # OpenAegis Commercial Readiness
 
-OpenAegis is a vendor-neutral enterprise agent platform built for regulated environments. In practical terms, it lets a hospital or health system run AI-assisted workflows without giving the model free rein over data, tools, or outbound actions.
+OpenAegis is a vendor-neutral trust and orchestration layer for enterprise AI agents in regulated environments.
 
-The pilot in this repository centers on a real operating use case: a **Hospital Discharge Readiness Assistant**. It is not a chat demo. It is a controlled workflow that:
+Plain-language summary: it is the safety system around agents. It checks requests, blocks unsafe actions, requires human approval for risky live steps, and records evidence.
 
-- reads approved patient context
-- routes model calls based on sensitivity and zero-retention policy
-- blocks risky actions until a human approves them
-- records evidence for every major decision
-- exposes audit and incident trails for review and replay
+## What OpenAegis Solves
 
-## What OpenAegis Does
+Hospitals and regulated enterprises need all of these at once:
 
-### For a layperson
+- useful agent automation
+- policy enforcement outside the model
+- approval workflows for risky actions
+- audit evidence for incident and compliance review
+- freedom to change model providers without rewriting core logic
 
-OpenAegis is the control system around an AI agent. It helps the organization answer four questions before anything sensitive happens:
+Most products only solve part of this.
 
-1. What is the agent trying to do?
-2. Is it allowed to do it?
-3. If it is risky, who approved it?
-4. Can we prove what happened later?
+## Why OpenAegis vs Alternatives
 
-That makes the difference between "an AI assistant that can act" and "an AI assistant that can act safely in a hospital."
+| Alternative class | Strength | Common gap | OpenAegis position |
+| --- | --- | --- | --- |
+| Generic agent framework | Fast to build workflows | Weak enterprise guardrails by default | Adds externalized policy, approvals, and replayable evidence |
+| Vendor-native copilot platform | Easy onboarding | Provider lock-in and limited neutral governance | Keeps provider logic behind a broker interface |
+| DIY orchestration | Custom freedom | High burden to prove control effectiveness | Ships executable control proofs and pilot evidence |
 
-### For IT and security buyers
+## Claim Ledger (What Is Proven Today)
 
-OpenAegis is an orchestration and trust layer with these properties:
+| Claim | Status | Evidence artifact | How to verify |
+| --- | --- | --- | --- |
+| Policy is enforced outside model execution | Proven now | `backend/services/api-gateway/src/index.test.ts` | Run `npm run --workspace @openaegis/api-gateway test` |
+| High-risk live workflows require approval by default | Proven now | Same test suite, approval tests | Run tests and inspect `approval_requested` flow |
+| Blocking policy downgrades require break-glass fields | Proven now | Same test suite, break-glass test | Run tests and verify `422` without break-glass |
+| Policy profile changes are previewable before apply | Proven now | `/v1/policies/profile/preview` + Security Console | Use Policy Studio Preview Impact |
+| LLM-assisted policy review provides safer suggestions | Proven now (pilot-grade) | `/v1/policies/profile/copilot` | Use Ask Copilot in Security Console |
+| End-to-end hospital workflow remains operational | Proven now | smoke script output | Run `npm run smoke:pilot` |
+| Commercial scorecard and proof bundle export | Proven now | `docs/assets/demo/commercial-proof-report.json` | Run `npm run proof:commercial` |
+| Full enterprise connector depth and formal certifications | Roadmap | n/a | Not claimed as complete in this MVP |
 
-- policy is enforced outside the model
-- approval is required for high-risk actions
-- tool execution runs in a guarded runtime with bounded permissions
-- model routing is vendor neutral and sensitivity aware
-- audit evidence is immutable, searchable, and replayable
-- tenant boundaries are explicit instead of implied
+## Policy Configuration Experience (Buyer-Facing)
 
-The design goal is not autonomy at all costs. The design goal is controlled automation that survives audit, incident review, and compliance scrutiny.
+Security admins can configure policy without editing code.
 
-## Why OpenAegis Is Different
+1. Open Security Console -> Policy Studio.
+2. Change controls with plain-language descriptions.
+3. Preview impact (allow/approval/deny mix + warnings).
+4. Ask Copilot for explanation and auto-fix suggestion.
+5. Save profile.
+6. If blocking controls are weakened, break-glass ticket + dual approver IDs are required.
 
-Most "agent" products optimize for task completion inside the model loop. OpenAegis optimizes for enterprise control outside the model loop.
+This is intentionally explicit so a non-expert can operate safely.
 
-That distinction matters because a regulated enterprise cannot delegate the following to a model prompt:
+## Evidence and Demo Assets
 
-- whether PHI may be sent to a provider
-- whether a tool may be called
-- whether a live action needs human approval
-- whether a connector may write data back
-- whether a model provider is allowed to retain data
-
-OpenAegis treats those as control-plane decisions, not model opinions.
-
-### Control-first differentiators
-
-- **Policy outside the model**: authorization and routing are enforced before execution.
-- **Human approval gates**: live and high-risk actions pause until approved.
-- **Sandboxed tool runtime**: tool calls are permissioned, bounded, and auditable.
-- **Zero-retention routing**: sensitive workloads can be routed only to providers that support the required posture.
-- **Evidence chain**: each execution produces traceable artifacts, approval records, and audit events.
-- **Vendor neutrality**: provider choice lives behind a broker, not in business logic.
-
-## How We Prove the Claims
-
-OpenAegis does not ask buyers to trust slides. It ships with executable proof.
-
-The current pilot includes three forms of evidence:
-
-1. **Integration tests** for the API gateway
-2. **Commercial proof harness** that executes the live pilot path
-3. **Generated proof report** written to `docs/assets/demo/commercial-proof-report.json`
-
-### Core proof commands
-
-```bash
-npm run test:commercial
-npm run proof:commercial
-npm run smoke:pilot
-node tools/scripts/pilot-demo.mjs
-npm run screenshots:commercial
-```
-
-### What those commands verify
-
-- `npm run test:commercial`
-  - builds the workspace
-  - runs the commercial proof test suite
-  - checks that the report schema, score, and claim results are present
-
-- `npm run proof:commercial`
-  - boots the gateway, tool registry, and tool execution services
-  - runs the discharge assistant flow
-  - verifies policy gating, approval handling, deterministic graph stages, audit evidence, signed connector coverage, runtime guards, and idempotent retries
-  - writes a machine-readable evidence report
-
-- `npm run smoke:pilot`
-  - validates the pilot path end to end
-  - confirms the control plane is still able to run the live demo path
-
-### Current claim set
-
-The generated commercial proof report includes claims for:
-
-- policy gates enforced outside the model
-- human approval for high-risk live workflows
-- audit and evidence coverage
-- EPHI zero-retention routing
-- deterministic graph checkpoints
-- signed connector registry coverage
-- tool runtime guard enforcement
-- idempotent retry protection
-
-The report is not a narrative artifact. It is a summary of executable checks.
-
-## Current Pilot Evidence
-
-The live pilot already demonstrates the control surfaces buyers care about:
-
-- **Admin Console**: tenant and pilot workspace controls
-- **Security Console**: policy preview and routing posture
-- **Workflow Designer**: step-by-step discharge flow
-- **Approval Inbox**: pending and completed human decisions
-- **Incident Review Explorer**: derived incidents from blocked or rejected actions
-- **Audit Explorer**: evidence-linked event history
-- **Simulation Lab**: safe execution before live use
-- **Commercial Readiness**: claim-to-evidence scorecard
-
-Supporting artifacts live in the repository:
-
-- `docs/assets/screenshots/commercial-dashboard.png`
-- `docs/assets/screenshots/commercial-readiness.png`
-- `docs/assets/screenshots/commercial-admin.png`
 - `docs/assets/screenshots/commercial-security.png`
-- `docs/assets/screenshots/commercial-workflow.png`
 - `docs/assets/screenshots/commercial-approvals.png`
-- `docs/assets/screenshots/commercial-incidents.png`
 - `docs/assets/screenshots/commercial-audit.png`
-- `docs/assets/screenshots/commercial-simulation.png`
+- `docs/assets/screenshots/commercial-incidents.png`
+- `docs/assets/screenshots/commercial-readiness.png`
 - `docs/assets/demo/pilot-demo-output.json`
 - `docs/assets/demo/commercial-proof-report.json`
 
-## How Buyers Should Evaluate It
+## Buyer Evaluation Runbook
 
-The right question is not "Can the model do the task?"
+Use this sequence for technical due diligence:
 
-The right question is "Can the platform do the task without breaking the enterprise's control requirements?"
+1. Run simulation workflow.
+2. Run live workflow and confirm high-risk action blocks.
+3. Approve in Approval Inbox and confirm completion.
+4. Change policy in Policy Studio and run preview.
+5. Trigger copilot review and apply suggested safe controls.
+6. Re-run live workflow and compare behavior.
+7. Inspect audit/incident traces and export proof artifacts.
 
-Use this evaluation sequence:
-
-1. Run the pilot in simulation mode.
-2. Trigger a live workflow that should require approval.
-3. Confirm the workflow blocks before the sensitive action.
-4. Approve the action from the approval inbox.
-5. Confirm the workflow completes only after approval.
-6. Inspect the audit trail and evidence IDs.
-7. Review the generated commercial proof report.
-
-If those steps are not observable, the claim is not commercial-grade.
-
-## What OpenAegis Gives An Enterprise
-
-### Operational value
-
-- safer agent adoption in regulated workflows
-- fewer manual handoffs for controlled actions
-- better incident investigation and auditability
-- lower vendor lock-in at the model layer
-- a repeatable path from simulation to live operation
-
-### Security value
-
-- fewer leakage paths
-- tighter outbound control
-- clearer approval accountability
-- explicit tenant isolation
-- better forensics when something fails
-
-### Buyer value
-
-- a platform that can be evaluated with tests, not promises
-- a control story that security teams can validate
-- a workflow story that operators can understand
-- a vendor-neutral architecture that avoids model dependency
+If these steps are not observable, treat claims as unproven.
 
 ## Bottom Line
 
-OpenAegis is advanced because it treats enterprise agent behavior as a governed system, not a prompt experiment.
+OpenAegis is commercially meaningful when the buyer can verify three things:
 
-It is commercial-ready when the buyer can see all three of these at once:
+- workflows execute
+- unsafe actions are blocked or approval-gated
+- evidence is exportable and replayable
 
-- the workflow works
-- the controls block unsafe behavior
-- the evidence proves what happened
-
-That is the bar this repository is designed to meet.
-
+This repository is designed to make those checks executable.

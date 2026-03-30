@@ -17,7 +17,7 @@ node tools/scripts/pilot-demo.mjs
 
 - Status: PASS
 - Script: `tools/scripts/smoke-pilot.mjs`
-- Last verified: `2026-03-29`
+- Last verified: `2026-03-30`
 - Validation:
   - demo login
   - live workflow creation
@@ -59,7 +59,9 @@ node tools/scripts/pilot-demo.mjs
 - Approval unblocked execution and completed tool flow
 - Audit events captured workflow and approval actions
 - Evidence IDs were generated and queryable
-- Legacy pilot-state compatibility is now handled for older patient/user schemas
+- Policy Studio preview shows `ALLOW / REQUIRE_APPROVAL / DENY` impact before save
+- Blocking policy downgrades require break-glass metadata
+- Copilot endpoint returns safer policy suggestions and plain-language hints
 
 ## Remaining Test Gaps
 

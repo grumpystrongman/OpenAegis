@@ -1,35 +1,45 @@
 # OpenAegis FAQ
 
 ## What problem does OpenAegis solve?
-OpenAegis enables secure enterprise AI agent orchestration with policy enforcement, approvals, and audit replay.
+It lets enterprises run AI workflows with policy checks, human approvals, and audit evidence.
 
 ## Is this a chatbot framework?
-No. OpenAegis is infrastructure for regulated enterprise agent workflows.
+No. It is control-plane infrastructure for regulated agent workflows.
 
-## How does OpenAegis prevent data leakage?
-By default-deny controls, policy-evaluated actions, approval gates, connector scopes, and audit evidence for every major step.
+## Why not let the model decide policy?
+Because policy must be deterministic, reviewable, and enforceable outside model behavior.
 
-## Does the model decide security policy?
-No. Policies are enforced outside the model by control-plane services.
+## How do I apply security policy changes?
+Use Security Console -> Policy Studio. Edit controls, run Preview Impact, review warnings, then apply.
 
-## Can we use multiple model vendors?
-Yes. OpenAegis model broker is vendor-neutral and supports adapter-based routing.
+## How does OpenAegis warn me about risky changes?
+Policy validation labels issues as blocking, warning, or info. Blocking downgrades require break-glass fields.
+
+## What is break-glass in this system?
+An emergency override flow requiring ticket ID, justification, and dual approver IDs.
+
+## Can a beginner use the policy interface?
+Yes. Controls include plain-language explanations, impact preview, and copilot guidance.
+
+## What does the policy copilot do?
+It reviews proposed controls, explains risk, and suggests safer values. It can run via local LLM endpoint or built-in fallback.
 
 ## What happens when an action is high risk?
-The workflow is blocked until required human approvals are completed.
+By default, live high-risk actions are blocked until human approval.
 
-## Can we run simulation before production?
-Yes. Simulation mode is first-class and should be used before live enablement.
+## How does OpenAegis prevent leakage?
+Default-deny controls, sensitivity-aware routing, approval gates, DLP requirements, and audit evidence.
 
-## How do we investigate incidents?
-Use Audit Explorer + evidence IDs + checkpoint replay.
+## Can we use multiple model vendors?
+Yes. Model routing is vendor-neutral and broker-based.
 
-## Is there a pilot included?
-Yes. A hospital discharge assistant pilot is included with smoke and demo scripts.
+## How do we prove what happened during execution?
+Use Audit Explorer and evidence IDs. You can trace policy decisions, approvals, and final outcomes.
 
-## Where are screenshots and demo artifacts?
+## Is there a working pilot in this repository?
+Yes. Use `npm run smoke:pilot` and `node tools/scripts/pilot-demo.mjs`.
+
+## Where are visual demos and reports?
 - `docs/assets/screenshots/`
 - `docs/assets/demo/pilot-demo-output.json`
-
-## Why does `git push` fail locally?
-Because no remote is configured yet. Add one with `git remote add origin <url>`.
+- `docs/assets/demo/commercial-proof-report.json`

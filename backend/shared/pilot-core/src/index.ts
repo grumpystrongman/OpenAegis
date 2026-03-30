@@ -82,6 +82,78 @@ export interface PolicyDecision {
   obligations: string[];
 }
 
+export interface PolicyProfileControls {
+  enforceSecretDeny: boolean;
+  requireZeroRetentionForPhi: boolean;
+  requireApprovalForHighRiskLive: boolean;
+  requireDlpOnOutbound: boolean;
+  restrictExternalProvidersToZeroRetention: boolean;
+  maxToolCallsPerExecution: number;
+}
+
+export interface PolicyProfile {
+  profileId: string;
+  tenantId: string;
+  profileName: string;
+  profileVersion: number;
+  controls: PolicyProfileControls;
+  changeSummary: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface PolicyValidationIssue {
+  severity: "blocking" | "warning" | "info";
+  code: string;
+  title: string;
+  message: string;
+  remediation: string;
+  affectedControls: Array<keyof PolicyProfileControls>;
+}
+
+export interface PolicySimulationScenario {
+  scenarioId: string;
+  title: string;
+  input: {
+    action: string;
+    classification: DataClassification;
+    riskLevel: "low" | "medium" | "high" | "critical";
+    mode: PilotMode;
+    zeroRetentionRequested: boolean;
+  };
+}
+
+export interface PolicySimulationResult {
+  generatedAt: string;
+  totals: {
+    allow: number;
+    requireApproval: number;
+    deny: number;
+  };
+  riskyDeltaDetected: boolean;
+  warnings: string[];
+  scenarios: Array<{
+    scenarioId: string;
+    title: string;
+    decision: PolicyDecision;
+  }>;
+}
+
+export interface PolicyValidationResult {
+  valid: boolean;
+  issues: PolicyValidationIssue[];
+  simulation: PolicySimulationResult;
+}
+
+export interface PolicyCopilotSuggestion {
+  summary: string;
+  riskNarrative: string;
+  hints: string[];
+  suggestedControls: PolicyProfileControls;
+  suggestedReason: string;
+  confidence: number;
+}
+
 export interface ToolCallRecord {
   toolCallId: string;
   executionId: string;
@@ -221,6 +293,8 @@ export interface PilotState {
   users: ServiceUser[];
   fhirPatients: FhirPatient[];
   carePlans: CarePlan[];
+  policyProfile: PolicyProfile;
+  policyProfileHistory: PolicyProfile[];
   approvals: ApprovalRecord[];
   executions: WorkflowExecutionRecord[];
   toolCalls: ToolCallRecord[];
@@ -301,11 +375,80 @@ const hashRecord = (value: unknown): string => createHash("sha256").update(stabl
 const now = () => new Date().toISOString();
 const createId = (prefix: string): string => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
+export const defaultPolicyControls = (): PolicyProfileControls => ({
+  enforceSecretDeny: true,
+  requireZeroRetentionForPhi: true,
+  requireApprovalForHighRiskLive: true,
+  requireDlpOnOutbound: true,
+  restrictExternalProvidersToZeroRetention: true,
+  maxToolCallsPerExecution: 8
+});
+
+export const createDefaultPolicyProfile = (tenantId = "tenant-starlight-health"): PolicyProfile => ({
+  profileId: "policy-profile-default",
+  tenantId,
+  profileName: "Hospital Safe Baseline",
+  profileVersion: 1,
+  controls: defaultPolicyControls(),
+  changeSummary: "Initial secure baseline policy profile.",
+  updatedBy: "system",
+  updatedAt: now()
+});
+
+const defaultPolicyScenarios = (): PolicySimulationScenario[] => [
+  {
+    scenarioId: "s-safe-sim",
+    title: "Simulation with EPHI and zero-retention on",
+    input: {
+      action: "workflow.execute",
+      classification: "EPHI",
+      riskLevel: "medium",
+      mode: "simulation",
+      zeroRetentionRequested: true
+    }
+  },
+  {
+    scenarioId: "s-high-live",
+    title: "Live high-risk follow-up action",
+    input: {
+      action: "workflow.execute",
+      classification: "EPHI",
+      riskLevel: "high",
+      mode: "live",
+      zeroRetentionRequested: true
+    }
+  },
+  {
+    scenarioId: "s-ephi-no-retention",
+    title: "EPHI with zero-retention disabled",
+    input: {
+      action: "workflow.execute",
+      classification: "EPHI",
+      riskLevel: "high",
+      mode: "live",
+      zeroRetentionRequested: false
+    }
+  },
+  {
+    scenarioId: "s-secret",
+    title: "SECRET classification outbound request",
+    input: {
+      action: "tool.execute",
+      classification: "SECRET",
+      riskLevel: "critical",
+      mode: "live",
+      zeroRetentionRequested: true
+    }
+  }
+];
+
 const emptyState = (): PilotState => ({
   version: 1,
   users: defaultUsers,
   fhirPatients: defaultPatients,
   carePlans: defaultCarePlans,
+  policyProfile: createDefaultPolicyProfile(),
+  policyProfileHistory: [],
   approvals: [],
   executions: [],
   toolCalls: [],
@@ -317,12 +460,22 @@ const emptyState = (): PilotState => ({
 
 const normalizeState = (state: Partial<PilotState> | undefined): PilotState => {
   const base = emptyState();
+  const normalizedProfile =
+    state?.policyProfile
+      ? {
+          ...base.policyProfile,
+          ...state.policyProfile,
+          controls: mergePolicyControls(base.policyProfile.controls, state.policyProfile.controls ?? {})
+        }
+      : base.policyProfile;
   return {
     ...base,
     ...(state ?? {}),
     users: state?.users ?? base.users,
     fhirPatients: state?.fhirPatients ?? base.fhirPatients,
     carePlans: state?.carePlans ?? base.carePlans,
+    policyProfile: normalizedProfile,
+    policyProfileHistory: state?.policyProfileHistory ?? base.policyProfileHistory,
     approvals: state?.approvals ?? base.approvals,
     executions: state?.executions ?? base.executions,
     toolCalls: state?.toolCalls ?? base.toolCalls,
@@ -348,35 +501,355 @@ export const saveState = async (state: PilotState): Promise<void> => {
   await writeFile(STATE_FILE, `${JSON.stringify(normalizeState(state), null, 2)}\n`, "utf8");
 };
 
-export const evaluatePolicy = (input: {
-  action: string;
-  classification: DataClassification;
-  riskLevel: "low" | "medium" | "high" | "critical";
-  mode: PilotMode;
-  zeroRetentionRequested: boolean;
-}): PolicyDecision => {
+export const mergePolicyControls = (
+  current: PolicyProfileControls,
+  draft: Partial<PolicyProfileControls>
+): PolicyProfileControls => ({
+  enforceSecretDeny: draft.enforceSecretDeny ?? current.enforceSecretDeny,
+  requireZeroRetentionForPhi: draft.requireZeroRetentionForPhi ?? current.requireZeroRetentionForPhi,
+  requireApprovalForHighRiskLive: draft.requireApprovalForHighRiskLive ?? current.requireApprovalForHighRiskLive,
+  requireDlpOnOutbound: draft.requireDlpOnOutbound ?? current.requireDlpOnOutbound,
+  restrictExternalProvidersToZeroRetention:
+    draft.restrictExternalProvidersToZeroRetention ?? current.restrictExternalProvidersToZeroRetention,
+  maxToolCallsPerExecution: Number.isFinite(draft.maxToolCallsPerExecution)
+    ? Math.max(1, Math.floor(draft.maxToolCallsPerExecution as number))
+    : current.maxToolCallsPerExecution
+});
+
+const isPhiLike = (classification: DataClassification) => classification === "PHI" || classification === "EPHI";
+const isHighRisk = (riskLevel: "low" | "medium" | "high" | "critical") => riskLevel === "high" || riskLevel === "critical";
+
+export const evaluatePolicy = (
+  input: {
+    action: string;
+    classification: DataClassification;
+    riskLevel: "low" | "medium" | "high" | "critical";
+    mode: PilotMode;
+    zeroRetentionRequested: boolean;
+    estimatedToolCalls?: number;
+  },
+  controls: PolicyProfileControls = defaultPolicyControls()
+): PolicyDecision => {
   const reasons: string[] = [];
   const obligations: string[] = ["log_audit_event", "classify_output"];
   let effect: PolicyEffect = "ALLOW";
 
-  if (input.classification === "SECRET") {
+  if (controls.enforceSecretDeny && input.classification === "SECRET") {
     effect = "DENY";
     reasons.push("secret_data_must_not_leave_trusted_boundary");
   }
-  if ((input.classification === "PHI" || input.classification === "EPHI") && input.zeroRetentionRequested === false) {
+  if (controls.requireZeroRetentionForPhi && isPhiLike(input.classification) && input.zeroRetentionRequested === false) {
     effect = "DENY";
     reasons.push("phi_or_ephi_requires_zero_retention_for_external_model_routing");
   }
-  if (effect !== "DENY" && input.mode === "live" && (input.riskLevel === "high" || input.riskLevel === "critical")) {
+  if (effect !== "DENY" && controls.requireApprovalForHighRiskLive && input.mode === "live" && isHighRisk(input.riskLevel)) {
     effect = "REQUIRE_APPROVAL";
     reasons.push("high_risk_live_action_requires_human_approval");
     obligations.push("human_approval");
+  }
+  if (controls.requireDlpOnOutbound && input.mode === "live") {
+    obligations.push("dlp_scan_required");
+  }
+  if (controls.restrictExternalProvidersToZeroRetention && isPhiLike(input.classification)) {
+    obligations.push("route_to_zero_retention_provider");
+  }
+  if (
+    typeof input.estimatedToolCalls === "number" &&
+    input.estimatedToolCalls > controls.maxToolCallsPerExecution
+  ) {
+    effect = "DENY";
+    reasons.push("estimated_tool_calls_exceed_policy_budget");
   }
   if (effect === "ALLOW" && input.mode === "live" && input.classification === "EPHI") {
     obligations.push("zero_retention_enforced");
   }
 
   return { effect, action: input.action, classification: input.classification, riskLevel: input.riskLevel, mode: input.mode, zeroRetentionRequested: input.zeroRetentionRequested, reasons, obligations };
+};
+
+export const simulatePolicyProfile = (
+  controls: PolicyProfileControls,
+  scenarios: PolicySimulationScenario[] = defaultPolicyScenarios()
+): PolicySimulationResult => {
+  const scenarioResults = scenarios.map((scenario) => ({
+    scenarioId: scenario.scenarioId,
+    title: scenario.title,
+    decision: evaluatePolicy(scenario.input, controls)
+  }));
+
+  const totals = {
+    allow: scenarioResults.filter((item) => item.decision.effect === "ALLOW").length,
+    requireApproval: scenarioResults.filter((item) => item.decision.effect === "REQUIRE_APPROVAL").length,
+    deny: scenarioResults.filter((item) => item.decision.effect === "DENY").length
+  };
+
+  const warnings: string[] = [];
+  const secretScenario = scenarioResults.find((scenario) => scenario.scenarioId === "s-secret");
+  if (secretScenario && secretScenario.decision.effect !== "DENY") {
+    warnings.push("Secret-classification requests are no longer denied by default.");
+  }
+  const ephiScenario = scenarioResults.find((scenario) => scenario.scenarioId === "s-ephi-no-retention");
+  if (ephiScenario && ephiScenario.decision.effect !== "DENY") {
+    warnings.push("EPHI requests without zero-retention are no longer blocked.");
+  }
+  const highRiskScenario = scenarioResults.find((scenario) => scenario.scenarioId === "s-high-live");
+  if (highRiskScenario && highRiskScenario.decision.effect !== "REQUIRE_APPROVAL") {
+    warnings.push("Live high-risk actions no longer require human approval.");
+  }
+  if (controls.maxToolCallsPerExecution > 12) {
+    warnings.push("Tool call budget above 12 increases blast radius for misconfigured workflows.");
+  }
+
+  return {
+    generatedAt: now(),
+    totals,
+    riskyDeltaDetected: warnings.length > 0,
+    warnings,
+    scenarios: scenarioResults
+  };
+};
+
+export const validatePolicyControls = (controls: PolicyProfileControls): PolicyValidationIssue[] => {
+  const issues: PolicyValidationIssue[] = [];
+
+  if (!controls.enforceSecretDeny) {
+    issues.push({
+      severity: "blocking",
+      code: "secret_deny_disabled",
+      title: "Secret deny control is disabled",
+      message: "SECRET-classified requests would no longer be denied automatically.",
+      remediation: "Enable \"enforceSecretDeny\".",
+      affectedControls: ["enforceSecretDeny"]
+    });
+  }
+
+  if (!controls.requireZeroRetentionForPhi) {
+    issues.push({
+      severity: "blocking",
+      code: "zero_retention_phi_disabled",
+      title: "Zero-retention safeguard is disabled for PHI/EPHI",
+      message: "PHI/EPHI could be routed without zero-retention guarantees.",
+      remediation: "Enable \"requireZeroRetentionForPhi\".",
+      affectedControls: ["requireZeroRetentionForPhi"]
+    });
+  }
+
+  if (!controls.requireApprovalForHighRiskLive) {
+    issues.push({
+      severity: "warning",
+      code: "high_risk_approval_disabled",
+      title: "High-risk live approvals are disabled",
+      message: "Live high-risk actions may execute without human review.",
+      remediation: "Enable \"requireApprovalForHighRiskLive\" unless a break-glass process is approved.",
+      affectedControls: ["requireApprovalForHighRiskLive"]
+    });
+  }
+
+  if (!controls.requireDlpOnOutbound) {
+    issues.push({
+      severity: "warning",
+      code: "outbound_dlp_disabled",
+      title: "Outbound DLP scan is disabled",
+      message: "Sensitive output may leave the system without redaction checks.",
+      remediation: "Enable \"requireDlpOnOutbound\".",
+      affectedControls: ["requireDlpOnOutbound"]
+    });
+  }
+
+  if (controls.maxToolCallsPerExecution < 3 || controls.maxToolCallsPerExecution > 20) {
+    issues.push({
+      severity: "blocking",
+      code: "tool_budget_out_of_range",
+      title: "Tool call budget is outside safe range",
+      message: "maxToolCallsPerExecution must stay between 3 and 20.",
+      remediation: "Set maxToolCallsPerExecution between 3 and 20.",
+      affectedControls: ["maxToolCallsPerExecution"]
+    });
+  } else if (controls.maxToolCallsPerExecution > 12) {
+    issues.push({
+      severity: "warning",
+      code: "tool_budget_high",
+      title: "Tool call budget is high",
+      message: "Higher tool budgets increase accidental data exposure blast radius.",
+      remediation: "Lower maxToolCallsPerExecution to 12 or less for regulated workloads.",
+      affectedControls: ["maxToolCallsPerExecution"]
+    });
+  }
+
+  return issues;
+};
+
+export const evaluatePolicyProfileReadiness = (controls: PolicyProfileControls): PolicyValidationResult => {
+  const issues = validatePolicyControls(controls);
+  const simulation = simulatePolicyProfile(controls);
+  return {
+    valid: !issues.some((issue) => issue.severity === "blocking"),
+    issues,
+    simulation
+  };
+};
+
+export const suggestPolicyAutofix = (
+  controls: PolicyProfileControls,
+  riskContext = "No additional user context provided."
+): PolicyCopilotSuggestion => {
+  const fixed: PolicyProfileControls = {
+    ...controls,
+    enforceSecretDeny: true,
+    requireZeroRetentionForPhi: true,
+    requireApprovalForHighRiskLive: true,
+    requireDlpOnOutbound: true,
+    restrictExternalProvidersToZeroRetention: true,
+    maxToolCallsPerExecution: Math.min(12, Math.max(6, controls.maxToolCallsPerExecution))
+  };
+
+  const hints = [
+    "Keep SECRET auto-deny enabled at all times.",
+    "For PHI/EPHI, require zero-retention and human approval on high-risk live actions.",
+    "Use simulation first, then apply the profile only after impact preview looks safe.",
+    "If a warning remains, create a break-glass ticket before go-live."
+  ];
+
+  return {
+    summary: "Copilot recommends restoring all critical safeguards and keeping a moderate tool budget.",
+    riskNarrative: `The proposed profile can change approval and deny behavior. ${riskContext}`,
+    hints,
+    suggestedControls: fixed,
+    suggestedReason: "Autofix hardened the policy profile to regulated-safe defaults while preserving operational usability.",
+    confidence: 0.86
+  };
+};
+
+export interface BreakGlassOverrideInput {
+  ticketId: string;
+  justification: string;
+  approverIds: string[];
+}
+
+export interface PolicyProfileSnapshot {
+  profile: PolicyProfile;
+  validation: PolicyValidationResult;
+}
+
+export interface SavePolicyProfileInput {
+  actorId: string;
+  tenantId: string;
+  profileName?: string;
+  changeSummary: string;
+  draftControls: Partial<PolicyProfileControls>;
+  breakGlass?: BreakGlassOverrideInput;
+}
+
+const canManagePolicy = (user: ServiceUser | undefined) => user?.role === "security" || user?.role === "admin";
+
+const isValidBreakGlass = (input: BreakGlassOverrideInput | undefined) => {
+  if (!input) return false;
+  const approvers = Array.from(new Set(input.approverIds.filter((id) => id.trim().length > 0)));
+  return (
+    typeof input.ticketId === "string" &&
+    input.ticketId.trim().length > 4 &&
+    typeof input.justification === "string" &&
+    input.justification.trim().length >= 20 &&
+    approvers.length >= 2
+  );
+};
+
+const createProfileSnapshot = (profile: PolicyProfile): PolicyProfileSnapshot => ({
+  profile,
+  validation: evaluatePolicyProfileReadiness(profile.controls)
+});
+
+export const getPolicyProfileSnapshot = async (): Promise<PolicyProfileSnapshot> => {
+  const state = await loadState();
+  return createProfileSnapshot(state.policyProfile);
+};
+
+export const previewPolicyProfile = async (input: {
+  tenantId: string;
+  draftControls: Partial<PolicyProfileControls>;
+  profileName?: string;
+}): Promise<PolicyProfileSnapshot> => {
+  const state = await loadState();
+  const mergedControls = mergePolicyControls(state.policyProfile.controls, input.draftControls);
+  const previewProfile: PolicyProfile = {
+    ...state.policyProfile,
+    tenantId: input.tenantId,
+    profileName: input.profileName ?? state.policyProfile.profileName,
+    controls: mergedControls
+  };
+  return createProfileSnapshot(previewProfile);
+};
+
+export const savePolicyProfile = async (
+  input: SavePolicyProfileInput
+): Promise<
+  | { status: 200; body: { profile: PolicyProfile; validation: PolicyValidationResult; breakGlassUsed: boolean } }
+  | { status: 403; body: { error: string } }
+  | { status: 422; body: { error: string; validation: PolicyValidationResult } }
+> => {
+  const state = await loadState();
+  const actor = state.users.find((user) => user.userId === input.actorId);
+  if (!canManagePolicy(actor)) {
+    return { status: 403, body: { error: "insufficient_role_for_policy_change" } };
+  }
+
+  const mergedControls = mergePolicyControls(state.policyProfile.controls, input.draftControls);
+  const validation = evaluatePolicyProfileReadiness(mergedControls);
+  const hasBlockingIssues = !validation.valid;
+  const breakGlassUsed = hasBlockingIssues;
+
+  if (hasBlockingIssues && !isValidBreakGlass(input.breakGlass)) {
+    return {
+      status: 422,
+      body: {
+        error: "break_glass_required_for_blocking_policy_changes",
+        validation
+      }
+    };
+  }
+
+  const nextProfile: PolicyProfile = {
+    ...state.policyProfile,
+    tenantId: input.tenantId,
+    profileName: input.profileName ?? state.policyProfile.profileName,
+    profileVersion: state.policyProfile.profileVersion + 1,
+    controls: mergedControls,
+    changeSummary: input.changeSummary,
+    updatedBy: input.actorId,
+    updatedAt: now()
+  };
+
+  state.policyProfileHistory.unshift(state.policyProfile);
+  state.policyProfile = nextProfile;
+  state.auditEvents.push(
+    createAuditEvent({
+      tenantId: input.tenantId,
+      actorId: input.actorId,
+      category: "security",
+      action: "policy_profile_updated",
+      status: "success",
+      details: {
+        profileVersion: nextProfile.profileVersion,
+        breakGlassUsed,
+        changeSummary: input.changeSummary,
+        issues: validation.issues.map((issue) => ({
+          severity: issue.severity,
+          code: issue.code
+        })),
+        breakGlass: input.breakGlass ?? null
+      }
+    })
+  );
+  await persistState(state);
+
+  return {
+    status: 200,
+    body: {
+      profile: nextProfile,
+      validation,
+      breakGlassUsed
+    }
+  };
 };
 
 export const routeModel = (input: { classification: DataClassification; zeroRetentionRequired: boolean; }): ModelRouteDecision =>
@@ -830,14 +1303,17 @@ const startWorkflowExecutionInternal = async (input: WorkflowStartInput): Promis
   if (!graphDefinition) return { status: 500, body: { error: "graph_definition_not_found" } };
   const { patient, carePlan } = getPatientBundle(state, input.patientId);
   if (!patient || !carePlan) return { status: 404, body: { error: "patient_or_care_plan_not_found" } };
+  const policyControls = state.policyProfile.controls;
+  const estimatedToolCalls = input.requestFollowupEmail ? 4 : 3;
 
   const policyDecision = evaluatePolicy({
     action: "workflow.execute",
     classification: input.classification,
     mode: input.mode,
     riskLevel: input.requestFollowupEmail ? "high" : "medium",
-    zeroRetentionRequested: input.zeroRetentionRequested
-  });
+    zeroRetentionRequested: input.zeroRetentionRequested,
+    estimatedToolCalls
+  }, policyControls);
 
   const executionId = createId("ex");
   const graphExecutionId = createId("gx");
@@ -920,7 +1396,12 @@ const startWorkflowExecutionInternal = async (input: WorkflowStartInput): Promis
     return { state, execution, graphExecution, incident };
   }
 
-  const modelRoute = routeModel({ classification: input.classification, zeroRetentionRequired: input.zeroRetentionRequested });
+  const modelRoute = routeModel({
+    classification: input.classification,
+    zeroRetentionRequired:
+      input.zeroRetentionRequested ||
+      (policyControls.restrictExternalProvidersToZeroRetention && isPhiLike(input.classification))
+  });
   const fhirToolCall = createToolCall({ executionId, toolId: "fhir.read-patient", action: "READ", status: "completed", classification: input.classification, resultRef: `obj://tenant-starlight-health/executions/${executionId}/fhir-patient.json` });
   const sqlToolCall = createToolCall({ executionId, toolId: "sql.read-care-plan", action: "READ", status: "completed", classification: input.classification, resultRef: `obj://tenant-starlight-health/executions/${executionId}/care-plan.json` });
   const modelToolCall = createToolCall({ executionId, toolId: "model.generate-discharge-summary", action: "EXECUTE", status: "completed", classification: input.classification, resultRef: `obj://tenant-starlight-health/executions/${executionId}/summary.json` });

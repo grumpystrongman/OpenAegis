@@ -5,6 +5,7 @@ import type { ServiceDescriptor } from "@openaegis/contracts";
 import {
   createApproval,
   evaluatePolicy,
+  getPolicyProfileSnapshot,
   getAgentGraphDefinition,
   getGraphExecution,
   getGraphExecutionByExecutionId,
@@ -12,11 +13,15 @@ import {
   listAgentGraphDefinitions,
   listIncidents,
   loadState,
+  previewPolicyProfile,
   routeModel,
+  savePolicyProfile,
   resolveApprovalAndAdvanceExecution,
   saveState,
   startDischargeAssistantExecution,
-  type PilotMode
+  suggestPolicyAutofix,
+  type PilotMode,
+  type PolicyProfileControls
 } from "@openaegis/pilot-core";
 
 export const descriptor: ServiceDescriptor = {
@@ -166,6 +171,60 @@ const getActorFromAuthHeader = (request: IncomingMessage): string | undefined =>
   if (!token) return undefined;
   if (!token.startsWith("demo-token-")) return undefined;
   return token.replace("demo-token-", "");
+};
+
+const toString = (value: unknown, fallback: string): string =>
+  typeof value === "string" && value.trim().length > 0 ? value : fallback;
+
+const toBoolean = (value: unknown, fallback: boolean): boolean =>
+  typeof value === "boolean" ? value : fallback;
+
+const toNumber = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
+const toStringList = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+
+const parseDraftControls = (body: JsonMap): Partial<PolicyProfileControls> => {
+  const controls = typeof body.controls === "object" && body.controls !== null ? (body.controls as Record<string, unknown>) : {};
+  const draft: Partial<PolicyProfileControls> = {};
+  if ("enforceSecretDeny" in controls) draft.enforceSecretDeny = toBoolean(controls.enforceSecretDeny, true);
+  if ("requireZeroRetentionForPhi" in controls) draft.requireZeroRetentionForPhi = toBoolean(controls.requireZeroRetentionForPhi, true);
+  if ("requireApprovalForHighRiskLive" in controls) {
+    draft.requireApprovalForHighRiskLive = toBoolean(controls.requireApprovalForHighRiskLive, true);
+  }
+  if ("requireDlpOnOutbound" in controls) draft.requireDlpOnOutbound = toBoolean(controls.requireDlpOnOutbound, true);
+  if ("restrictExternalProvidersToZeroRetention" in controls) {
+    draft.restrictExternalProvidersToZeroRetention = toBoolean(controls.restrictExternalProvidersToZeroRetention, true);
+  }
+  if ("maxToolCallsPerExecution" in controls) {
+    draft.maxToolCallsPerExecution = toNumber(controls.maxToolCallsPerExecution, 8);
+  }
+  return draft;
+};
+
+const readLocalPolicyCopilot = async (input: {
+  current: unknown;
+  proposed: unknown;
+  validation: unknown;
+  operatorGoal: string;
+}) => {
+  const endpoint = process.env.OPENAEGIS_LOCAL_LLM_ENDPOINT;
+  if (!endpoint) return undefined;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        task: "openaegis-policy-review",
+        input
+      })
+    });
+    if (!response.ok) return undefined;
+    return (await response.json()) as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
 };
 
 const createExecution = async (input: {
@@ -434,17 +493,113 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
     return;
   }
 
+  if (method === "GET" && pathname === "/v1/policies/profile") {
+    sendJson(response, 200, await getPolicyProfileSnapshot());
+    return;
+  }
+
+  if (method === "POST" && pathname === "/v1/policies/profile/preview") {
+    const body = await readJson(request);
+    const preview = await previewPolicyProfile({
+      tenantId: toString(body.tenantId, "tenant-starlight-health"),
+      profileName: toString(body.profileName, "Hospital Safe Baseline"),
+      draftControls: parseDraftControls(body)
+    });
+    sendJson(response, 200, preview);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/v1/policies/profile/copilot") {
+    const body = await readJson(request);
+    const operatorGoal = toString(body.operatorGoal, "Keep the policy secure while reducing operator confusion.");
+    const current = await getPolicyProfileSnapshot();
+    const preview = await previewPolicyProfile({
+      tenantId: toString(body.tenantId, "tenant-starlight-health"),
+      profileName: toString(body.profileName, current.profile.profileName),
+      draftControls: parseDraftControls(body)
+    });
+
+    const fallbackSuggestion = suggestPolicyAutofix(preview.profile.controls, operatorGoal);
+    const localCopilot = await readLocalPolicyCopilot({
+      current,
+      proposed: preview,
+      validation: preview.validation,
+      operatorGoal
+    });
+    const localSuggestedControls =
+      typeof localCopilot?.suggestedControls === "object" && localCopilot.suggestedControls !== null
+        ? parseDraftControls({ controls: localCopilot.suggestedControls as Record<string, unknown> })
+        : undefined;
+
+    sendJson(response, 200, {
+      source: localCopilot ? "local-llm" : "builtin",
+      operatorGoal,
+      summary:
+        typeof localCopilot?.summary === "string" ? localCopilot.summary : fallbackSuggestion.summary,
+      riskNarrative:
+        typeof localCopilot?.riskNarrative === "string"
+          ? localCopilot.riskNarrative
+          : fallbackSuggestion.riskNarrative,
+      hints:
+        Array.isArray(localCopilot?.hints) && localCopilot.hints.every((item) => typeof item === "string")
+          ? (localCopilot.hints as string[])
+          : fallbackSuggestion.hints,
+      suggestedControls: localSuggestedControls
+        ? { ...preview.profile.controls, ...localSuggestedControls }
+        : fallbackSuggestion.suggestedControls,
+      suggestedReason:
+        typeof localCopilot?.suggestedReason === "string"
+          ? localCopilot.suggestedReason
+          : fallbackSuggestion.suggestedReason,
+      confidence:
+        typeof localCopilot?.confidence === "number" ? localCopilot.confidence : fallbackSuggestion.confidence,
+      previewValidation: preview.validation
+    });
+    return;
+  }
+
+  if (method === "POST" && pathname === "/v1/policies/profile/save") {
+    const body = await readJson(request);
+    const breakGlassRaw =
+      typeof body.breakGlass === "object" && body.breakGlass !== null
+        ? (body.breakGlass as Record<string, unknown>)
+        : undefined;
+    const result = await savePolicyProfile({
+      actorId,
+      tenantId: toString(body.tenantId, "tenant-starlight-health"),
+      profileName: toString(body.profileName, "Hospital Safe Baseline"),
+      changeSummary: toString(body.changeSummary, "Policy profile updated from Security Console."),
+      draftControls: parseDraftControls(body),
+      ...(breakGlassRaw
+        ? {
+            breakGlass: {
+              ticketId: toString(breakGlassRaw.ticketId, ""),
+              justification: toString(breakGlassRaw.justification, ""),
+              approverIds: toStringList(breakGlassRaw.approverIds)
+            }
+          }
+        : {})
+    });
+    sendJson(response, result.status, result.body);
+    return;
+  }
+
   if (method === "POST" && pathname === "/v1/policy/evaluate") {
     const body = await readJson(request);
+    const snapshot = await getPolicyProfileSnapshot();
     const classification = typeof body.classification === "string" ? body.classification : "EPHI";
     const result = evaluatePolicy({
       action: typeof body.action === "string" ? body.action : "unknown",
       classification: classification as "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET",
       riskLevel: (body.riskLevel as "low" | "medium" | "high" | "critical") ?? "low",
       mode: (body.mode as PilotMode) ?? "simulation",
-      zeroRetentionRequested: body.zeroRetentionRequested !== false
+      zeroRetentionRequested: body.zeroRetentionRequested !== false,
+      ...(typeof body.estimatedToolCalls === "number" ? { estimatedToolCalls: body.estimatedToolCalls } : {})
+    }, snapshot.profile.controls);
+    sendJson(response, 200, {
+      decision: result,
+      profileVersion: snapshot.profile.profileVersion
     });
-    sendJson(response, 200, result);
     return;
   }
 
@@ -480,10 +635,14 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
 
   if (method === "POST" && pathname === "/v1/model/route/preview") {
     const body = await readJson(request);
+    const snapshot = await getPolicyProfileSnapshot();
     const classification = typeof body.classification === "string" ? body.classification : "EPHI";
     const decision = routeModel({
       classification: classification as "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET",
-      zeroRetentionRequired: body.zeroRetentionRequired !== false
+      zeroRetentionRequired:
+        body.zeroRetentionRequired !== false ||
+        ((classification === "PHI" || classification === "EPHI") &&
+          snapshot.profile.controls.restrictExternalProvidersToZeroRetention)
     });
     sendJson(response, 200, { selected: decision, fallback: [{ provider: "anthropic", modelId: "claude-3.5-sonnet", zeroRetention: true }] });
     return;

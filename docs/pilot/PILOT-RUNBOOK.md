@@ -67,6 +67,8 @@ npm run screenshots:commercial
 4. Switch to the **Security** persona and open **Approval Inbox**.
 5. Approve or reject the selected item and verify status/evidence update in **Audit Explorer**.
 6. Open **Incident Review Explorer** to inspect derived incident records.
+7. Open **Security Console -> Policy Studio**, change one control, run **Preview impact**, then run **Ask copilot**.
+8. Apply the policy profile and re-run workflow to validate behavior change is intentional.
 
 ## Screenshot Gallery
 

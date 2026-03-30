@@ -288,3 +288,160 @@ test("commercial claims endpoint returns verification summary", async () => {
   assert.ok(claims.executionTotals.total >= 1);
   assert.ok(claims.claims.some((claim) => claim.claimId === "policy_gates_enforced"));
 });
+
+test("policy profile endpoints preview and save controls with role checks", async () => {
+  const clinicianLogin = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const clinician = (await clinicianLogin.json()) as { accessToken: string };
+
+  const securityLogin = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "security@starlighthealth.org" })
+  });
+  const security = (await securityLogin.json()) as { accessToken: string };
+
+  const preview = await fetch(`${baseUrl}/v1/policies/profile/preview`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${security.accessToken}`
+    },
+    body: JSON.stringify({
+      profileName: "Less strict approvals",
+      controls: {
+        requireApprovalForHighRiskLive: false
+      }
+    })
+  });
+  assert.equal(preview.status, 200);
+  const previewBody = (await preview.json()) as {
+    validation: { valid: boolean; issues: Array<{ code: string; severity: string }> };
+  };
+  assert.equal(previewBody.validation.valid, true);
+  assert.ok(previewBody.validation.issues.some((issue) => issue.code === "high_risk_approval_disabled"));
+
+  const deniedSave = await fetch(`${baseUrl}/v1/policies/profile/save`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${clinician.accessToken}`
+    },
+    body: JSON.stringify({
+      changeSummary: "Trying to save without security role",
+      controls: { requireApprovalForHighRiskLive: false }
+    })
+  });
+  assert.equal(deniedSave.status, 403);
+
+  const saved = await fetch(`${baseUrl}/v1/policies/profile/save`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${security.accessToken}`
+    },
+    body: JSON.stringify({
+      changeSummary: "Temporary reduction for pilot demonstration",
+      controls: { requireApprovalForHighRiskLive: false }
+    })
+  });
+  assert.equal(saved.status, 200);
+
+  const execute = await fetch(`${baseUrl}/v1/executions`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${clinician.accessToken}`
+    },
+    body: JSON.stringify({
+      mode: "live",
+      workflowId: "wf-discharge-assistant",
+      patientId: "patient-1001",
+      requestFollowupEmail: true
+    })
+  });
+  assert.equal(execute.status, 201);
+  const execution = (await execute.json()) as { status: string; approvalId?: string };
+  assert.equal(execution.status, "completed");
+  assert.equal(execution.approvalId, undefined);
+});
+
+test("blocking policy changes require break-glass fields", async () => {
+  const securityLogin = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "security@starlighthealth.org" })
+  });
+  const security = (await securityLogin.json()) as { accessToken: string };
+
+  const denied = await fetch(`${baseUrl}/v1/policies/profile/save`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${security.accessToken}`
+    },
+    body: JSON.stringify({
+      changeSummary: "Unsafe change without break-glass",
+      controls: { enforceSecretDeny: false }
+    })
+  });
+  assert.equal(denied.status, 422);
+  const deniedBody = (await denied.json()) as { error: string };
+  assert.equal(deniedBody.error, "break_glass_required_for_blocking_policy_changes");
+
+  const approved = await fetch(`${baseUrl}/v1/policies/profile/save`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${security.accessToken}`
+    },
+    body: JSON.stringify({
+      changeSummary: "Emergency break-glass test",
+      controls: { enforceSecretDeny: false },
+      breakGlass: {
+        ticketId: "BG-2026-001",
+        justification: "Emergency scenario validation under supervision.",
+        approverIds: ["security-lead-1", "compliance-lead-2"]
+      }
+    })
+  });
+  assert.equal(approved.status, 200);
+  const approvedBody = (await approved.json()) as { breakGlassUsed: boolean };
+  assert.equal(approvedBody.breakGlassUsed, true);
+});
+
+test("policy copilot endpoint returns actionable guidance", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "security@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const response = await fetch(`${baseUrl}/v1/policies/profile/copilot`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${authBody.accessToken}`
+    },
+    body: JSON.stringify({
+      operatorGoal: "Keep this safe for patient data and easy for new staff.",
+      controls: {
+        requireApprovalForHighRiskLive: false,
+        maxToolCallsPerExecution: 18
+      }
+    })
+  });
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as {
+    source: string;
+    hints: string[];
+    suggestedControls: { requireApprovalForHighRiskLive: boolean };
+  };
+  assert.ok(body.source === "builtin" || body.source === "local-llm");
+  assert.ok(body.hints.length >= 2);
+  assert.equal(body.suggestedControls.requireApprovalForHighRiskLive, true);
+});

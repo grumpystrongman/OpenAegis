@@ -1,23 +1,23 @@
 {
-  "startedAt": "2026-03-29T21:34:23.689Z",
+  "startedAt": "2026-03-30T12:31:31.264Z",
   "useCase": "Hospital Discharge Readiness Assistant",
   "steps": [
     {
       "name": "login_clinician",
       "status": 200,
-      "user": "Dr. Maya Chen"
+      "user": "Dr. Mira Patel"
     },
     {
       "name": "login_approver",
       "status": 200,
-      "user": "Avery Brooks"
+      "user": "Jordan Lee"
     },
     {
       "name": "run_live_workflow",
       "status": 201,
-      "executionId": "ex-mnca1hqk-i9b5jm",
+      "executionId": "ex-mnd637ch-w5iln9",
       "workflowStatus": "blocked",
-      "approvalId": "ap-mnca1hr2-v3405w"
+      "approvalId": "ap-mnd637cv-rq6n8y"
     },
     {
       "name": "approval_decision",
@@ -29,14 +29,14 @@
       "status": 200,
       "workflowStatus": "completed",
       "model": "llama-3.1-70b-instruct",
-      "evidenceId": "ev-ex-mnca1hqk-i9b5jm"
+      "evidenceId": "ev-ex-mnd637ch-w5iln9"
     },
     {
       "name": "audit_events",
       "status": 200,
-      "count": 56,
-      "latestEvidence": "ev-mnca1hrj-u8942d"
+      "count": 10,
+      "latestEvidence": "ev-mnd637d2-i37jwz"
     }
   ],
-  "completedAt": "2026-03-29T21:34:23.813Z"
+  "completedAt": "2026-03-30T12:31:31.347Z"
 }
