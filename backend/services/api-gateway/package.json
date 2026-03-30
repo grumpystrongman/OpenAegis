@@ -13,7 +13,8 @@
   "dependencies": {
     "@openaegis/contracts": "file:../../shared/contracts",
     "@openaegis/events": "file:../../shared/events",
-    "@openaegis/pilot-core": "file:../../shared/pilot-core"
+    "@openaegis/pilot-core": "file:../../shared/pilot-core",
+    "@openaegis/security-kit": "file:../../shared/security-kit"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

@@ -1,20 +1,22 @@
 {
-  "name": "@openaegis/tenant-service",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
-  },
-  "dependencies": {
-    "@openaegis/contracts": "file:../../shared/contracts",
-    "@openaegis/events": "file:../../shared/events"
-  },
-  "devDependencies": {
-    "typescript": "^5.8.3"
-  }
+    "name":  "@openaegis/tenant-service",
+    "version":  "0.1.0",
+    "private":  true,
+    "type":  "module",
+    "main":  "dist/index.js",
+    "types":  "dist/index.d.ts",
+    "scripts":  {
+                    "build":  "tsc -p tsconfig.json",
+                    "typecheck":  "tsc -p tsconfig.json --noEmit --allowImportingTsExtensions",
+                    "test":  "node --test"
+                },
+    "dependencies":  {
+                         "@openaegis/contracts":  "file:../../shared/contracts",
+                         "@openaegis/events":  "file:../../shared/events",
+                         "@openaegis/security-kit":  "file:../../shared/security-kit"
+                     },
+    "devDependencies":  {
+                            "typescript":  "^5.8.3"
+                        }
 }
+

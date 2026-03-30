@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@openaegis/contracts": "file:../../shared/contracts",
-    "@openaegis/events": "file:../../shared/events"
+    "@openaegis/events": "file:../../shared/events",
+    "@openaegis/security-kit": "file:../../shared/security-kit"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

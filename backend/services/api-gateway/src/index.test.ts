@@ -445,3 +445,24 @@ test("policy copilot endpoint returns actionable guidance", async () => {
   assert.ok(body.hints.length >= 2);
   assert.equal(body.suggestedControls.requireApprovalForHighRiskLive, true);
 });
+
+test("rejects oversized payloads", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "security@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+  const oversized = "x".repeat(1024 * 1024 + 1024);
+
+  const response = await fetch(`${baseUrl}/v1/policy/evaluate`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${authBody.accessToken}`
+    },
+    body: JSON.stringify({ action: oversized })
+  });
+
+  assert.equal(response.status, 413);
+});

@@ -94,10 +94,41 @@ Capture screenshots:
 npm run screenshots:commercial
 ```
 
+## Production Readiness Gate
+
+Use these checks before a release candidate is promoted:
+
+```bash
+npm run typecheck
+npm run build
+npm run test
+npm run smoke:pilot
+npm run proof:commercial
+```
+
+Expected pass results:
+
+- `npm run typecheck` exits 0
+- `npm run build` exits 0
+- `npm run test` exits 0
+- `npm run smoke:pilot` exits 0 and refreshes the pilot evidence bundle
+- `npm run proof:commercial` exits 0 and writes `docs/assets/demo/commercial-proof-report.json`
+
+Expected proof report fields:
+
+- `summary.status = PASS`
+- `summary.failedClaims = 0`
+- `summary.scorePercent = 100`
+
+If any one of those checks fails, the release is a no-go.
+
 ## Documentation Map
 
 - [Platform blueprint](docs/openaegis-blueprint.md)
 - [Commercial readiness](docs/commercial/COMMERCIAL-READINESS.md)
+- [Hospital production gate](docs/readiness/HOSPITAL-PRODUCTION-GATE.md)
+- [SRE runbook](docs/readiness/SRE-RUNBOOK.md)
+- [Hardening controls matrix](docs/security/HARDENING-CONTROLS-MATRIX.md)
 - [Policy Studio guide](docs/policy-studio.md)
 - [Pilot runbook](docs/pilot/PILOT-RUNBOOK.md)
 - [Smoke and pilot report](docs/tests/SMOKE-AND-PILOT-TEST-REPORT.md)

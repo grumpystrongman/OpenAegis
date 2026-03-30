@@ -23,6 +23,7 @@ import {
   type PilotMode,
   type PolicyProfileControls
 } from "@openaegis/pilot-core";
+import { InMemoryRateLimiter, enforceRateLimit, parseContext } from "@openaegis/security-kit";
 
 export const descriptor: ServiceDescriptor = {
   serviceName: "api-gateway",
@@ -43,6 +44,8 @@ const roleToPrivileges: Record<string, string[]> = {
   security: ["security_admin", "approver", "auditor", "platform_admin"],
   admin: ["platform_admin", "security_admin", "auditor", "workflow_operator", "approver", "analyst"]
 };
+
+const gatewayRateLimiter = new InMemoryRateLimiter(250, 60_000);
 
 const roleToAssurance: Record<string, "aal1" | "aal2" | "aal3"> = {
   clinician: "aal2",
@@ -145,10 +148,16 @@ const sendJson = (response: ServerResponse, statusCode: number, body: unknown) =
   response.end(JSON.stringify(body));
 };
 
-const readJson = async (request: IncomingMessage): Promise<JsonMap> => {
+const readJson = async (request: IncomingMessage, maxBytes = 1024 * 1024): Promise<JsonMap> => {
   const chunks: Buffer[] = [];
+  let total = 0;
   for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += buffer.length;
+    if (total > maxBytes) {
+      throw new Error("payload_too_large");
+    }
+    chunks.push(buffer);
   }
 
   if (chunks.length === 0) {
@@ -443,6 +452,21 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   const method = request.method ?? "GET";
   const parsedUrl = new URL(request.url ?? "/", "http://localhost");
   const pathname = parsedUrl.pathname;
+  const requestContext = parseContext(request);
+
+  if (!enforceRateLimit(response, requestContext.requestId, gatewayRateLimiter.check(`${request.socket.remoteAddress ?? "unknown"}:${pathname}`))) {
+    return;
+  }
+
+  const requiresMtlsAttestation =
+    process.env.OPENAEGIS_ENFORCE_MTLS === "true" &&
+    pathname !== "/healthz" &&
+    !(method === "POST" && pathname === "/v1/auth/login");
+
+  if (requiresMtlsAttestation && !requestContext.mtlsClientSan) {
+    sendJson(response, 401, { error: "mtls_attestation_required" });
+    return;
+  }
 
   if (method === "OPTIONS") {
     response.writeHead(204, {
@@ -803,6 +827,10 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
 
 export const createAppServer = () => createServer((request, response) => {
   void requestHandler(request, response).catch((error: unknown) => {
+    if (error instanceof Error && error.message === "payload_too_large") {
+      sendJson(response, 413, { error: "payload_too_large" });
+      return;
+    }
     sendJson(response, 500, { error: "internal_error", message: error instanceof Error ? error.message : "unknown" });
   });
 });
