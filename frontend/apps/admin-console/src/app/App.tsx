@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { SessionContext, UserRole } from "../shared/auth/session.js";
 import { APP_ROUTES, canAccessRoute } from "./routes.js";
 import { Badge, EmptyState, PageHeader } from "./ui.js";
@@ -37,8 +37,27 @@ const toSessionContext = (
   };
 };
 
+const sectionMeta: Record<
+  "foundation" | "operate" | "govern",
+  { title: string; summary: string }
+> = {
+  foundation: {
+    title: "1. Foundation",
+    summary: "First-run setup, outcomes, and integrations."
+  },
+  operate: {
+    title: "2. Operate",
+    summary: "Build, run, and approve agent workflows."
+  },
+  govern: {
+    title: "3. Govern",
+    summary: "Identity, security, incidents, and audit evidence."
+  }
+};
+
 export const App = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentRoute = useMemo(() => {
     return APP_ROUTES.find((route) => route.path === location.pathname) ?? APP_ROUTES[0]!;
   }, [location.pathname]);
@@ -53,21 +72,37 @@ export const App = () => {
   const refreshWorkspace = usePilotWorkspace((state) => state.refreshWorkspace);
   const boot = usePilotWorkspace((state) => state.boot);
   const setActivePersona = usePilotWorkspace((state) => state.setActivePersona);
+  const [showTechnicalContext, setShowTechnicalContext] = useState(false);
   const activeSession = activePersona === "clinician" ? clinicianSession : securitySession;
   const activeContext = useMemo(() => toSessionContext(activeSession), [activeSession]);
+  const guidedRoutes = useMemo(() => new Set(["/setup", "/integrations", "/identity"]), []);
   const routeAccess = useMemo(
     () =>
       APP_ROUTES.map((route) => ({
         route,
-        allowed: activeContext ? canAccessRoute(activeContext, route) : true
+        allowed: activeContext ? canAccessRoute(activeContext, route) : route.path === "/setup"
       })),
     [activeContext]
   );
-  const hasRouteAccess = activeContext ? canAccessRoute(activeContext, currentRoute) : true;
+  const routesBySection = useMemo(() => {
+    const order: Array<"foundation" | "operate" | "govern"> = ["foundation", "operate", "govern"];
+    return order.map((section) => ({
+      section,
+      meta: sectionMeta[section],
+      items: routeAccess.filter(({ route }) => route.section === section)
+    }));
+  }, [routeAccess]);
+  const hasRouteAccess = activeContext ? canAccessRoute(activeContext, currentRoute) : currentRoute.path === "/setup";
+  const isGuidedRoute = guidedRoutes.has(currentRoute.path);
 
   useEffect(() => {
     void boot();
   }, [boot]);
+
+  useEffect(() => {
+    if (hasRouteAccess || location.pathname === "/setup") return;
+    navigate("/setup", { replace: true });
+  }, [hasRouteAccess, location.pathname, navigate]);
 
   return (
     <div className="app-shell">
@@ -94,20 +129,28 @@ export const App = () => {
         </section>
 
         <nav className="sidebar-nav" aria-label="OpenAegis sections">
-          {routeAccess.map(({ route, allowed }) =>
-            allowed ? (
-              <NavLink key={route.path} to={route.path} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-                <span className="nav-link-title">{route.title}</span>
-                <span className="nav-link-summary">{route.summary}</span>
-              </NavLink>
-            ) : (
-              <div key={route.path} className="nav-link disabled" aria-disabled="true">
-                <span className="nav-link-title">{route.title}</span>
-                <span className="nav-link-summary">{route.summary}</span>
-                <span className="nav-lock">Requires additional role</span>
+          {routesBySection.map(({ section, meta, items }) => (
+            <section key={section} className="nav-section">
+              <div className="nav-section-title">{meta.title}</div>
+              <div className="nav-section-summary">{meta.summary}</div>
+              <div className="nav-section-items">
+                {items.map(({ route, allowed }) =>
+                  allowed ? (
+                    <NavLink key={route.path} to={route.path} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+                      <span className="nav-link-title">{route.title}</span>
+                      <span className="nav-link-summary">{route.summary}</span>
+                    </NavLink>
+                  ) : (
+                    <div key={route.path} className="nav-link disabled" aria-disabled="true">
+                      <span className="nav-link-title">{route.title}</span>
+                      <span className="nav-link-summary">{route.summary}</span>
+                      <span className="nav-lock">Requires additional role</span>
+                    </div>
+                  )
+                )}
               </div>
-            )
-          )}
+            </section>
+          ))}
         </nav>
 
         <section className="sidebar-panel compact">
@@ -134,7 +177,7 @@ export const App = () => {
           </div>
           <div className="sidebar-actions">
             <button type="button" className="primary" onClick={() => void connectDemoUsers()} disabled={isSyncing}>
-              {clinicianSession || securitySession ? "Reconnect demo sessions" : "Connect demo sessions"}
+              {clinicianSession || securitySession ? "Reconnect evaluator identities" : "Connect evaluator identities"}
             </button>
             <button type="button" onClick={() => void refreshWorkspace()} disabled={isSyncing || !clinicianSession}>
               Refresh live data
@@ -155,9 +198,12 @@ export const App = () => {
             <Badge tone={currentRoute.requireStepUpMfa ? "warning" : "success"}>
               {currentRoute.requireStepUpMfa ? "Step-up MFA route" : "Standard route"}
             </Badge>
+            <button type="button" onClick={() => setShowTechnicalContext((value) => !value)}>
+              {showTechnicalContext ? "Hide technical context" : "Show technical context"}
+            </button>
             {lastSyncedAt ? <span className="sync-stamp">Synced {new Date(lastSyncedAt).toLocaleString()}</span> : null}
-            <Link className="subtle-link" to="/dashboard">
-              Jump to dashboard
+            <Link className="subtle-link" to="/setup">
+              Jump to setup
             </Link>
           </div>
         </div>
@@ -166,15 +212,26 @@ export const App = () => {
         {isSyncing ? <div className="banner info">Refreshing pilot data and evidence chain...</div> : null}
 
         <PageHeader
-          eyebrow="OpenAegis Pilot Console"
-          title={PILOT_USE_CASE.title}
-          subtitle={PILOT_USE_CASE.summary}
+          eyebrow={isGuidedRoute ? "OpenAegis Onboarding" : "OpenAegis Pilot Console"}
+          title={isGuidedRoute ? currentRoute.title : PILOT_USE_CASE.title}
+          subtitle={
+            isGuidedRoute
+              ? "Complete setup in order, then move into operations and governance workflows."
+              : PILOT_USE_CASE.summary
+          }
           actions={
-            <>
-              <Badge tone="info">{PILOT_USE_CASE.workflowId}</Badge>
-              <Badge tone="warning">{PILOT_USE_CASE.patientId}</Badge>
-              <Badge tone="success">Replayable evidence</Badge>
-            </>
+            showTechnicalContext || !isGuidedRoute ? (
+              <>
+                <Badge tone="info">{PILOT_USE_CASE.workflowId}</Badge>
+                <Badge tone="warning">{PILOT_USE_CASE.patientId}</Badge>
+                <Badge tone="success">Replayable evidence</Badge>
+              </>
+            ) : (
+              <>
+                <Badge tone="info">{PILOT_USE_CASE.tenantId}</Badge>
+                <Badge tone="success">Safe-by-default onboarding</Badge>
+              </>
+            )
           }
         />
 

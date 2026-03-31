@@ -97,8 +97,11 @@ The included pilot demonstrates a **Hospital Discharge Readiness Assistant**:
 
 All screenshots are generated from live route interactions:
 
+- Setup Center: `docs/assets/screenshots/commercial-setup.png`
 - KPI Dashboard: `docs/assets/screenshots/commercial-dashboard.png`
 - Commercial Readiness: `docs/assets/screenshots/commercial-readiness.png`
+- Integration Hub: `docs/assets/screenshots/commercial-integrations.png`
+- Identity & Access: `docs/assets/screenshots/commercial-identity.png`
 - Security Console (Policy Studio): `docs/assets/screenshots/commercial-security.png`
 - Approval Inbox: `docs/assets/screenshots/commercial-approvals.png`
 - Incident Review Explorer: `docs/assets/screenshots/commercial-incidents.png`
@@ -128,6 +131,12 @@ Run pilot demo output:
 ```bash
 node tools/scripts/pilot-demo.mjs
 ```
+
+Console UX starts at:
+
+- `http://127.0.0.1:4273/setup` for guided onboarding
+- `http://127.0.0.1:4273/integrations` for Databricks/Fabric/Snowflake/AWS setup
+- `http://127.0.0.1:4273/identity` for user and role administration
 
 Capture screenshots:
 

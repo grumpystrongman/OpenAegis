@@ -15,10 +15,49 @@ import {
   type PolicyProfileSnapshot,
   type PolicyImpactReview
 } from "../shared/api/pilot.js";
-import { DEMO_PERSONAS, PILOT_USE_CASE, AGENT_BLUEPRINTS, CONNECTOR_BLUEPRINTS, EXECUTIVE_KPIS, POLICY_BLUEPRINTS, WORKFLOW_BLUEPRINTS } from "./pilot-data.js";
+import {
+  DEMO_PERSONAS,
+  PILOT_USE_CASE,
+  AGENT_BLUEPRINTS,
+  CONNECTOR_BLUEPRINTS,
+  EXECUTIVE_KPIS,
+  INTEGRATION_BLUEPRINTS,
+  POLICY_BLUEPRINTS,
+  WORKFLOW_BLUEPRINTS
+} from "./pilot-data.js";
 
 type PersonaKey = "clinician" | "security";
 type Decision = "approve" | "reject";
+type IntegrationId = "databricks" | "fabric" | "snowflake" | "aws";
+type IntegrationStatus = "not_configured" | "configured" | "verifying" | "verified" | "error";
+const INTEGRATION_SECRET_FIELDS: Record<IntegrationId, string[]> = {
+  databricks: ["token"],
+  fabric: ["clientSecret"],
+  snowflake: ["privateKey"],
+  aws: ["externalId"]
+};
+
+export interface IntegrationProfile {
+  integrationId: IntegrationId;
+  name: string;
+  status: IntegrationStatus;
+  configuredAt?: string | undefined;
+  verifiedAt?: string | undefined;
+  lastError?: string | undefined;
+  config: Record<string, string>;
+}
+
+export interface DirectoryUser {
+  userId: string;
+  displayName: string;
+  email: string;
+  tenantId: string;
+  assuranceLevel: "aal1" | "aal2" | "aal3";
+  roles: string[];
+  status: "active" | "disabled";
+  source: "seeded" | "session" | "manual";
+  updatedAt: string;
+}
 
 export interface IncidentRecord {
   incidentId: string;
@@ -52,6 +91,8 @@ interface WorkspaceState {
   policyCopilot?: PolicyCopilotReview;
   policyImpactReview?: PolicyImpactReview;
   modelPreview?: { selected: ModelRoutePreview; fallback: ModelRoutePreview[] };
+  integrations: IntegrationProfile[];
+  directoryUsers: DirectoryUser[];
   lastSyncedAt?: string;
   isBootstrapping: boolean;
   isSyncing: boolean;
@@ -72,6 +113,17 @@ interface WorkspaceActions {
     profileName?: string;
     breakGlass?: { ticketId: string; justification: string; approverIds: string[] };
   }) => Promise<PolicyProfileSnapshot | null>;
+  configureIntegration: (integrationId: IntegrationId, values: Record<string, string>) => void;
+  verifyIntegration: (integrationId: IntegrationId) => Promise<boolean>;
+  saveDirectoryUser: (payload: {
+    userId?: string;
+    displayName: string;
+    email: string;
+    roles: string[];
+    assuranceLevel: "aal1" | "aal2" | "aal3";
+    tenantId?: string;
+  }) => void;
+  setDirectoryUserStatus: (userId: string, status: "active" | "disabled") => void;
   setActivePersona: (persona: PersonaKey) => void;
   boot: () => Promise<void>;
 }
@@ -200,6 +252,39 @@ const deriveIncidents = (executions: ExecutionRecord[], approvals: ApprovalRecor
   });
 };
 
+const buildDefaultIntegrations = (): IntegrationProfile[] =>
+  INTEGRATION_BLUEPRINTS.map((integration) => ({
+    integrationId: integration.integrationId,
+    name: integration.name,
+    status: "not_configured",
+    config: {}
+  }));
+
+const defaultDirectoryUsers = (): DirectoryUser[] => [
+  {
+    userId: "user-platform-owner",
+    displayName: "Platform Owner",
+    email: "owner@starlighthealth.org",
+    tenantId: PILOT_USE_CASE.tenantId,
+    assuranceLevel: "aal3",
+    roles: ["platform_admin", "security_admin", "auditor"],
+    status: "active",
+    source: "seeded",
+    updatedAt: toIso()
+  },
+  ...DEMO_PERSONAS.map<DirectoryUser>((persona) => ({
+    userId: persona.key === "clinician" ? "user-clinician" : "user-security",
+    displayName: persona.key === "clinician" ? "Clinician Operator" : "Security Reviewer",
+    email: persona.email,
+    tenantId: PILOT_USE_CASE.tenantId,
+    assuranceLevel: persona.key === "clinician" ? "aal2" : "aal3",
+    roles: persona.key === "clinician" ? ["workflow_operator", "analyst"] : ["security_admin", "approver", "auditor"],
+    status: "active",
+    source: "seeded",
+    updatedAt: toIso()
+  }))
+];
+
 export const usePilotWorkspace = create<PilotWorkspace>()(
   persist(
     (set, get) => ({
@@ -209,10 +294,95 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
       approvals: [],
       auditEvents: [],
       incidents: [],
+      integrations: buildDefaultIntegrations(),
+      directoryUsers: defaultDirectoryUsers(),
       isBootstrapping: false,
       isSyncing: false,
       error: undefined,
       setActivePersona: (persona) => set({ activePersona: persona }),
+      configureIntegration: (integrationId, values) =>
+        set((state) => ({
+          integrations: state.integrations.map((integration) =>
+            integration.integrationId === integrationId
+              ? {
+                  ...integration,
+                  config: { ...integration.config, ...values },
+                  status: "configured",
+                  configuredAt: toIso(),
+                  lastError: undefined
+                }
+              : integration
+          )
+        })),
+      verifyIntegration: async (integrationId) => {
+        const integration = get().integrations.find((item) => item.integrationId === integrationId);
+        const blueprint = INTEGRATION_BLUEPRINTS.find((item) => item.integrationId === integrationId);
+        if (!integration || !blueprint) return false;
+
+        set((state) => ({
+          integrations: state.integrations.map((item) =>
+            item.integrationId === integrationId ? { ...item, status: "verifying", lastError: undefined } : item
+          )
+        }));
+
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        const hasSessions = Boolean(get().clinicianSession || get().securitySession);
+        const missingField = blueprint.requiredFields.find((field) => !(integration.config[field] ?? "").trim());
+        const invalidSecretField = INTEGRATION_SECRET_FIELDS[integrationId].find((field) => {
+          const value = (integration.config[field] ?? "").trim();
+          return value.length > 0 && !value.startsWith("vault://");
+        });
+        const success = hasSessions && !missingField;
+        const securityCompliant = !invalidSecretField;
+
+        set((state) => ({
+          integrations: state.integrations.map((item) =>
+            item.integrationId === integrationId
+              ? {
+                  ...item,
+                  status: success && securityCompliant ? "verified" : "error",
+                  verifiedAt: success && securityCompliant ? toIso() : item.verifiedAt,
+                  lastError: success && securityCompliant
+                    ? undefined
+                    : !hasSessions
+                      ? "Connect evaluator identities first to validate identity and policy context."
+                      : invalidSecretField
+                        ? `Secret field ${invalidSecretField} must reference secrets broker (vault://...).`
+                      : `Missing required field: ${missingField}`
+                }
+              : item
+          )
+        }));
+
+        return success && securityCompliant;
+      },
+      saveDirectoryUser: (payload) =>
+        set((state) => {
+          const userId = payload.userId ?? `user-${Math.random().toString(36).slice(2, 9)}`;
+          const existing = state.directoryUsers.find((item) => item.userId === userId);
+          const next: DirectoryUser = {
+            userId,
+            displayName: payload.displayName,
+            email: payload.email,
+            tenantId: payload.tenantId ?? PILOT_USE_CASE.tenantId,
+            assuranceLevel: payload.assuranceLevel,
+            roles: payload.roles,
+            status: existing?.status ?? "active",
+            source: existing?.source ?? "manual",
+            updatedAt: toIso()
+          };
+          return {
+            directoryUsers: existing
+              ? state.directoryUsers.map((item) => (item.userId === userId ? next : item))
+              : sortLatestFirst([next, ...state.directoryUsers])
+          };
+        }),
+      setDirectoryUserStatus: (userId, status) =>
+        set((state) => ({
+          directoryUsers: state.directoryUsers.map((item) =>
+            item.userId === userId ? { ...item, status, updatedAt: toIso() } : item
+          )
+        })),
       connectDemoUsers: async () => {
         set({ isSyncing: true, error: undefined });
         try {
@@ -225,6 +395,33 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
             clinicianSession,
             securitySession,
             activePersona: "clinician",
+            directoryUsers: sortLatestFirst([
+              ...get().directoryUsers.filter(
+                (user) => user.userId !== clinicianSession.user.userId && user.userId !== securitySession.user.userId
+              ),
+              {
+                userId: clinicianSession.user.userId,
+                displayName: clinicianSession.user.displayName,
+                email: clinicianSession.user.email,
+                tenantId: clinicianSession.user.tenantId,
+                assuranceLevel: clinicianSession.user.assuranceLevel,
+                roles: clinicianSession.user.roles,
+                status: "active",
+                source: "session",
+                updatedAt: toIso()
+              },
+              {
+                userId: securitySession.user.userId,
+                displayName: securitySession.user.displayName,
+                email: securitySession.user.email,
+                tenantId: securitySession.user.tenantId,
+                assuranceLevel: securitySession.user.assuranceLevel,
+                roles: securitySession.user.roles,
+                status: "active",
+                source: "session",
+                updatedAt: toIso()
+              }
+            ]),
             error: undefined
           });
           await get().refreshWorkspace();
@@ -447,7 +644,9 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
         clinicianSession: state.clinicianSession,
         securitySession: state.securitySession,
         activePersona: state.activePersona,
-        trackedExecutionIds: state.trackedExecutionIds
+        trackedExecutionIds: state.trackedExecutionIds,
+        integrations: state.integrations,
+        directoryUsers: state.directoryUsers
       })
     }
   )
@@ -459,6 +658,7 @@ export const pilotWorkspaceBlueprint = {
   agents: AGENT_BLUEPRINTS,
   workflows: WORKFLOW_BLUEPRINTS,
   connectors: CONNECTOR_BLUEPRINTS,
+  integrations: INTEGRATION_BLUEPRINTS,
   policies: POLICY_BLUEPRINTS,
   kpis: EXECUTIVE_KPIS
 };

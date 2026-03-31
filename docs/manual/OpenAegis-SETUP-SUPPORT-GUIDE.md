@@ -34,15 +34,17 @@ VITE_API_URL=http://127.0.0.1:4300 npm run --workspace @openaegis/admin-console 
 
 Open `http://127.0.0.1:4273`.
 
-## 4. Policy Studio Demo Steps
+## 4. Guided UI Setup Steps
 
-1. Connect demo sessions (only when `OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH=true`).
-2. Open Security Console.
-3. Change one policy control.
-4. Click Preview impact.
-5. Click Explain impact.
-6. Click Ask copilot.
-7. Apply policy.
+1. Open Setup Center (`/setup`) and connect demo sessions.
+2. Open Integration Hub (`/integrations`), load example config, and verify one integration.
+3. Open Identity & Access (`/identity`) and confirm role/assurance assignments.
+4. Open Security Console (`/security`) for policy changes.
+5. Change one policy control.
+6. Click Preview impact.
+7. Click Explain impact.
+8. Click Ask copilot.
+9. Apply policy.
 
 Expected behavior:
 

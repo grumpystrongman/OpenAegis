@@ -5,59 +5,101 @@ export interface AppRoute {
   title: string;
   summary: string;
   accent: string;
+  section: "foundation" | "operate" | "govern";
   requiredRoles: UserRole[];
+  match?: "all" | "any";
   requireStepUpMfa?: boolean;
 }
 
 export const APP_ROUTES: AppRoute[] = [
   {
+    path: "/setup",
+    title: "Setup Center",
+    summary: "Guided startup, sample loading, and readiness checks for evaluators.",
+    accent: "sky",
+    section: "foundation",
+    requiredRoles: []
+  },
+  {
     path: "/dashboard",
     title: "Business KPI Dashboard",
     summary: "Executive outcome view for the discharge assistant pilot.",
     accent: "cobalt",
-    requiredRoles: ["analyst"]
+    section: "foundation",
+    requiredRoles: ["analyst", "security_admin", "platform_admin"],
+    match: "any"
   },
   {
     path: "/commercial",
     title: "Commercial Readiness",
     summary: "Live claim verification, buyer-facing value mapping, and proof status.",
     accent: "indigo",
-    requiredRoles: ["security_admin"]
+    section: "foundation",
+    requiredRoles: ["security_admin", "platform_admin"],
+    match: "any"
+  },
+  {
+    path: "/integrations",
+    title: "Integration Hub",
+    summary: "Configure and verify Databricks, Fabric, Snowflake, and AWS connectors.",
+    accent: "azure",
+    section: "foundation",
+    requiredRoles: ["security_admin", "platform_admin"],
+    match: "any"
+  },
+  {
+    path: "/identity",
+    title: "Identity & Access",
+    summary: "User administration, role assignment, and assurance posture.",
+    accent: "slate",
+    section: "govern",
+    requiredRoles: ["security_admin", "platform_admin"],
+    match: "any"
   },
   {
     path: "/admin",
     title: "Admin Console",
     summary: "Tenant, environment, and release controls for the pilot workspace.",
     accent: "violet",
-    requiredRoles: ["platform_admin"]
+    section: "govern",
+    requiredRoles: ["platform_admin", "security_admin"],
+    match: "any"
   },
   {
     path: "/security",
     title: "Security Console",
     summary: "Policy enforcement, route preview, and control-plane posture.",
     accent: "crimson",
-    requiredRoles: ["security_admin"]
+    section: "govern",
+    requiredRoles: ["security_admin", "platform_admin"],
+    match: "any"
   },
   {
     path: "/agents",
     title: "Agent Builder",
     summary: "Author the discharge and governance agents with explicit sandbox limits.",
     accent: "teal",
-    requiredRoles: ["workflow_operator"]
+    section: "operate",
+    requiredRoles: ["workflow_operator", "platform_admin"],
+    match: "any"
   },
   {
     path: "/workflows",
     title: "Workflow Designer",
     summary: "Visualize the end-to-end approval-gated discharge flow.",
     accent: "amber",
-    requiredRoles: ["workflow_operator"]
+    section: "operate",
+    requiredRoles: ["workflow_operator", "platform_admin"],
+    match: "any"
   },
   {
     path: "/approvals",
     title: "Approval Inbox",
     summary: "Human review queue for sensitive or live actions.",
     accent: "green",
-    requiredRoles: ["approver"],
+    section: "operate",
+    requiredRoles: ["approver", "security_admin"],
+    match: "any",
     requireStepUpMfa: true
   },
   {
@@ -65,7 +107,9 @@ export const APP_ROUTES: AppRoute[] = [
     title: "Incident Review Explorer",
     summary: "Derived incident review from blocked workflows and rejected approvals.",
     accent: "red",
+    section: "govern",
     requiredRoles: ["security_admin", "auditor"],
+    match: "any",
     requireStepUpMfa: true
   },
   {
@@ -73,16 +117,24 @@ export const APP_ROUTES: AppRoute[] = [
     title: "Audit Explorer",
     summary: "Evidence chain, replay artifacts, and operator history.",
     accent: "slate",
-    requiredRoles: ["auditor"]
+    section: "govern",
+    requiredRoles: ["auditor", "security_admin", "platform_admin"],
+    match: "any"
   },
   {
     path: "/simulation",
     title: "Simulation Lab",
     summary: "Practice the discharge workflow before it runs live.",
     accent: "gold",
-    requiredRoles: ["workflow_operator"]
+    section: "operate",
+    requiredRoles: ["workflow_operator", "platform_admin"],
+    match: "any"
   }
 ];
 
 export const canAccessRoute = (session: SessionContext, route: AppRoute): boolean =>
-  route.requiredRoles.every((role) => session.roles.includes(role));
+  route.requiredRoles.length === 0
+    ? true
+    : route.match === "all"
+      ? route.requiredRoles.every((role) => session.roles.includes(role))
+      : route.requiredRoles.some((role) => session.roles.includes(role));

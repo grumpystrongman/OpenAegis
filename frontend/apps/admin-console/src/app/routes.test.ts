@@ -19,22 +19,28 @@ const analystSession: SessionContext = {
 
 test("route catalog includes required consoles for MVP", () => {
   const paths = APP_ROUTES.map((route) => route.path);
+  assert.ok(paths.includes("/setup"));
+  assert.ok(paths.includes("/integrations"));
+  assert.ok(paths.includes("/identity"));
   assert.ok(paths.includes("/security"));
   assert.ok(paths.includes("/simulation"));
   assert.ok(paths.includes("/commercial"));
 });
 
-test("canAccessRoute enforces all required roles", () => {
+test("canAccessRoute handles any-role route matching", () => {
   const dashboardRoute = APP_ROUTES.find((route) => route.path === "/dashboard");
   const approvalsRoute = APP_ROUTES.find((route) => route.path === "/approvals");
+  const setupRoute = APP_ROUTES.find((route) => route.path === "/setup");
 
   assert.ok(dashboardRoute);
   assert.ok(approvalsRoute);
-  if (!dashboardRoute || !approvalsRoute) return;
+  assert.ok(setupRoute);
+  if (!dashboardRoute || !approvalsRoute || !setupRoute) return;
 
   assert.equal(canAccessRoute(analystSession, dashboardRoute), true);
   assert.equal(canAccessRoute(analystSession, approvalsRoute), false);
   assert.equal(canAccessRoute(adminSession, approvalsRoute), true);
+  assert.equal(canAccessRoute(analystSession, setupRoute), true);
 });
 
 test("high-risk routes are marked with step-up MFA requirement", () => {
@@ -42,4 +48,3 @@ test("high-risk routes are marked with step-up MFA requirement", () => {
   assert.ok(stepUpPaths.includes("/approvals"));
   assert.ok(stepUpPaths.includes("/incidents"));
 });
-

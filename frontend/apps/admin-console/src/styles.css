@@ -61,6 +61,17 @@ button {
     background-color 120ms ease;
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.link-button:focus-visible,
+.nav-link:focus-visible {
+  outline: 3px solid rgba(65, 88, 208, 0.45);
+  outline-offset: 2px;
+}
+
 button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(16, 32, 51, 0.08);
@@ -224,6 +235,32 @@ button:hover.danger {
   display: grid;
   gap: 0.45rem;
   margin-bottom: 1rem;
+}
+
+.nav-section {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-section-title {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(234, 243, 255, 0.85);
+}
+
+.nav-section-summary {
+  font-size: 0.79rem;
+  color: rgba(234, 243, 255, 0.66);
+}
+
+.nav-section-items {
+  display: grid;
+  gap: 0.42rem;
 }
 
 .nav-link {
@@ -859,7 +896,7 @@ button:hover.danger {
 }
 
 .table tbody tr {
-  cursor: pointer;
+  cursor: default;
 }
 
 .service-top strong,
@@ -905,6 +942,7 @@ button:hover.danger {
 }
 
 .form-field input,
+.form-field select,
 .form-field textarea {
   width: 100%;
   border: 1px solid var(--border);
@@ -925,6 +963,28 @@ button:hover.danger {
 
 .form-field small {
   color: var(--muted);
+}
+
+.field-with-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.link-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  transform: none;
+  box-shadow: none;
+  text-decoration: underline;
 }
 
 .policy-control-list {

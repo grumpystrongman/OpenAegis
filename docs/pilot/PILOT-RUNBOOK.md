@@ -61,19 +61,24 @@ npm run screenshots:commercial
 
 ## Pilot UI Walkthrough
 
-1. Open the console at `http://127.0.0.1:4273/dashboard` and click **Connect demo sessions**.
-2. In **Simulation Lab**, run one simulation pass to baseline behavior.
-3. Run **Run live workflow** from dashboard or simulation to create a pending approval.
-4. Switch to the **Security** persona and open **Approval Inbox**.
-5. Approve or reject the selected item and verify status/evidence update in **Audit Explorer**.
-6. Open **Incident Review Explorer** to inspect derived incident records.
-7. Open **Security Console -> Policy Studio**, change one control, run **Preview impact**, then run **Ask copilot**.
-8. Apply the policy profile and re-run workflow to validate behavior change is intentional.
+1. Open the console at `http://127.0.0.1:4273/setup` and click **Connect sessions**.
+2. Open **Integration Hub** and use **Load example config** + **Test connection + policy** for one integration.
+3. Open **Identity & Access** and verify user roles and assurance levels.
+4. Open **Business KPI Dashboard** and run one simulation pass.
+5. Run **Run live workflow** from dashboard or simulation to create a pending approval.
+6. Switch to the **Security** persona and open **Approval Inbox**.
+7. Approve or reject the selected item and verify status/evidence update in **Audit Explorer**.
+8. Open **Incident Review Explorer** to inspect derived incident records.
+9. Open **Security Console -> Policy Studio**, change one control, run **Preview impact**, then run **Ask copilot**.
+10. Apply the policy profile and re-run workflow to validate behavior change is intentional.
 
 ## Screenshot Gallery
 
+- Setup Center: `docs/assets/screenshots/commercial-setup.png`
 - Dashboard: `docs/assets/screenshots/commercial-dashboard.png`
 - Commercial Readiness: `docs/assets/screenshots/commercial-readiness.png`
+- Integration Hub: `docs/assets/screenshots/commercial-integrations.png`
+- Identity & Access: `docs/assets/screenshots/commercial-identity.png`
 - Admin Console: `docs/assets/screenshots/commercial-admin.png`
 - Security Console: `docs/assets/screenshots/commercial-security.png`
 - Workflow Designer: `docs/assets/screenshots/commercial-workflow.png`

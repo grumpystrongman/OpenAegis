@@ -21,8 +21,11 @@ const requestedPorts = {
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 
 const requiredShots = [
+  "commercial-setup.png",
   "commercial-dashboard.png",
   "commercial-readiness.png",
+  "commercial-integrations.png",
+  "commercial-identity.png",
   "commercial-security.png",
   "commercial-approvals.png",
   "commercial-incidents.png",
@@ -199,7 +202,8 @@ export const captureCommercialScreenshots = async () => {
   const gateway = startService("gateway", "node", ["tools/scripts/run-gateway.mjs"], {
     env: {
       ...process.env,
-      PORT: String(ports.gateway)
+      PORT: String(ports.gateway),
+      OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH: "true"
     }
   });
 
@@ -214,19 +218,26 @@ export const captureCommercialScreenshots = async () => {
   try {
     log("Waiting for gateway and UI to be ready");
     await waitForHttp(`${urls.api}/healthz`);
-    await waitForHttp(`${urls.app}/dashboard`);
+    await waitForHttp(`${urls.app}/setup`);
 
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1680, height: 1050 } });
     const page = await context.newPage();
 
     log("Seeding state through UI interactions");
-    await page.goto(`${urls.app}/dashboard`, { waitUntil: "networkidle" });
-    await waitForHeading(page, "Business KPI Dashboard");
+    await page.goto(`${urls.app}/setup`, { waitUntil: "networkidle" });
+    await waitForHeading(page, "Setup Center");
 
-    await page.getByRole("complementary").getByRole("button", { name: /Connect demo sessions|Reconnect demo sessions/i }).first().click();
+    await page
+      .getByRole("complementary")
+      .getByRole("button", { name: /Connect evaluator identities|Reconnect evaluator identities|Connect demo sessions|Reconnect demo sessions/i })
+      .first()
+      .click();
     await page.getByText("Clinician connected").waitFor({ state: "visible", timeout: 20_000 });
     await page.getByText("Security connected").waitFor({ state: "visible", timeout: 20_000 });
+
+    await page.goto(`${urls.app}/dashboard`, { waitUntil: "networkidle" });
+    await waitForHeading(page, "Business KPI Dashboard");
 
     await page.getByRole("button", { name: "Run simulation" }).first().click();
     await page.waitForTimeout(1_000);
@@ -234,6 +245,7 @@ export const captureCommercialScreenshots = async () => {
     await page.waitForTimeout(1_500);
 
     await captureRoute(page, urls.app, "/dashboard", "Business KPI Dashboard", "commercial-dashboard.png");
+    await captureRoute(page, urls.app, "/setup", "Setup Center", "commercial-setup.png");
     await captureRoute(page, urls.app, "/workflows", "Workflow Designer", "commercial-workflow.png");
     await captureRoute(page, urls.app, "/simulation", "Simulation Lab", "commercial-simulation.png");
 
@@ -251,6 +263,8 @@ export const captureCommercialScreenshots = async () => {
       await page.waitForTimeout(900);
     }
     await page.screenshot({ path: path.join(screenshotDir, "commercial-security.png"), fullPage: true });
+    await captureRoute(page, urls.app, "/integrations", "Integration Hub", "commercial-integrations.png");
+    await captureRoute(page, urls.app, "/identity", "Identity & Access", "commercial-identity.png");
     await captureRoute(page, urls.app, "/approvals", "Approval Inbox", "commercial-approvals.png");
 
     const rejectButton = page.getByRole("button", { name: "Reject" });

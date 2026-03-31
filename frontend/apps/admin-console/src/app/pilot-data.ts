@@ -43,6 +43,16 @@ export interface ConnectorBlueprint {
   riskNotes: string;
 }
 
+export interface IntegrationBlueprint {
+  integrationId: "databricks" | "fabric" | "snowflake" | "aws";
+  name: string;
+  category: "lakehouse" | "warehouse" | "cloud";
+  purpose: string;
+  requiredFields: string[];
+  trustNotes: string[];
+  defaultPolicyProfile: string;
+}
+
 export interface PolicyBlueprint {
   policyId: string;
   name: string;
@@ -161,6 +171,57 @@ export const CONNECTOR_BLUEPRINTS: ConnectorBlueprint[] = [
   }
 ];
 
+export const INTEGRATION_BLUEPRINTS: IntegrationBlueprint[] = [
+  {
+    integrationId: "databricks",
+    name: "Databricks",
+    category: "lakehouse",
+    purpose: "Bring governed data products and jobs into OpenAegis agent workflows.",
+    requiredFields: ["workspaceUrl", "catalog", "servicePrincipal", "token"],
+    trustNotes: [
+      "Use service principal only, never personal access for production.",
+      "Restrict to Unity Catalog objects approved for agent retrieval."
+    ],
+    defaultPolicyProfile: "regulated-lakehouse-read"
+  },
+  {
+    integrationId: "fabric",
+    name: "Microsoft Fabric",
+    category: "lakehouse",
+    purpose: "Connect OneLake, notebooks, and semantic models for operations workflows.",
+    requiredFields: ["tenantId", "workspaceId", "lakehouse", "clientId", "clientSecret"],
+    trustNotes: [
+      "Scope app registration to least-privilege workspace access.",
+      "Disable write scopes for first deployment."
+    ],
+    defaultPolicyProfile: "regulated-fabric-read"
+  },
+  {
+    integrationId: "snowflake",
+    name: "Snowflake",
+    category: "warehouse",
+    purpose: "Query governed warehouse data for analytics and compliance reporting.",
+    requiredFields: ["account", "warehouse", "database", "schema", "role", "privateKey"],
+    trustNotes: [
+      "Use key-pair auth and rotate keys through secrets broker.",
+      "Separate read-only role for agent workloads."
+    ],
+    defaultPolicyProfile: "regulated-warehouse-read"
+  },
+  {
+    integrationId: "aws",
+    name: "Amazon Web Services",
+    category: "cloud",
+    purpose: "Attach secure cloud resources for storage, messaging, and execution.",
+    requiredFields: ["accountId", "region", "roleArn", "externalId", "kmsKeyArn"],
+    trustNotes: [
+      "Use cross-account role with external ID and no wildcard IAM actions.",
+      "Bind KMS key policy to tenant-scoped execution identity."
+    ],
+    defaultPolicyProfile: "regulated-cloud-runtime"
+  }
+];
+
 export const POLICY_BLUEPRINTS: PolicyBlueprint[] = [
   {
     policyId: "policy-zero-retention-ephi",
@@ -191,4 +252,3 @@ export const EXECUTIVE_KPIS = [
   { label: "Audit coverage", value: "100%", note: "Every major action emits an immutable evidence record." },
   { label: "Tenant isolation", value: "Strict", note: "Tenant context is required in all pilot routes." }
 ];
-
