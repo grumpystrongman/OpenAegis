@@ -36,6 +36,7 @@ Most products only solve part of this.
 | End-to-end hospital workflow remains operational | Proven now | smoke script output | Run `npm run smoke:pilot` |
 | Commercial scorecard and proof bundle export | Proven now | `docs/assets/demo/commercial-proof-report.json` | Run `npm run proof:commercial` |
 | Three distinct trust-layer examples pass end-to-end | Proven now | `docs/assets/demo/trust-layer-proof-report.json` | Run `npm run proof:trust-layer` |
+| Five commercial project packs run end-to-end with controls and evidence | Proven now | `docs/assets/demo/commercial-projects-showcase-report.json` | Run `npm run showcase:projects` |
 | Identity and tenant-scope regressions are continuously blocked | Proven now | `docs/assets/demo/security-regression-report.json` | Run `npm run security:regression` |
 | Codebase line audit reports zero skeleton markers across auditable code | Proven now | `docs/assets/demo/codebase-line-audit-report.json` | Run `npm run audit:codebase` |
 | Repository-level commercial audit has no placeholder gaps | Proven now | `docs/assets/demo/commercial-audit-report.json` | Run `npm run audit:commercial` |
@@ -59,12 +60,14 @@ This is intentionally explicit so a non-expert can operate safely.
 ## Evidence and Demo Assets
 
 - `docs/assets/screenshots/commercial-security.png`
+- `docs/assets/screenshots/commercial-projects.png`
 - `docs/assets/screenshots/commercial-approvals.png`
 - `docs/assets/screenshots/commercial-audit.png`
 - `docs/assets/screenshots/commercial-incidents.png`
 - `docs/assets/screenshots/commercial-readiness.png`
 - `docs/assets/demo/pilot-demo-output.json`
 - `docs/assets/demo/commercial-proof-report.json`
+- `docs/assets/demo/commercial-projects-showcase-report.json`
 - `docs/assets/demo/trust-layer-proof-report.json`
 - `docs/assets/demo/codebase-line-audit-report.json`
 - `docs/assets/demo/commercial-audit-report.json`
@@ -85,6 +88,7 @@ Use this sequence for technical due diligence:
 6. Re-run live workflow and compare behavior.
 7. Inspect audit/incident traces and export proof artifacts.
 8. Run `npm run pilot:local` and verify all gate summaries are `PASS`.
+9. Run `npm run showcase:projects` and confirm all 5 packs are `PASS`.
 
 If these steps are not observable, treat claims as unproven.
 

@@ -23,6 +23,20 @@ const analystSession: SessionContext = {
   assuranceLevel: "aal2"
 };
 
+const privilegedAal2Session: SessionContext = {
+  userId: "user-privileged-aal2",
+  tenantId: "tenant-starlight-health",
+  roles: ["platform_admin", "security_admin"],
+  assuranceLevel: "aal2"
+};
+
+const crossTenantPrivilegedSession: SessionContext = {
+  userId: "user-foreign-admin",
+  tenantId: "tenant-other-hospital",
+  roles: ["platform_admin", "security_admin"],
+  assuranceLevel: "aal3"
+};
+
 test("demo identities are disabled by default unless the build flag is set", () => {
   const flagHost = globalThis as typeof globalThis & { __ENABLE_DEMO_IDENTITIES__?: boolean };
   const previous = flagHost.__ENABLE_DEMO_IDENTITIES__;
@@ -39,6 +53,57 @@ test("demo identities are disabled by default unless the build flag is set", () 
       flagHost.__ENABLE_DEMO_IDENTITIES__ = previous;
     }
   }
+});
+
+test("governance routes should demand AAL3 step-up instead of exposing admin surfaces at AAL2", () => {
+  const sensitiveRoutes = ["/security", "/identity", "/admin"];
+  const routeByPath = (path: string): (typeof APP_ROUTES)[number] => {
+    const route = APP_ROUTES.find((entry) => entry.path === path);
+    if (!route) {
+      throw new Error(`Missing route ${path}`);
+    }
+    return route;
+  };
+  const routeCatalog = sensitiveRoutes.map(routeByPath);
+
+  assert.deepEqual(
+    routeCatalog.map((route) => route.requireStepUpMfa),
+    [true, true, true],
+    "Governance routes should be marked as step-up routes in the catalog"
+  );
+
+  for (const route of routeCatalog) {
+    assert.equal(
+      canAccessRouteWithAssurance(privilegedAal2Session, route),
+      false,
+      `Expected ${route.path} to require step-up MFA for AAL2 privileged sessions`
+    );
+    assert.equal(
+      canAccessRouteWithAssurance(securitySession, route),
+      true,
+      `Expected ${route.path} to remain available to same-tenant AAL3 governance sessions`
+    );
+  }
+});
+
+test("governance routes should be tenant-scoped instead of trusting cross-tenant privileged sessions", () => {
+  const sensitiveRoutes = ["/security", "/identity", "/admin"];
+  const routeByPath = (path: string): (typeof APP_ROUTES)[number] => {
+    const route = APP_ROUTES.find((entry) => entry.path === path);
+    if (!route) {
+      throw new Error(`Missing route ${path}`);
+    }
+    return route;
+  };
+
+  const actualAccess = sensitiveRoutes.map((path) =>
+    canAccessRouteWithAssurance(crossTenantPrivilegedSession, routeByPath(path))
+  );
+
+  assert.deepEqual(actualAccess, [false, false, false]);
+
+  const auditRoute = routeByPath("/audit");
+  assert.equal(canAccessRouteWithAssurance(crossTenantPrivilegedSession, auditRoute), false);
 });
 
 test("step-up routes require AAL3 assurance in the UI guard", () => {

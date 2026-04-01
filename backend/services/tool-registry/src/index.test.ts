@@ -46,6 +46,16 @@ test("lists default published manifests including the expanded connector catalog
   assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-anthropic-claude"));
   assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-google-gemini"));
   assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-azure-openai"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-airbyte-sync"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-airflow-ops"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-trino-query"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-superset-insights"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-metabase-analytics"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-grafana-observability"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-kafka-streams"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-nifi-flow"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-dagster-orchestration"));
+  assert.ok(body.manifests.some((manifest) => manifest.toolId === "connector-n8n-workflows"));
   assert.ok(body.manifests.every((manifest) => manifest.status === "published"));
   assert.ok(body.manifests.every((manifest) => manifest.authMethods.length > 0));
 });

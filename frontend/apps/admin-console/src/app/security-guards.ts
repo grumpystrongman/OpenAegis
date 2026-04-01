@@ -1,5 +1,6 @@
 import type { PolicyProfileControls } from "../shared/api/pilot.js";
 import type { SessionContext } from "../shared/auth/session.js";
+import { PILOT_USE_CASE } from "./pilot-data.js";
 import { canAccessRoute, type AppRoute } from "./routes.js";
 
 const hashString = (input: string) => {
@@ -27,11 +28,21 @@ const stableSerialize = (value: unknown): string => {
 export const isDemoIdentitiesEnabled = () =>
   (globalThis as typeof globalThis & { __ENABLE_DEMO_IDENTITIES__?: boolean }).__ENABLE_DEMO_IDENTITIES__ === true;
 
+const ASSURANCE_LEVEL_RANK = {
+  aal1: 1,
+  aal2: 2,
+  aal3: 3
+} as const;
+
+const requiresTenantScopedGovernanceSession = (route: AppRoute) => route.section === "govern";
+
 export const canAccessRouteWithAssurance = (session: SessionContext | undefined, route: AppRoute): boolean => {
   if (!session) return route.path === "/setup";
   if (!canAccessRoute(session, route)) return false;
-  if (!route.requireStepUpMfa) return true;
-  return session.assuranceLevel === "aal3";
+  if (requiresTenantScopedGovernanceSession(route) && session.tenantId !== PILOT_USE_CASE.tenantId) return false;
+
+  const minimumAssuranceLevel = route.requireStepUpMfa ? "aal3" : "aal1";
+  return ASSURANCE_LEVEL_RANK[session.assuranceLevel] >= ASSURANCE_LEVEL_RANK[minimumAssuranceLevel];
 };
 
 export const buildPolicyDraftHash = (profileName: string, controls: PolicyProfileControls) =>

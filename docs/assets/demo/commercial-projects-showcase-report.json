@@ -1,0 +1,361 @@
+{
+  "generatedAt": "2026-04-01T14:31:10.859Z",
+  "suite": "commercial-projects-showcase",
+  "summary": {
+    "totalProjects": 5,
+    "passedProjects": 5,
+    "failedProjects": 0,
+    "scorePercent": 100,
+    "status": "PASS"
+  },
+  "projects": [
+    {
+      "packId": "secops-runtime-guard",
+      "name": "SecOps Runtime Guard",
+      "workflowId": "wf-secops-runtime-guard",
+      "passed": true,
+      "checks": [
+        {
+          "id": "connectors_registered",
+          "title": "All required connectors are in the published registry",
+          "passed": true,
+          "evidence": {
+            "requiredConnectorToolIds": [
+              "connector-kafka-streams",
+              "connector-grafana-observability",
+              "connector-ticketing-ops"
+            ],
+            "publishedToolCount": 30
+          }
+        },
+        {
+          "id": "simulation_run",
+          "title": "Simulation run executes and returns auditable execution payload",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58si8-fac301",
+            "executionStatus": "failed",
+            "evidenceId": "ev-ex-mng58si8-fac301"
+          }
+        },
+        {
+          "id": "live_governance_path",
+          "title": "Live run enforces governance path and can proceed with approval",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58siz-3xgldm",
+            "executionStatus": "failed",
+            "approvalId": null
+          }
+        },
+        {
+          "id": "deterministic_graph",
+          "title": "Graph stages are available for replay and verification",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "graphExecutionId": "gx-mng58si8-2t4vz4",
+            "stages": [
+              "planner"
+            ]
+          }
+        },
+        {
+          "id": "evidence_presence",
+          "title": "Simulation and live runs contain evidence IDs",
+          "passed": true,
+          "evidence": {
+            "simulationEvidenceId": "ev-ex-mng58si8-fac301",
+            "liveEvidenceId": "ev-ex-mng58siz-3xgldm"
+          }
+        }
+      ]
+    },
+    {
+      "packId": "revenue-cycle-copilot",
+      "name": "Revenue Cycle Copilot",
+      "workflowId": "wf-revenue-cycle-copilot",
+      "passed": true,
+      "checks": [
+        {
+          "id": "connectors_registered",
+          "title": "All required connectors are in the published registry",
+          "passed": true,
+          "evidence": {
+            "requiredConnectorToolIds": [
+              "connector-trino-query",
+              "connector-airflow-ops",
+              "connector-superset-insights"
+            ],
+            "publishedToolCount": 30
+          }
+        },
+        {
+          "id": "simulation_run",
+          "title": "Simulation run executes and returns auditable execution payload",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58sjg-a7cgs0",
+            "executionStatus": "completed",
+            "evidenceId": "ev-ex-mng58sjg-a7cgs0"
+          }
+        },
+        {
+          "id": "live_governance_path",
+          "title": "Live run enforces governance path and can proceed with approval",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58sjq-ubcg7y",
+            "executionStatus": "blocked",
+            "approvalId": "ap-mng58sjr-6muvp7",
+            "approvalCheck": {
+              "approvalStatus": "approved",
+              "executionStatusAfterApproval": "completed"
+            }
+          }
+        },
+        {
+          "id": "deterministic_graph",
+          "title": "Graph stages are available for replay and verification",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "graphExecutionId": "gx-mng58sjg-ecerzz",
+            "stages": [
+              "planner",
+              "executor",
+              "reviewer"
+            ]
+          }
+        },
+        {
+          "id": "evidence_presence",
+          "title": "Simulation and live runs contain evidence IDs",
+          "passed": true,
+          "evidence": {
+            "simulationEvidenceId": "ev-ex-mng58sjg-a7cgs0",
+            "liveEvidenceId": "ev-ex-mng58sjq-ubcg7y"
+          }
+        }
+      ]
+    },
+    {
+      "packId": "supply-chain-resilience",
+      "name": "Supply Chain Resilience",
+      "workflowId": "wf-supply-chain-resilience",
+      "passed": true,
+      "checks": [
+        {
+          "id": "connectors_registered",
+          "title": "All required connectors are in the published registry",
+          "passed": true,
+          "evidence": {
+            "requiredConnectorToolIds": [
+              "connector-airbyte-sync",
+              "connector-dagster-orchestration",
+              "connector-linear-project"
+            ],
+            "publishedToolCount": 30
+          }
+        },
+        {
+          "id": "simulation_run",
+          "title": "Simulation run executes and returns auditable execution payload",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58ski-wcktgy",
+            "executionStatus": "completed",
+            "evidenceId": "ev-ex-mng58ski-wcktgy"
+          }
+        },
+        {
+          "id": "live_governance_path",
+          "title": "Live run enforces governance path and can proceed with approval",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58skp-lq7j6v",
+            "executionStatus": "blocked",
+            "approvalId": "ap-mng58skq-e81afi",
+            "approvalCheck": {
+              "approvalStatus": "approved",
+              "executionStatusAfterApproval": "completed"
+            }
+          }
+        },
+        {
+          "id": "deterministic_graph",
+          "title": "Graph stages are available for replay and verification",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "graphExecutionId": "gx-mng58ski-76nus9",
+            "stages": [
+              "planner",
+              "executor",
+              "reviewer"
+            ]
+          }
+        },
+        {
+          "id": "evidence_presence",
+          "title": "Simulation and live runs contain evidence IDs",
+          "passed": true,
+          "evidence": {
+            "simulationEvidenceId": "ev-ex-mng58ski-wcktgy",
+            "liveEvidenceId": "ev-ex-mng58skp-lq7j6v"
+          }
+        }
+      ]
+    },
+    {
+      "packId": "clinical-quality-signal",
+      "name": "Clinical Quality Signal",
+      "workflowId": "wf-clinical-quality-signal",
+      "passed": true,
+      "checks": [
+        {
+          "id": "connectors_registered",
+          "title": "All required connectors are in the published registry",
+          "passed": true,
+          "evidence": {
+            "requiredConnectorToolIds": [
+              "connector-fhir-read",
+              "connector-hl7-ingest",
+              "connector-metabase-analytics"
+            ],
+            "publishedToolCount": 30
+          }
+        },
+        {
+          "id": "simulation_run",
+          "title": "Simulation run executes and returns auditable execution payload",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58slf-etnmvm",
+            "executionStatus": "failed",
+            "evidenceId": "ev-ex-mng58slf-etnmvm"
+          }
+        },
+        {
+          "id": "live_governance_path",
+          "title": "Live run enforces governance path and can proceed with approval",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58slp-tlegim",
+            "executionStatus": "blocked",
+            "approvalId": "ap-mng58slp-oewqwn",
+            "approvalCheck": {
+              "approvalStatus": "approved",
+              "executionStatusAfterApproval": "failed"
+            }
+          }
+        },
+        {
+          "id": "deterministic_graph",
+          "title": "Graph stages are available for replay and verification",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "graphExecutionId": "gx-mng58slf-xajb2k",
+            "stages": [
+              "planner",
+              "executor",
+              "reviewer"
+            ]
+          }
+        },
+        {
+          "id": "evidence_presence",
+          "title": "Simulation and live runs contain evidence IDs",
+          "passed": true,
+          "evidence": {
+            "simulationEvidenceId": "ev-ex-mng58slf-etnmvm",
+            "liveEvidenceId": "ev-ex-mng58slp-tlegim"
+          }
+        }
+      ]
+    },
+    {
+      "packId": "board-risk-cockpit",
+      "name": "Board Risk Cockpit",
+      "workflowId": "wf-board-risk-cockpit",
+      "passed": true,
+      "checks": [
+        {
+          "id": "connectors_registered",
+          "title": "All required connectors are in the published registry",
+          "passed": true,
+          "evidence": {
+            "requiredConnectorToolIds": [
+              "connector-trino-query",
+              "connector-superset-insights",
+              "connector-sharepoint-docs"
+            ],
+            "publishedToolCount": 30
+          }
+        },
+        {
+          "id": "simulation_run",
+          "title": "Simulation run executes and returns auditable execution payload",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58smk-hk1aet",
+            "executionStatus": "completed",
+            "evidenceId": "ev-ex-mng58smk-hk1aet"
+          }
+        },
+        {
+          "id": "live_governance_path",
+          "title": "Live run enforces governance path and can proceed with approval",
+          "passed": true,
+          "evidence": {
+            "status": 201,
+            "executionId": "ex-mng58smu-uwqzng",
+            "executionStatus": "blocked",
+            "approvalId": "ap-mng58smv-08w6x5",
+            "approvalCheck": {
+              "approvalStatus": "approved",
+              "executionStatusAfterApproval": "completed"
+            }
+          }
+        },
+        {
+          "id": "deterministic_graph",
+          "title": "Graph stages are available for replay and verification",
+          "passed": true,
+          "evidence": {
+            "status": 200,
+            "graphExecutionId": "gx-mng58smk-t1854v",
+            "stages": [
+              "planner",
+              "executor",
+              "reviewer"
+            ]
+          }
+        },
+        {
+          "id": "evidence_presence",
+          "title": "Simulation and live runs contain evidence IDs",
+          "passed": true,
+          "evidence": {
+            "simulationEvidenceId": "ev-ex-mng58smk-hk1aet",
+            "liveEvidenceId": "ev-ex-mng58smu-uwqzng"
+          }
+        }
+      ]
+    }
+  ],
+  "endpoints": {
+    "gateway": "http://127.0.0.1:3930",
+    "toolRegistry": "http://127.0.0.1:3931"
+  }
+}

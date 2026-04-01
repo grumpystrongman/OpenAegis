@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T15:41:23.911Z",
+  "generatedAt": "2026-04-01T14:38:04.062Z",
   "suite": "commercial-chaos-drill",
   "endpoints": {
     "audit": "http://127.0.0.1:3931",
@@ -45,11 +45,11 @@
           "reason": "chaos drill forced isolation",
           "severity": "critical",
           "triggeredBy": "user-security",
-          "triggeredAt": "2026-03-31T15:41:23.901Z",
+          "triggeredAt": "2026-04-01T14:38:04.051Z",
           "revision": 1
         },
         "event": {
-          "eventId": "kse-mnesb8l9-v9v0m7",
+          "eventId": "kse-mng5hn9v-s199op",
           "eventType": "TRIGGERED",
           "circuitId": "ks-5af048abba2814d6f2815fa2",
           "scope": {
@@ -61,8 +61,8 @@
           "actorId": "user-security",
           "reason": "chaos drill forced isolation",
           "severity": "critical",
-          "createdAt": "2026-03-31T15:41:23.901Z",
-          "hash": "bd8f4b82bddb3f9cf5e09f50a1c2c8eef08b9ee62ded156e8116b12418e549ea"
+          "createdAt": "2026-04-01T14:38:04.051Z",
+          "hash": "4fbe7b6690430034df56ddf841fb4eb66630dbc30f09a0d012ba680e8d0a80eb"
         }
       }
     },
@@ -81,13 +81,13 @@
           "reason": "chaos drill release",
           "severity": "critical",
           "triggeredBy": "user-security",
-          "triggeredAt": "2026-03-31T15:41:23.901Z",
+          "triggeredAt": "2026-04-01T14:38:04.051Z",
           "revision": 2,
           "releasedBy": "user-security",
-          "releasedAt": "2026-03-31T15:41:23.906Z"
+          "releasedAt": "2026-04-01T14:38:04.057Z"
         },
         "event": {
-          "eventId": "kse-mnesb8le-f1awlh",
+          "eventId": "kse-mng5hna1-txlylx",
           "eventType": "RELEASED",
           "circuitId": "ks-5af048abba2814d6f2815fa2",
           "scope": {
@@ -99,9 +99,9 @@
           "actorId": "user-security",
           "reason": "chaos drill release",
           "severity": "critical",
-          "createdAt": "2026-03-31T15:41:23.906Z",
-          "prevHash": "bd8f4b82bddb3f9cf5e09f50a1c2c8eef08b9ee62ded156e8116b12418e549ea",
-          "hash": "fe25f3859b5c5cc1381b59ce7a6f217386d23cc17bef590270b4f477c1cbd79d"
+          "createdAt": "2026-04-01T14:38:04.057Z",
+          "prevHash": "4fbe7b6690430034df56ddf841fb4eb66630dbc30f09a0d012ba680e8d0a80eb",
+          "hash": "7a88c182e304c43f9b1c87d28fab9f4e9b0861812bec0a7b6b4824dc964bcea6"
         }
       }
     },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T18:27:59.339Z",
+  "generatedAt": "2026-04-01T14:55:53.858Z",
   "suite": "enterprise-trust-pack-audit",
   "checks": [
     {
@@ -9,12 +9,12 @@
         {
           "file": "docs/assets/enterprise-trust-pack/latest/manifest.json",
           "passed": true,
-          "sizeBytes": 4361
+          "sizeBytes": 4359
         },
         {
           "file": "docs/assets/enterprise-trust-pack/latest/EXECUTIVE-BRIEF.md",
           "passed": true,
-          "sizeBytes": 705
+          "sizeBytes": 703
         },
         {
           "file": "docs/assets/enterprise-trust-pack/latest/compliance/CONTROL-CROSSWALK.json",
@@ -29,7 +29,7 @@
         {
           "file": "docs/assets/demo/readiness-gate-report.json",
           "passed": true,
-          "sizeBytes": 25973
+          "sizeBytes": 50097
         },
         {
           "file": "docs/assets/demo/commercial-audit-report.json",
@@ -79,8 +79,8 @@
       "checkId": "readiness_report_present",
       "passed": true,
       "details": {
-        "status": "FAIL",
-        "scorePercent": 90.91
+        "status": "PASS",
+        "scorePercent": 100
       }
     },
     {

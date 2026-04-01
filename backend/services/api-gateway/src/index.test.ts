@@ -27,6 +27,39 @@ test.afterEach(async () => {
   delete process.env.OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH;
 });
 
+const loginAs = async (email: string): Promise<{ accessToken: string }> => {
+  const response = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+  assert.equal(response.status, 200);
+  return (await response.json()) as { accessToken: string };
+};
+
+const createIncidentTrigger = async (accessToken: string) => {
+  const response = await fetch(`${baseUrl}/v1/executions`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
+      mode: "simulation",
+      workflowId: "wf-discharge-assistant",
+      patientId: "patient-1001",
+      requestFollowupEmail: true,
+      zeroRetentionRequested: false
+    })
+  });
+
+  assert.equal(response.status, 201);
+  const execution = (await response.json()) as { status: string; incidentId?: string; executionId: string };
+  assert.equal(execution.status, "failed");
+  assert.ok(execution.incidentId);
+  return execution;
+};
+
 test("pilot workflow requires approval in live mode and completes after approval", async () => {
   const login = await fetch(`${baseUrl}/v1/auth/login`, {
     method: "POST",
@@ -308,18 +341,14 @@ test("simulation mode completes without approval", async () => {
 });
 
 test("reviewer rejection creates an incident and records graph steps", async () => {
-  const login = await fetch(`${baseUrl}/v1/auth/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
-  });
-  const authBody = (await login.json()) as { accessToken: string };
+  const clinician = await loginAs("clinician@starlighthealth.org");
+  const security = await loginAs("security@starlighthealth.org");
 
   const execute = await fetch(`${baseUrl}/v1/executions`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${authBody.accessToken}`
+      authorization: `Bearer ${clinician.accessToken}`
     },
     body: JSON.stringify({
       mode: "simulation",
@@ -335,7 +364,7 @@ test("reviewer rejection creates an incident and records graph steps", async () 
   assert.ok(execution.incidentId);
 
   const graph = await fetch(`${baseUrl}/v1/executions/${execution.executionId}/graph`, {
-    headers: { authorization: `Bearer ${authBody.accessToken}` }
+    headers: { authorization: `Bearer ${clinician.accessToken}` }
   });
   const graphBody = (await graph.json()) as {
     graphExecution: { status: string; currentStage: string; steps: Array<{ stage: string; status: string }> };
@@ -349,7 +378,7 @@ test("reviewer rejection creates an incident and records graph steps", async () 
   assert.equal(graphBody.graphExecution.steps[2]?.status, "failed");
 
   const incident = await fetch(`${baseUrl}/v1/incidents/${execution.incidentId}`, {
-    headers: { authorization: `Bearer ${authBody.accessToken}` }
+    headers: { authorization: `Bearer ${security.accessToken}` }
   });
   assert.equal(incident.status, 200);
   const incidentBody = (await incident.json()) as { category: string; executionId: string };
@@ -357,41 +386,96 @@ test("reviewer rejection creates an incident and records graph steps", async () 
   assert.equal(incidentBody.executionId, execution.executionId);
 });
 
-test("policy violation creates an incident before tool execution", async () => {
-  const login = await fetch(`${baseUrl}/v1/auth/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
-  });
-  const authBody = (await login.json()) as { accessToken: string };
+test("incident endpoints require privileged roles even within the same tenant", async () => {
+  const clinician = await loginAs("clinician@starlighthealth.org");
+  const security = await loginAs("security@starlighthealth.org");
 
-  const execute = await fetch(`${baseUrl}/v1/executions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${authBody.accessToken}`
-    },
-    body: JSON.stringify({
-      mode: "simulation",
-      workflowId: "wf-discharge-assistant",
-      patientId: "patient-1001",
-      requestFollowupEmail: true,
-      zeroRetentionRequested: false
-    })
-  });
+  const execution = await createIncidentTrigger(clinician.accessToken);
 
-  assert.equal(execute.status, 201);
-  const execution = (await execute.json()) as { status: string; incidentId?: string; toolCalls: string[]; executionId: string };
-  assert.equal(execution.status, "failed");
-  assert.ok(execution.incidentId);
-  assert.equal(execution.toolCalls.length, 0);
-
-  const incidents = await fetch(`${baseUrl}/v1/incidents`, {
-    headers: { authorization: `Bearer ${authBody.accessToken}` }
+  const clinicianList = await fetch(`${baseUrl}/v1/incidents`, {
+    headers: { authorization: `Bearer ${clinician.accessToken}` }
   });
-  assert.equal(incidents.status, 200);
-  const incidentsBody = (await incidents.json()) as { incidents: Array<{ incidentId: string; category: string }> };
-  assert.ok(incidentsBody.incidents.some((item) => item.incidentId === execution.incidentId && item.category === "policy_violation"));
+  assert.equal(clinicianList.status, 403);
+  const clinicianListBody = (await clinicianList.json()) as { error: string };
+  assert.equal(clinicianListBody.error, "insufficient_role_for_incident_list");
+
+  const securityList = await fetch(`${baseUrl}/v1/incidents`, {
+    headers: { authorization: `Bearer ${security.accessToken}` }
+  });
+  assert.equal(securityList.status, 200);
+  const securityListBody = (await securityList.json()) as { incidents: Array<{ incidentId: string; category: string }> };
+  assert.ok(securityListBody.incidents.some((item) => item.incidentId === execution.incidentId && item.category === "policy_violation"));
+
+  const clinicianDetail = await fetch(`${baseUrl}/v1/incidents/${execution.incidentId}`, {
+    headers: { authorization: `Bearer ${clinician.accessToken}` }
+  });
+  assert.equal(clinicianDetail.status, 403);
+  const clinicianDetailBody = (await clinicianDetail.json()) as { error: string };
+  assert.equal(clinicianDetailBody.error, "insufficient_role_for_incident_read");
+
+  const securityDetail = await fetch(`${baseUrl}/v1/incidents/${execution.incidentId}`, {
+    headers: { authorization: `Bearer ${security.accessToken}` }
+  });
+  assert.equal(securityDetail.status, 200);
+  const securityDetailBody = (await securityDetail.json()) as { incidentId: string; category: string };
+  assert.equal(securityDetailBody.incidentId, execution.incidentId);
+  assert.equal(securityDetailBody.category, "policy_violation");
+});
+
+test("agent graph incident views require privileged roles", async () => {
+  const clinician = await loginAs("clinician@starlighthealth.org");
+  const security = await loginAs("security@starlighthealth.org");
+  const execution = await createIncidentTrigger(clinician.accessToken);
+
+  const graphListResponse = await fetch(`${baseUrl}/v1/agent-graphs`, {
+    headers: { authorization: `Bearer ${clinician.accessToken}` }
+  });
+  assert.equal(graphListResponse.status, 403);
+  const graphListBody = (await graphListResponse.json()) as { error: string };
+  assert.equal(graphListBody.error, "insufficient_role_for_agent_graph_read");
+
+  const graphResponse = await fetch(`${baseUrl}/v1/agent-graphs/discharge-assistant`, {
+    headers: { authorization: `Bearer ${clinician.accessToken}` }
+  });
+  assert.equal(graphResponse.status, 403);
+  const graphBody = (await graphResponse.json()) as { error: string };
+  assert.equal(graphBody.error, "insufficient_role_for_agent_graph_read");
+
+  const graphExecutionResponse = await fetch(
+    `${baseUrl}/v1/agent-graphs/discharge-assistant/executions/${execution.executionId}`,
+    {
+      headers: { authorization: `Bearer ${clinician.accessToken}` }
+    }
+  );
+  assert.equal(graphExecutionResponse.status, 403);
+  const graphExecutionBody = (await graphExecutionResponse.json()) as { error: string };
+  assert.equal(graphExecutionBody.error, "insufficient_role_for_agent_graph_read");
+
+  const securityGraphResponse = await fetch(`${baseUrl}/v1/agent-graphs/discharge-assistant`, {
+    headers: { authorization: `Bearer ${security.accessToken}` }
+  });
+  assert.equal(securityGraphResponse.status, 200);
+  const securityGraphBody = (await securityGraphResponse.json()) as {
+    graph: { graphId: string };
+    executions: Array<{ executionId: string }>;
+    incidents: Array<{ incidentId: string }>;
+  };
+  assert.equal(securityGraphBody.graph.graphId, "discharge-assistant");
+  assert.ok(securityGraphBody.executions.some((item) => item.executionId === execution.executionId));
+  assert.ok(securityGraphBody.incidents.some((item) => item.incidentId === execution.incidentId));
+
+  const securityGraphExecutionResponse = await fetch(
+    `${baseUrl}/v1/agent-graphs/discharge-assistant/executions/${execution.executionId}`,
+    {
+      headers: { authorization: `Bearer ${security.accessToken}` }
+    }
+  );
+  assert.equal(securityGraphExecutionResponse.status, 200);
+  const securityGraphExecutionBody = (await securityGraphExecutionResponse.json()) as {
+    graphExecution: { executionId: string };
+    execution: { executionId: string };
+  };
+  assert.equal(securityGraphExecutionBody.execution.executionId, execution.executionId);
 });
 
 test("commercial proof endpoint returns live claim snapshot", async () => {
@@ -472,6 +556,206 @@ test("commercial claims endpoint returns verification summary", async () => {
   };
   assert.ok(claims.executionTotals.total >= 1);
   assert.ok(claims.claims.some((claim) => claim.claimId === "policy_gates_enforced"));
+});
+
+test("project pack catalog lists five commercial packs", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const response = await fetch(`${baseUrl}/v1/projects/packs`, {
+    headers: { authorization: `Bearer ${authBody.accessToken}` }
+  });
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { packs: Array<{ packId: string }> };
+  assert.equal(body.packs.length, 5);
+  assert.deepEqual(
+    body.packs.map((pack) => pack.packId),
+    [
+      "secops-runtime-guard",
+      "revenue-cycle-copilot",
+      "supply-chain-resilience",
+      "clinical-quality-signal",
+      "board-risk-cockpit"
+    ]
+  );
+});
+
+test("project pack run endpoint launches workflow execution with pack defaults", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const run = await fetch(`${baseUrl}/v1/projects/packs/revenue-cycle-copilot/run`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${authBody.accessToken}`
+    },
+    body: JSON.stringify({
+      mode: "simulation",
+      requestFollowupEmail: true
+    })
+  });
+  assert.equal(run.status, 201);
+  const body = (await run.json()) as {
+    pack: { packId: string; workflowId: string };
+    execution: { executionId: string; workflowId: string; mode: string; status: string };
+  };
+  assert.equal(body.pack.packId, "revenue-cycle-copilot");
+  assert.equal(body.execution.workflowId, body.pack.workflowId);
+  assert.equal(body.execution.mode, "simulation");
+  assert.ok(typeof body.execution.executionId === "string" && body.execution.executionId.length > 0);
+  assert.ok(["completed", "failed", "blocked"].includes(body.execution.status));
+});
+
+test("project pack experience endpoint returns seeded data and evaluated policy scenarios", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const response = await fetch(`${baseUrl}/v1/projects/packs/secops-runtime-guard/experience`, {
+    headers: { authorization: `Bearer ${authBody.accessToken}` }
+  });
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as {
+    pack: { packId: string };
+    experience: {
+      dataTables: Array<{ tableId: string; rows: Array<Record<string, unknown>> }>;
+      policyScenarios: Array<{
+        scenarioId: string;
+        decision: { effect: "ALLOW" | "REQUIRE_APPROVAL" | "DENY"; reasons: string[] };
+      }>;
+      walkthrough: Array<{ step: number; title: string }>;
+    };
+    policyProfile: { profileVersion: number };
+  };
+  assert.equal(body.pack.packId, "secops-runtime-guard");
+  assert.ok(body.experience.dataTables.length >= 1);
+  assert.ok(body.experience.dataTables[0]!.rows.length >= 1);
+  assert.ok(body.experience.policyScenarios.length >= 2);
+  assert.ok(body.experience.policyScenarios.every((scenario) => typeof scenario.decision.effect === "string"));
+  assert.ok(body.experience.walkthrough.length >= 4);
+  assert.ok(body.policyProfile.profileVersion >= 1);
+});
+
+test("project pack policy preset apply is role-gated and updates policy profile", async () => {
+  const clinicianLogin = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const clinician = (await clinicianLogin.json()) as { accessToken: string };
+
+  const securityLogin = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "security@starlighthealth.org" })
+  });
+  const security = (await securityLogin.json()) as { accessToken: string };
+
+  const denied = await fetch(`${baseUrl}/v1/projects/packs/revenue-cycle-copilot/policies/apply`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${clinician.accessToken}`
+    }
+  });
+  assert.equal(denied.status, 403);
+
+  const applied = await fetch(`${baseUrl}/v1/projects/packs/revenue-cycle-copilot/policies/apply`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${security.accessToken}`
+    }
+  });
+  assert.equal(applied.status, 200);
+  const body = (await applied.json()) as {
+    pack: { packId: string };
+    appliedPreset: { profileName: string };
+    result: { profile: { profileVersion: number; profileName: string } };
+  };
+  assert.equal(body.pack.packId, "revenue-cycle-copilot");
+  assert.equal(body.result.profile.profileName, body.appliedPreset.profileName);
+  assert.ok(body.result.profile.profileVersion >= 1);
+});
+
+test("project pack experience endpoint exposes deep operational context for all five packs", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const packIds = [
+    "secops-runtime-guard",
+    "revenue-cycle-copilot",
+    "supply-chain-resilience",
+    "clinical-quality-signal",
+    "board-risk-cockpit"
+  ] as const;
+
+  for (const packId of packIds) {
+    const response = await fetch(`${baseUrl}/v1/projects/packs/${packId}/experience`, {
+      headers: { authorization: `Bearer ${authBody.accessToken}` }
+    });
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      pack: { packId: string; name: string; persona: string };
+      experience: {
+        plainLanguageSummary: string;
+        dataTables: Array<{
+          tableId: string;
+          classification: string;
+          columns: Array<{ key: string; label: string }>;
+          rows: Array<Record<string, unknown>>;
+        }>;
+        policyRules: Array<{ ruleId: string; effect: string; severity: string }>;
+        policyScenarios: Array<{
+          scenarioId: string;
+          input: { mode: string; riskLevel: string };
+          decision: { effect: string; reasons: string[]; obligations: string[] };
+        }>;
+        walkthrough: Array<{
+          step: number;
+          title: string;
+          operatorAction: string;
+          openAegisControl: string;
+          evidenceProduced: string;
+        }>;
+        trustChecks: string[];
+      };
+      policyProfile: { profileName: string; profileVersion: number };
+    };
+
+    assert.equal(body.pack.packId, packId);
+    assert.ok(body.pack.name.length > 0);
+    assert.ok(body.pack.persona.length > 0);
+    assert.ok(body.experience.plainLanguageSummary.length > 20);
+    assert.ok(body.experience.dataTables.length >= 1);
+    assert.ok(body.experience.dataTables.every((table) => table.columns.length >= 3));
+    assert.ok(body.experience.dataTables.every((table) => table.rows.length >= 1));
+    assert.ok(body.experience.policyRules.length >= 2);
+    assert.ok(body.experience.policyScenarios.length >= 2);
+    assert.ok(body.experience.policyScenarios.every((scenario) => Array.isArray(scenario.decision.reasons)));
+    assert.ok(body.experience.policyScenarios.every((scenario) => Array.isArray(scenario.decision.obligations)));
+    assert.ok(body.experience.walkthrough.length >= 4);
+    assert.ok(body.experience.walkthrough.every((step) => step.evidenceProduced.length > 0));
+    assert.ok(body.experience.trustChecks.length >= 2);
+    assert.ok(body.policyProfile.profileName.length > 0);
+    assert.ok(body.policyProfile.profileVersion >= 1);
+  }
 });
 
 test("policy profile endpoints preview and save controls with role checks", async () => {

@@ -39,6 +39,24 @@ export const APP_ROUTES: AppRoute[] = [
     match: "any"
   },
   {
+    path: "/projects",
+    title: "Project Packs",
+    summary: "Run five end-to-end commercial scenarios with controls and evidence.",
+    accent: "teal",
+    section: "foundation",
+    requiredRoles: ["workflow_operator", "analyst", "security_admin", "platform_admin"],
+    match: "any"
+  },
+  {
+    path: "/project-guide",
+    title: "Project Guide",
+    summary: "Step-by-step setup, policy, approvals, scenarios, and persona dashboards for one pack.",
+    accent: "teal",
+    section: "foundation",
+    requiredRoles: ["workflow_operator", "analyst", "security_admin", "platform_admin"],
+    match: "any"
+  },
+  {
     path: "/integrations",
     title: "Integration Hub",
     summary: "Configure and verify Databricks, Fabric, Snowflake, and AWS connectors.",
@@ -54,7 +72,8 @@ export const APP_ROUTES: AppRoute[] = [
     accent: "slate",
     section: "govern",
     requiredRoles: ["security_admin", "platform_admin"],
-    match: "any"
+    match: "any",
+    requireStepUpMfa: true
   },
   {
     path: "/admin",
@@ -63,7 +82,8 @@ export const APP_ROUTES: AppRoute[] = [
     accent: "violet",
     section: "govern",
     requiredRoles: ["platform_admin", "security_admin"],
-    match: "any"
+    match: "any",
+    requireStepUpMfa: true
   },
   {
     path: "/security",
@@ -72,7 +92,8 @@ export const APP_ROUTES: AppRoute[] = [
     accent: "crimson",
     section: "govern",
     requiredRoles: ["security_admin", "platform_admin"],
-    match: "any"
+    match: "any",
+    requireStepUpMfa: true
   },
   {
     path: "/agents",

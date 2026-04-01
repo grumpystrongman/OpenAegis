@@ -36,7 +36,36 @@ OpenAegis now includes a broader plugin lifecycle through `tool-registry`:
 - OAuth authorization: `POST /v1/plugins/instances/{id}/authorize`
 - Connection test: `POST /v1/plugins/instances/{id}/test`
 
-Included connector families now cover AWS, Databricks, Fabric, Jira, Confluence, OpenAI, Anthropic, Google, Azure OpenAI, plus healthcare and operations connectors.
+Included connector families now cover AWS, Databricks, Fabric, Jira, Confluence, OpenAI, Anthropic, Google, Azure OpenAI, Airbyte, Airflow, Trino, Superset, Metabase, Grafana, Kafka, NiFi, Dagster, n8n, plus healthcare and operations connectors.
+
+## Commercial Project Packs (5 End-to-End Scenarios)
+
+Run the commercial showcase harness:
+
+```bash
+npm run showcase:projects
+```
+
+This validates five commercially relevant projects with live API execution:
+
+1. SecOps Runtime Guard
+2. Revenue Cycle Copilot
+3. Supply Chain Resilience
+4. Clinical Quality Signal
+5. Board Risk Cockpit
+
+Artifact:
+
+- `docs/assets/demo/commercial-projects-showcase-report.json`
+
+In the Admin Console, open `http://127.0.0.1:4273/projects` to see:
+
+- seeded operational tables per pack
+- live-evaluated policy scenario outcomes
+- one-click secure baseline policy presets
+- step-by-step walkthrough cards with evidence expectations
+
+Guide: [docs/projects/STEP-BY-STEP-DEMO.md](docs/projects/STEP-BY-STEP-DEMO.md)
 
 ## How Policy Configuration Works
 
@@ -111,6 +140,7 @@ All screenshots are generated from live route interactions:
 
 - Setup Center: `docs/assets/screenshots/commercial-setup.png`
 - KPI Dashboard: `docs/assets/screenshots/commercial-dashboard.png`
+- Project Packs: `docs/assets/screenshots/commercial-projects.png`
 - Commercial Readiness: `docs/assets/screenshots/commercial-readiness.png`
 - Integration Hub: `docs/assets/screenshots/commercial-integrations.png`
 - Identity & Access: `docs/assets/screenshots/commercial-identity.png`
@@ -148,6 +178,7 @@ node tools/scripts/pilot-demo.mjs
 Console UX starts at:
 
 - `http://127.0.0.1:4273/setup` for guided onboarding
+- `http://127.0.0.1:4273/projects` for five commercial project packs
 - `http://127.0.0.1:4273/integrations` for Databricks/Fabric/Snowflake/AWS setup
 - `http://127.0.0.1:4273/identity` for user and role administration
 
@@ -226,6 +257,7 @@ If any one of those checks fails, the release is a no-go.
 - [Platform blueprint](docs/openaegis-blueprint.md)
 - [MVP plan](docs/mvp-plan.md)
 - [Commercial readiness](docs/commercial/COMMERCIAL-READINESS.md)
+- [Project packs value brief](docs/commercial/PROJECT-PACKS-VALUE.md)
 - [Why OpenAegis](docs/commercial/WHY-OPENAEGIS.md)
 - [CISO decision brief](docs/commercial/CISO-DECISION-BRIEF.md)
 - [Enterprise trust pack](docs/compliance/ENTERPRISE-TRUST-PACK.md)
@@ -236,6 +268,7 @@ If any one of those checks fails, the release is a no-go.
 - [Trademark policy](docs/commercial/TRADEMARK-POLICY.md)
 - [14-day trust proof challenge](docs/challenge/TRUST-PROOF-CHALLENGE-14-DAY.md)
 - [Design-partner pilots](docs/pilot/DESIGN-PARTNER-PILOTS.md)
+- [Commercial project packs](docs/projects/README.md)
 - [Hospital production gate](docs/readiness/HOSPITAL-PRODUCTION-GATE.md)
 - [SRE runbook](docs/readiness/SRE-RUNBOOK.md)
 - [Hardening controls matrix](docs/security/HARDENING-CONTROLS-MATRIX.md)

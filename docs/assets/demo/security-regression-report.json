@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T18:26:54.857Z",
+  "generatedAt": "2026-04-01T14:54:40.785Z",
   "suite": "security-regression",
   "endpoints": {
     "gateway": "http://127.0.0.1:3970",
@@ -40,8 +40,8 @@
       "passed": true,
       "details": {
         "status": 201,
-        "executionId": "ex-mney83a9-971h64",
-        "latencyMs": 24
+        "executionId": "ex-mng630a7-xzjiak",
+        "latencyMs": 23
       }
     },
     {
@@ -50,7 +50,7 @@
       "details": {
         "status": 403,
         "error": "tenant_scope_mismatch",
-        "latencyMs": 6
+        "latencyMs": 5
       }
     },
     {
@@ -59,7 +59,7 @@
       "details": {
         "executionStatus": 201,
         "workflowStatus": "blocked",
-        "approvalId": "ap-mney83b1-g3fpsp",
+        "approvalId": "ap-mng630ay-e8rbk9",
         "deniedStatus": 403,
         "deniedError": "insufficient_role_for_approval_decision"
       }
@@ -116,7 +116,7 @@
       "checkId": "tool_call_lookup_is_tenant_scoped",
       "passed": true,
       "details": {
-        "createdToolCallId": "tc-mney83cb-gjdgsr",
+        "createdToolCallId": "tc-mng630c5-izeg7m",
         "status": 404,
         "error": "tool_call_not_found"
       }

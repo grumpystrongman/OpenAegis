@@ -12,11 +12,18 @@ import { IdentityAccessPage } from "./app/pages/identity-access-page.js";
 import { IncidentReviewPage } from "./app/pages/incident-review-page.js";
 import { IntegrationHubPage } from "./app/pages/integration-hub-page.js";
 import { NotFoundPage } from "./app/pages/not-found-page.js";
+import { ProjectPackDetailPage } from "./app/pages/project-pack-detail-page.js";
+import { ProjectPacksPage } from "./app/pages/project-packs-page.js";
 import { SecurityConsolePage } from "./app/pages/security-console-page.js";
 import { SetupCenterPage } from "./app/pages/setup-center-page.js";
 import { SimulationLabPage } from "./app/pages/simulation-lab-page.js";
 import { WorkflowDesignerPage } from "./app/pages/workflow-designer-page.js";
 import "./styles.css";
+
+(
+  globalThis as typeof globalThis & { __ENABLE_DEMO_IDENTITIES__?: boolean }
+).__ENABLE_DEMO_IDENTITIES__ =
+  import.meta.env.VITE_ENABLE_DEMO_IDENTITIES === "true";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +34,8 @@ const router = createBrowserRouter([
       { path: "setup", element: <SetupCenterPage /> },
       { path: "dashboard", element: <DashboardPage /> },
       { path: "commercial", element: <CommercialReadinessPage /> },
+      { path: "projects", element: <ProjectPacksPage /> },
+      { path: "project-guide", element: <ProjectPackDetailPage /> },
       { path: "integrations", element: <IntegrationHubPage /> },
       { path: "identity", element: <IdentityAccessPage /> },
       { path: "admin", element: <AdminConsolePage /> },

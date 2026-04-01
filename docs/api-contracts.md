@@ -121,6 +121,49 @@ Returns execution record with policy decision, approvals, and evidence IDs.
 
 Returns deterministic planner/executor/reviewer graph execution details.
 
+## Project Pack APIs
+
+### `GET /v1/projects/packs`
+
+Returns the five commercial project packs used for demos and pilots.
+
+### `GET /v1/projects/packs/{packId}`
+
+Returns full details for one project pack, including connectors, controls, and KPI targets.
+
+### `GET /v1/projects/packs/{packId}/experience`
+
+Returns seeded demo tables, policy rules, live-evaluated policy scenarios, trust checks, and a step-by-step walkthrough.
+
+### `POST /v1/projects/packs/{packId}/run`
+
+Runs the selected project in simulation or live mode.
+
+Request:
+
+```json
+{
+  "mode": "simulation",
+  "requestFollowupEmail": true
+}
+```
+
+Response includes:
+
+- `pack`
+- `execution`
+
+### `POST /v1/projects/packs/{packId}/policies/apply`
+
+Applies the secure baseline policy preset for the project pack. Requires `security_admin` or `platform_admin`.
+
+Response includes:
+
+- `pack`
+- `appliedPreset`
+- `result.profile`
+- `result.validation`
+
 ## Approval APIs
 
 ### `GET /v1/approvals`

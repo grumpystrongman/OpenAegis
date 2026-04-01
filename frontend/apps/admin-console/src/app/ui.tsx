@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type Tone = "default" | "success" | "warning" | "danger" | "info";
+export type Tone = "default" | "success" | "warning" | "danger" | "info";
 
 export const classNames = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(" ");
 
@@ -119,4 +119,3 @@ export const JsonBlock = ({ value }: { value: unknown }) => (
 );
 
 export const Table = ({ children }: { children: ReactNode }) => <table className="table">{children}</table>;
-

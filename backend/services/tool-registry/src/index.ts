@@ -58,7 +58,17 @@ const supportedConnectorTypes = new Set<ToolManifestRecord["connectorType"]>([
   "openai",
   "anthropic",
   "google",
-  "azure-openai"
+  "azure-openai",
+  "airbyte",
+  "airflow",
+  "trino",
+  "superset",
+  "metabase",
+  "grafana",
+  "kafka",
+  "nifi",
+  "dagster",
+  "n8n"
 ]);
 
 const supportedAuthMethods = new Set<PluginAuthMethod>(["oauth2", "api_key", "service_principal", "key_pair"]);
@@ -233,11 +243,24 @@ const defaultAuthMethodsForConnectorType = (connectorType: ToolManifestRecord["c
       return ["api_key"];
     case "azure-openai":
       return ["api_key", "service_principal"];
+    case "airbyte":
+    case "dagster":
+    case "grafana":
+    case "metabase":
+    case "n8n":
+    case "superset":
+      return ["api_key", "oauth2"];
+    case "airflow":
+      return ["api_key", "oauth2"];
     case "aws":
     case "sql":
     case "fhir":
     case "hl7":
       return ["service_principal", "key_pair"];
+    case "kafka":
+    case "nifi":
+    case "trino":
+      return ["key_pair", "service_principal"];
     case "databricks":
     case "sharepoint":
     case "ticketing":

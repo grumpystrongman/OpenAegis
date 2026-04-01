@@ -13,7 +13,9 @@ import {
   type PolicyCopilotReview,
   type PolicyProfileControls,
   type PolicyProfileSnapshot,
-  type PolicyImpactReview
+  type PolicyImpactReview,
+  type ProjectPackDefinition,
+  type ProjectPackExperienceResponse
 } from "../shared/api/pilot.js";
 import { isDemoIdentitiesEnabled } from "./security-guards.js";
 import { workspacePersistSnapshot } from "./workspace-persistence.js";
@@ -89,6 +91,8 @@ interface WorkspaceState {
   commercialProof?: CommercialProofSnapshot;
   commercialClaims?: CommercialClaimsSnapshot;
   commercialReadiness?: CommercialReadinessSnapshot;
+  projectPacks: ProjectPackDefinition[];
+  projectPackExperiences: Partial<Record<ProjectPackDefinition["packId"], ProjectPackExperienceResponse>>;
   policySnapshot?: PolicyProfileSnapshot;
   policyCopilot?: PolicyCopilotReview;
   policyImpactReview?: PolicyImpactReview;
@@ -105,6 +109,17 @@ interface WorkspaceActions {
   connectDemoUsers: () => Promise<void>;
   refreshWorkspace: () => Promise<void>;
   runWorkflow: (mode: "simulation" | "live", requestFollowupEmail?: boolean) => Promise<ExecutionRecord | null>;
+  runProjectPack: (
+    packId: ProjectPackDefinition["packId"],
+    mode: "simulation" | "live",
+    options?: {
+      requestFollowupEmail?: boolean;
+      classification?: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET";
+      zeroRetentionRequested?: boolean;
+    }
+  ) => Promise<ExecutionRecord | null>;
+  loadProjectPackExperience: (packId: ProjectPackDefinition["packId"]) => Promise<ProjectPackExperienceResponse | null>;
+  applyProjectPackPolicyPreset: (packId: ProjectPackDefinition["packId"]) => Promise<PolicyProfileSnapshot | null>;
   decideApproval: (approvalId: string, decision: Decision, reason: string) => Promise<ApprovalRecord | null>;
   previewPolicy: (controls: Partial<PolicyProfileControls>, profileName?: string) => Promise<PolicyProfileSnapshot | null>;
   reviewPolicyWithCopilot: (controls: Partial<PolicyProfileControls>, operatorGoal: string, profileName?: string) => Promise<PolicyCopilotReview | null>;
@@ -351,6 +366,8 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
       approvals: [],
       auditEvents: [],
       incidents: [],
+      projectPacks: [],
+      projectPackExperiences: {},
       integrations: buildDefaultIntegrations(),
       directoryUsers: defaultDirectoryUsers(),
       isBootstrapping: false,
@@ -502,15 +519,29 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
 
         set({ isSyncing: true, error: undefined });
         try {
-          const [approvalsResponse, auditResponse, previewResponse, commercialProof, commercialClaims, commercialReadiness, policySnapshot] = await Promise.all([
+          const [approvalsResponse, auditResponse, previewResponse, commercialProof, commercialClaims, commercialReadiness, policySnapshot, projectPacks] = await Promise.all([
             pilotApi.listApprovals(token),
             pilotApi.listAuditEvents(token),
             pilotApi.previewModelRoute(token),
             pilotApi.getCommercialProof(token),
             pilotApi.getCommercialClaims(token),
             pilotApi.getCommercialReadiness(token),
-            pilotApi.getPolicyProfile(token)
+            pilotApi.getPolicyProfile(token),
+            pilotApi.listProjectPacks(token)
           ]);
+          const experienceEntries = await Promise.all(
+            projectPacks.packs.map(async (pack) => {
+              try {
+                const response = await pilotApi.getProjectPackExperience(token, pack.packId);
+                return [pack.packId, response] as const;
+              } catch {
+                return null;
+              }
+            })
+          );
+          const projectPackExperiences = Object.fromEntries(
+            experienceEntries.filter((entry): entry is readonly [ProjectPackDefinition["packId"], ProjectPackExperienceResponse] => entry !== null)
+          );
 
           const approvals = sortLatestFirst(approvalsResponse.approvals);
           const auditEvents = auditResponse.events;
@@ -544,6 +575,8 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
             commercialProof,
             commercialClaims,
             commercialReadiness,
+            projectPacks: projectPacks.packs,
+            projectPackExperiences,
             policySnapshot,
             modelPreview: previewResponse,
             trackedExecutionIds: executionIds,
@@ -573,6 +606,80 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
           return execution;
         } catch (error) {
           set({ error: error instanceof Error ? error.message : "execution_failed" });
+          return null;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+      runProjectPack: async (packId, mode, options) => {
+        const token = get().clinicianSession?.accessToken;
+        if (!token) {
+          set({ error: "clinician_session_required" });
+          return null;
+        }
+
+        set({ isSyncing: true, error: undefined });
+        try {
+          const response = await pilotApi.runProjectPack(token, packId, {
+            mode,
+            requestFollowupEmail: options?.requestFollowupEmail ?? true,
+            ...(options?.classification ? { classification: options.classification } : {}),
+            ...(typeof options?.zeroRetentionRequested === "boolean"
+              ? { zeroRetentionRequested: options.zeroRetentionRequested }
+              : {})
+          });
+          const execution = response.execution;
+          set((state) => ({
+            trackedExecutionIds: Array.from(new Set([execution.executionId, ...state.trackedExecutionIds])),
+            executions: sortLatestFirst([execution, ...state.executions.filter((item) => item.executionId !== execution.executionId)])
+          }));
+          await get().refreshWorkspace();
+          return execution;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "project_pack_execution_failed" });
+          return null;
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
+      loadProjectPackExperience: async (packId) => {
+        const token = getPrimaryToken(get());
+        if (!token) {
+          set({ error: "connect_demo_users_to_load_live_data" });
+          return null;
+        }
+        try {
+          const experience = await pilotApi.getProjectPackExperience(token, packId);
+          set((state) => ({
+            projectPackExperiences: {
+              ...state.projectPackExperiences,
+              [packId]: experience
+            }
+          }));
+          return experience;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "project_pack_experience_failed" });
+          return null;
+        }
+      },
+      applyProjectPackPolicyPreset: async (packId) => {
+        const token = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
+        if (!token) {
+          set({ error: "security_session_required" });
+          return null;
+        }
+        set({ isSyncing: true, error: undefined });
+        try {
+          const response = await pilotApi.applyProjectPackPolicyPreset(token, packId);
+          const snapshot: PolicyProfileSnapshot = {
+            profile: response.result.profile,
+            validation: response.result.validation
+          };
+          set({ policySnapshot: snapshot });
+          await get().refreshWorkspace();
+          return snapshot;
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "project_pack_policy_apply_failed" });
           return null;
         } finally {
           set({ isSyncing: false });

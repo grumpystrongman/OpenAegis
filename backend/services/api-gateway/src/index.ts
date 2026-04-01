@@ -33,6 +33,15 @@ import {
   sha256Hex,
   stableSerialize
 } from "@openaegis/security-kit";
+import {
+  getProjectPack,
+  getProjectPackDailyPlaybook,
+  getProjectPackDashboards,
+  getProjectPackExperience,
+  getProjectPackPolicyPreset,
+  getProjectPackSettingsChecklist,
+  listProjectPacks
+} from "./project-packs.js";
 
 export const descriptor: ServiceDescriptor = {
   serviceName: "api-gateway",
@@ -58,9 +67,13 @@ const approvalViewRoles = ["approver", "security_admin", "auditor", "platform_ad
 const approvalCreateRoles = ["approver", "security_admin", "platform_admin"] as const;
 const approvalDecisionRoles = ["approver", "security_admin", "platform_admin"] as const;
 const auditReadRoles = ["auditor", "security_admin", "platform_admin"] as const;
+const incidentReadRoles = ["auditor", "security_admin", "platform_admin"] as const;
+const agentGraphReadRoles = ["auditor", "security_admin", "platform_admin"] as const;
 const commercialReadRoles = ["auditor", "security_admin", "platform_admin"] as const;
 const policyProfileReadRoles = ["auditor", "security_admin", "platform_admin"] as const;
 const policyProfileManageRoles = ["security_admin", "platform_admin"] as const;
+const projectPackReadRoles = ["workflow_operator", "analyst", "auditor", "security_admin", "platform_admin"] as const;
+const projectPackRunRoles = ["workflow_operator", "security_admin", "platform_admin"] as const;
 
 const gatewayRateLimiter = new InMemoryRateLimiter(250, 60_000);
 const gatewaySecurityStateFile = resolve(process.cwd(), ".volumes", "api-gateway-security-state.json");
@@ -184,10 +197,21 @@ const buildCorsHeaders = (request?: IncomingMessage): Record<string, string> => 
   };
 };
 
+const buildFallbackCorsHeaders = (): Record<string, string> => {
+  const allowedOrigins = Array.from(parseAllowedOrigins());
+  if (allowedOrigins.length !== 1) return {};
+  return {
+    "access-control-allow-origin": allowedOrigins[0]!,
+    vary: "Origin",
+    "access-control-allow-headers": "content-type,authorization",
+    "access-control-allow-methods": "GET,POST,OPTIONS"
+  };
+};
+
 const sendJson = (response: ServerResponse, statusCode: number, body: unknown, request?: IncomingMessage) => {
   response.writeHead(statusCode, {
     "content-type": "application/json",
-    ...buildCorsHeaders(request)
+    ...(request ? buildCorsHeaders(request) : buildFallbackCorsHeaders())
   });
   response.end(JSON.stringify(body));
 };
@@ -816,6 +840,208 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
     return;
   }
 
+  if (method === "GET" && pathname === "/v1/projects/packs") {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    sendJson(response, 200, { packs: listProjectPacks() });
+    return;
+  }
+
+  if (method === "GET" && /^\/v1\/projects\/packs\/[^/]+$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    if (!pack) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    sendJson(response, 200, pack);
+    return;
+  }
+
+  if (method === "GET" && /^\/v1\/projects\/packs\/[^/]+\/experience$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    const experience = getProjectPackExperience(packId);
+    if (!pack || !experience) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    const snapshot = await getPolicyProfileSnapshot();
+    const evaluatedScenarios = experience.policyScenarios.map((scenario) => ({
+      ...scenario,
+      decision: (() => {
+        const decision = evaluatePolicy(
+          {
+            action: scenario.input.action,
+            classification: scenario.input.classification,
+            riskLevel: scenario.input.riskLevel,
+            mode: scenario.input.mode,
+            zeroRetentionRequested: scenario.input.zeroRetentionRequested,
+            estimatedToolCalls: scenario.input.estimatedToolCalls
+          },
+          snapshot.profile.controls
+        );
+        return {
+          ...decision,
+          reasons:
+            decision.reasons.length > 0
+              ? decision.reasons
+              : [`policy_allows_${scenario.input.mode}_path_with_required_controls`]
+        };
+      })()
+    }));
+    sendJson(response, 200, {
+      pack,
+      experience: {
+        ...experience,
+        policyScenarios: evaluatedScenarios
+      },
+      policyProfile: {
+        profileName: snapshot.profile.profileName,
+        profileVersion: snapshot.profile.profileVersion
+      }
+    });
+    return;
+  }
+
+  if (method === "GET" && /^\/v1\/projects\/packs\/[^/]+\/settings$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    const settingsChecklist = getProjectPackSettingsChecklist(packId);
+    if (!pack || !settingsChecklist) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    sendJson(response, 200, {
+      pack,
+      settingsChecklist,
+      policyPreset: getProjectPackPolicyPreset(packId)
+    });
+    return;
+  }
+
+  if (method === "GET" && /^\/v1\/projects\/packs\/[^/]+\/playbook$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    const dailyPlaybook = getProjectPackDailyPlaybook(packId);
+    if (!pack || !dailyPlaybook) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    sendJson(response, 200, {
+      pack,
+      dailyPlaybook,
+      scenarioGuides: getProjectPackExperience(packId)?.scenarioGuides ?? []
+    });
+    return;
+  }
+
+  if (method === "GET" && /^\/v1\/projects\/packs\/[^/]+\/dashboards$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    const dashboards = getProjectPackDashboards(packId);
+    const experience = getProjectPackExperience(packId);
+    if (!pack || !dashboards || !experience) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    sendJson(response, 200, {
+      pack,
+      personaDashboards: dashboards,
+      screenshotReferences: experience.screenshotReferences
+    });
+    return;
+  }
+
+  if (method === "POST" && /^\/v1\/projects\/packs\/[^/]+\/policies\/apply$/.test(pathname)) {
+    if (!requireRole(response, authSession, policyProfileManageRoles, "insufficient_role_for_policy_profile_manage")) {
+      return;
+    }
+    const body = await readJson(request);
+    const packId = pathname.split("/")[4] ?? "";
+    const preset = getProjectPackPolicyPreset(packId);
+    const pack = getProjectPack(packId);
+    if (!preset || !pack) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    const requestedTenant = toString(body.tenantId, authSession.tenantId ?? "tenant-starlight-health");
+    const tenantScope = resolveTenantOrReject(authSession, requestedTenant);
+    if (!tenantScope.allowed) {
+      sendJson(response, 403, { error: "tenant_scope_mismatch" });
+      return;
+    }
+    const draftOverrides = parseDraftControls(body);
+    const result = await savePolicyProfile({
+      actorId,
+      tenantId: tenantScope.tenantId,
+      profileName: toString(body.profileName, preset.profileName),
+      changeSummary: toString(body.changeSummary, preset.changeSummary),
+      draftControls: {
+        ...preset.controls,
+        ...draftOverrides
+      }
+    });
+    sendJson(response, result.status, {
+      pack,
+      appliedPreset: preset,
+      result: result.body
+    });
+    return;
+  }
+
+  if (method === "POST" && /^\/v1\/projects\/packs\/[^/]+\/run$/.test(pathname)) {
+    if (!requireRole(response, authSession, projectPackRunRoles, "insufficient_role_for_project_pack_run")) {
+      return;
+    }
+    const body = await readJson(request);
+    const packId = pathname.split("/")[4] ?? "";
+    const pack = getProjectPack(packId);
+    if (!pack) {
+      sendJson(response, 404, { error: "project_pack_not_found" });
+      return;
+    }
+    const requestedTenant = toString(body.tenantId, authSession.tenantId ?? "tenant-starlight-health");
+    const tenantScope = resolveTenantOrReject(authSession, requestedTenant);
+    if (!tenantScope.allowed) {
+      sendJson(response, 403, { error: "tenant_scope_mismatch" });
+      return;
+    }
+    const mode = body.mode === "live" ? "live" : "simulation";
+    const classification = toString(body.classification, pack.defaultClassification);
+    const result = await createExecution({
+      actorId,
+      patientId: toString(body.patientId, pack.defaultPatientId),
+      mode: mode as PilotMode,
+      workflowId: toString(body.workflowId, pack.workflowId),
+      tenantId: tenantScope.tenantId,
+      requestFollowupEmail: toBoolean(body.requestFollowupEmail, true),
+      classification,
+      zeroRetentionRequested: toBoolean(body.zeroRetentionRequested, true)
+    });
+    sendJson(response, result.status, {
+      pack,
+      execution: result.body
+    });
+    return;
+  }
+
   if (method === "GET" && pathname === "/v1/policies/profile") {
     if (!requireRole(response, authSession, policyProfileReadRoles, "insufficient_role_for_policy_profile_read")) {
       return;
@@ -1170,6 +1396,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   }
 
   if (method === "GET" && pathname === "/v1/agent-graphs") {
+    if (!requireRole(response, authSession, agentGraphReadRoles, "insufficient_role_for_agent_graph_read")) {
+      return;
+    }
     const state = await loadState();
     const graphs = await listAgentGraphDefinitions();
     sendJson(response, 200, {
@@ -1183,6 +1412,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   }
 
   if (method === "GET" && /^\/v1\/agent-graphs\/[^/]+$/.test(pathname)) {
+    if (!requireRole(response, authSession, agentGraphReadRoles, "insufficient_role_for_agent_graph_read")) {
+      return;
+    }
     const graphId = pathname.split("/")[3] ?? "";
     const graph = await getAgentGraphDefinition(graphId);
     if (!graph) {
@@ -1202,6 +1434,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   }
 
   if (method === "GET" && /^\/v1\/agent-graphs\/[^/]+\/executions\/[^/]+$/.test(pathname)) {
+    if (!requireRole(response, authSession, agentGraphReadRoles, "insufficient_role_for_agent_graph_read")) {
+      return;
+    }
     const parts = pathname.split("/");
     const graphId = parts[3] ?? "";
     const executionId = parts[5] ?? "";
@@ -1273,6 +1508,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   }
 
   if (method === "GET" && pathname === "/v1/incidents") {
+    if (!requireRole(response, authSession, incidentReadRoles, "insufficient_role_for_incident_list")) {
+      return;
+    }
     const incidents = await listIncidents();
     sendJson(response, 200, {
       incidents: authSession.roles.includes("platform_admin")
@@ -1283,6 +1521,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   }
 
   if (method === "GET" && /^\/v1\/incidents\/[^/]+$/.test(pathname)) {
+    if (!requireRole(response, authSession, incidentReadRoles, "insufficient_role_for_incident_read")) {
+      return;
+    }
     const incidentId = pathname.split("/")[3] ?? "";
     const incident = await getIncident(incidentId);
     if (!incident) {

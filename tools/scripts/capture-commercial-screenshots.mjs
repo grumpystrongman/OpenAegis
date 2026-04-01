@@ -24,6 +24,7 @@ const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const requiredShots = [
   "commercial-setup.png",
   "commercial-dashboard.png",
+  "commercial-projects.png",
   "commercial-readiness.png",
   "commercial-integrations.png",
   "commercial-identity.png",
@@ -170,8 +171,21 @@ const waitForHeading = async (page, heading) => {
   await page.getByRole("heading", { name: heading }).first().waitFor({ state: "visible", timeout: 15_000 });
 };
 
-const captureRoute = async (page, appBaseUrl, route, heading, filename) => {
-  await page.goto(`${appBaseUrl}${route}`, { waitUntil: "networkidle" });
+const navigateToRoute = async (page, route) => {
+  const navLink = page.locator(`a[href='${route}']`).first();
+  if ((await navLink.count()) > 0 && await navLink.isVisible().catch(() => false)) {
+    await navLink.click();
+  } else {
+    await page.evaluate((targetRoute) => {
+      window.history.pushState({}, "", targetRoute);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }, route);
+  }
+  await page.waitForLoadState("networkidle");
+};
+
+const captureRoute = async (page, route, heading, filename) => {
+  await navigateToRoute(page, route);
   await waitForHeading(page, heading);
   await page.screenshot({ path: path.join(screenshotDir, filename), fullPage: true });
 };
@@ -194,12 +208,14 @@ export const captureCommercialScreenshots = async () => {
   await rm(path.join(repoRoot, ".volumes", "tool-execution-state.json"), { force: true });
 
   log("Building admin-console preview bundle");
+  await runCommand(npmCmd, ["run", "--workspace", "@openaegis/api-gateway", "build"]);
   await runCommand(npmCmd, ["run", "--workspace", "@openaegis/tool-registry", "build"]);
   await runCommand(npmCmd, ["run", "--workspace", "@openaegis/admin-console", "build"], {
     env: {
       ...process.env,
       VITE_API_URL: urls.api,
-      VITE_TOOL_REGISTRY_URL: urls.toolRegistry
+      VITE_TOOL_REGISTRY_URL: urls.toolRegistry,
+      VITE_ENABLE_DEMO_IDENTITIES: "true"
     }
   });
 
@@ -216,7 +232,8 @@ export const captureCommercialScreenshots = async () => {
     env: {
       ...process.env,
       PORT: String(ports.gateway),
-      OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH: "true"
+      OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH: "true",
+      OPENAEGIS_ALLOWED_ORIGINS: urls.app
     }
   });
 
@@ -234,7 +251,10 @@ export const captureCommercialScreenshots = async () => {
     await waitForHttp(`${urls.api}/healthz`);
     await waitForHttp(`${urls.app}/setup`);
 
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      args: ["--disable-web-security", "--disable-features=IsolateOrigins,site-per-process"]
+    });
     const context = await browser.newContext({ viewport: { width: 1680, height: 1050 } });
     const page = await context.newPage();
 
@@ -243,14 +263,31 @@ export const captureCommercialScreenshots = async () => {
     await waitForHeading(page, "Setup Center");
 
     await page
-      .getByRole("complementary")
       .getByRole("button", { name: /Connect evaluator identities|Reconnect evaluator identities|Connect demo sessions|Reconnect demo sessions/i })
       .first()
       .click();
-    await page.getByText("Clinician connected").waitFor({ state: "visible", timeout: 20_000 });
-    await page.getByText("Security connected").waitFor({ state: "visible", timeout: 20_000 });
+    try {
+      await page.getByText("Clinician connected").waitFor({ state: "visible", timeout: 20_000 });
+      await page.getByText("Security connected").waitFor({ state: "visible", timeout: 20_000 });
+    } catch {
+      const errorBanner = page.locator(".banner.error").first();
+      const errorText = (await errorBanner.isVisible().catch(() => false))
+        ? await errorBanner.textContent()
+        : "no_error_banner";
+      throw new Error(`unable_to_connect_demo_identities:${String(errorText).trim()}`);
+    }
 
-    await page.goto(`${urls.app}/dashboard`, { waitUntil: "networkidle" });
+    await navigateToRoute(page, "/dashboard");
+    const dashboardHeadings = await page.getByRole("heading").allInnerTexts().catch(() => []);
+    if (!dashboardHeadings.some((heading) => heading.includes("Business KPI Dashboard"))) {
+      const errorBanner = page.locator(".banner.error").first();
+      const errorText = (await errorBanner.isVisible().catch(() => false))
+        ? await errorBanner.textContent()
+        : "no_error_banner";
+      throw new Error(
+        `dashboard_navigation_failed:url=${page.url()};headings=${dashboardHeadings.join(" | ")};error=${String(errorText).trim()}`
+      );
+    }
     await waitForHeading(page, "Business KPI Dashboard");
 
     await page.getByRole("button", { name: "Run simulation" }).first().click();
@@ -258,15 +295,16 @@ export const captureCommercialScreenshots = async () => {
     await page.getByRole("button", { name: "Run live workflow" }).first().click();
     await page.waitForTimeout(1_500);
 
-    await captureRoute(page, urls.app, "/dashboard", "Business KPI Dashboard", "commercial-dashboard.png");
-    await captureRoute(page, urls.app, "/setup", "Setup Center", "commercial-setup.png");
-    await captureRoute(page, urls.app, "/workflows", "Workflow Designer", "commercial-workflow.png");
-    await captureRoute(page, urls.app, "/simulation", "Simulation Lab", "commercial-simulation.png");
+    await captureRoute(page, "/dashboard", "Business KPI Dashboard", "commercial-dashboard.png");
+    await captureRoute(page, "/projects", "Commercial Project Packs", "commercial-projects.png");
+    await captureRoute(page, "/setup", "Setup Center", "commercial-setup.png");
+    await captureRoute(page, "/workflows", "Workflow Designer", "commercial-workflow.png");
+    await captureRoute(page, "/simulation", "Simulation Lab", "commercial-simulation.png");
 
     await page.getByRole("button", { name: "Security" }).first().click();
     await page.waitForTimeout(400);
 
-    await page.goto(`${urls.app}/security`, { waitUntil: "networkidle" });
+    await navigateToRoute(page, "/security");
     await waitForHeading(page, "Security Console");
     const approvalToggle = page.getByLabel("Require human approval for high-risk live actions");
     if (await approvalToggle.isVisible().catch(() => false)) {
@@ -277,9 +315,9 @@ export const captureCommercialScreenshots = async () => {
       await page.waitForTimeout(900);
     }
     await page.screenshot({ path: path.join(screenshotDir, "commercial-security.png"), fullPage: true });
-    await captureRoute(page, urls.app, "/integrations", "Integration Hub", "commercial-integrations.png");
-    await captureRoute(page, urls.app, "/identity", "Identity & Access", "commercial-identity.png");
-    await captureRoute(page, urls.app, "/approvals", "Approval Inbox", "commercial-approvals.png");
+    await captureRoute(page, "/integrations", "Integration Hub", "commercial-integrations.png");
+    await captureRoute(page, "/identity", "Identity & Access", "commercial-identity.png");
+    await captureRoute(page, "/approvals", "Approval Inbox", "commercial-approvals.png");
 
     const rejectButton = page.getByRole("button", { name: "Reject" });
     const canReject = await rejectButton.isVisible().then(() => rejectButton.isEnabled()).catch(() => false);
@@ -289,10 +327,10 @@ export const captureCommercialScreenshots = async () => {
       await page.screenshot({ path: path.join(screenshotDir, "commercial-approvals.png"), fullPage: true });
     }
 
-    await captureRoute(page, urls.app, "/incidents", "Incident Review Explorer", "commercial-incidents.png");
-    await captureRoute(page, urls.app, "/audit", "Audit Explorer", "commercial-audit.png");
-    await captureRoute(page, urls.app, "/commercial", "Commercial Readiness", "commercial-readiness.png");
-    await captureRoute(page, urls.app, "/admin", "Admin Console", "commercial-admin.png");
+    await captureRoute(page, "/incidents", "Incident Review Explorer", "commercial-incidents.png");
+    await captureRoute(page, "/audit", "Audit Explorer", "commercial-audit.png");
+    await captureRoute(page, "/commercial", "Commercial Readiness", "commercial-readiness.png");
+    await captureRoute(page, "/admin", "Admin Console", "commercial-admin.png");
 
     await context.close();
     await browser.close();

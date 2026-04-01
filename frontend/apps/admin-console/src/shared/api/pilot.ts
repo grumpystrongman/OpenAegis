@@ -274,6 +274,129 @@ export interface CommercialClaimsSnapshot {
   claims: CommercialVerificationClaim[];
 }
 
+export interface ProjectPackConnector {
+  connectorType: string;
+  toolId: string;
+  purpose: string;
+}
+
+export interface ProjectPackControl {
+  controlId: string;
+  title: string;
+  enforcement: string;
+}
+
+export interface ProjectPackKpi {
+  id: string;
+  label: string;
+  target: string;
+  whyItMatters: string;
+}
+
+export interface ProjectPackDefinition {
+  packId:
+    | "secops-runtime-guard"
+    | "revenue-cycle-copilot"
+    | "supply-chain-resilience"
+    | "clinical-quality-signal"
+    | "board-risk-cockpit";
+  name: string;
+  industry: string;
+  persona: string;
+  businessProblem: string;
+  expectedOutcome: string;
+  workflowId: string;
+  defaultPatientId: string;
+  defaultClassification: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET";
+  connectors: ProjectPackConnector[];
+  controls: ProjectPackControl[];
+  kpis: ProjectPackKpi[];
+}
+
+export interface ProjectPackRunResponse {
+  pack: ProjectPackDefinition;
+  execution: ExecutionRecord;
+}
+
+export interface ProjectPackDataTable {
+  tableId: string;
+  title: string;
+  description: string;
+  source: string;
+  classification: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET";
+  columns: Array<{ key: string; label: string }>;
+  rows: Array<Record<string, string | number | boolean>>;
+}
+
+export interface ProjectPackPolicyRule {
+  ruleId: string;
+  title: string;
+  condition: string;
+  effect: "ALLOW" | "REQUIRE_APPROVAL" | "DENY";
+  rationale: string;
+  severity: "critical" | "high" | "medium";
+}
+
+export interface ProjectPackPolicyScenario {
+  scenarioId: string;
+  title: string;
+  description: string;
+  input: {
+    action: string;
+    classification: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET";
+    riskLevel: "low" | "medium" | "high" | "critical";
+    mode: "simulation" | "live";
+    zeroRetentionRequested: boolean;
+    estimatedToolCalls: number;
+  };
+  operatorHint: string;
+  decision?: {
+    effect: "ALLOW" | "REQUIRE_APPROVAL" | "DENY";
+    reasons: string[];
+    obligations: string[];
+  };
+}
+
+export interface ProjectPackWalkthroughStep {
+  step: number;
+  title: string;
+  operatorAction: string;
+  openAegisControl: string;
+  evidenceProduced: string;
+}
+
+export interface ProjectPackExperience {
+  plainLanguageSummary: string;
+  dataTables: ProjectPackDataTable[];
+  policyRules: ProjectPackPolicyRule[];
+  policyScenarios: ProjectPackPolicyScenario[];
+  walkthrough: ProjectPackWalkthroughStep[];
+  trustChecks: string[];
+}
+
+export interface ProjectPackExperienceResponse {
+  pack: ProjectPackDefinition;
+  experience: ProjectPackExperience;
+  policyProfile: {
+    profileName: string;
+    profileVersion: number;
+  };
+}
+
+export interface ProjectPackPolicyApplyResponse {
+  pack: ProjectPackDefinition;
+  appliedPreset: {
+    profileName: string;
+    changeSummary: string;
+    controls: Partial<PolicyProfileControls>;
+  };
+  result: {
+    profile: PolicyProfile;
+    validation: PolicyValidationResult;
+    breakGlassUsed: boolean;
+  };
+}
+
 export interface ToolRegistryManifest {
   toolId: string;
   displayName: string;
@@ -295,7 +418,17 @@ export interface ToolRegistryManifest {
     | "openai"
     | "anthropic"
     | "google"
-    | "azure-openai";
+    | "azure-openai"
+    | "airbyte"
+    | "airflow"
+    | "trino"
+    | "superset"
+    | "metabase"
+    | "grafana"
+    | "kafka"
+    | "nifi"
+    | "dagster"
+    | "n8n";
   description: string;
   version: string;
   trustTier: "tier-1" | "tier-2" | "tier-3" | "tier-4";
@@ -674,6 +807,107 @@ const PLUGIN_BLUEPRINTS: Record<
       { key: "clientSecretRef", label: "Broker secret ref", placeholder: "vault://secret/azure-openai/client-secret", secret: true, required: true }
     ],
     safetyNotes: ["Prefer managed identity or service principal for enterprise deployments.", "Bind access to tenant-scoped policy."]
+  },
+  airbyte: {
+    category: "data",
+    authMode: "api-key",
+    setupFields: [
+      { key: "endpoint", label: "Airbyte endpoint", placeholder: "https://airbyte.company.local/api", required: true },
+      { key: "workspaceId", label: "Workspace ID", placeholder: "workspace-prod", required: true },
+      { key: "apiKeyRef", label: "Broker secret ref", placeholder: "vault://secret/airbyte/api-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Use workspace-scoped API keys.", "Only enable approved connection IDs for execute actions."]
+  },
+  airflow: {
+    category: "operations",
+    authMode: "oauth",
+    setupFields: [
+      { key: "endpoint", label: "Airflow API URL", placeholder: "https://airflow.company.local/api/v1", required: true },
+      { key: "dagPrefix", label: "Allowed DAG prefix", placeholder: "openaegis_", required: true },
+      { key: "clientSecretRef", label: "Broker secret ref", placeholder: "vault://secret/airflow/client-secret", secret: true, required: true }
+    ],
+    safetyNotes: ["Allow execution only for approved DAG prefixes.", "Use OAuth service identity, not a personal account."]
+  },
+  trino: {
+    category: "data",
+    authMode: "key-pair",
+    setupFields: [
+      { key: "endpoint", label: "Trino endpoint", placeholder: "https://trino.company.local:8443", required: true },
+      { key: "catalog", label: "Catalog", placeholder: "healthcare", required: true },
+      { key: "schema", label: "Schema", placeholder: "ops_readonly", required: true },
+      { key: "privateKeyRef", label: "Broker secret ref", placeholder: "vault://secret/trino/private-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Use read-only catalogs for initial rollout.", "Keep query access scoped by role and schema."]
+  },
+  superset: {
+    category: "analytics",
+    authMode: "oauth",
+    setupFields: [
+      { key: "endpoint", label: "Superset URL", placeholder: "https://superset.company.local", required: true },
+      { key: "workspaceId", label: "Workspace", placeholder: "risk-analytics", required: true },
+      { key: "clientSecretRef", label: "Broker secret ref", placeholder: "vault://secret/superset/client-secret", secret: true, required: true }
+    ],
+    safetyNotes: ["Restrict SQL Lab execute permissions to approved datasets.", "Separate viewer and author roles for governance."]
+  },
+  metabase: {
+    category: "analytics",
+    authMode: "api-key",
+    setupFields: [
+      { key: "endpoint", label: "Metabase URL", placeholder: "https://metabase.company.local", required: true },
+      { key: "collection", label: "Collection", placeholder: "Operations", required: true },
+      { key: "apiKeyRef", label: "Broker secret ref", placeholder: "vault://secret/metabase/api-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Use collection-level permissions to constrain visibility.", "Keep query edit permissions disabled for read workloads."]
+  },
+  grafana: {
+    category: "analytics",
+    authMode: "api-key",
+    setupFields: [
+      { key: "endpoint", label: "Grafana URL", placeholder: "https://grafana.company.local", required: true },
+      { key: "orgId", label: "Organization ID", placeholder: "1", required: true },
+      { key: "apiKeyRef", label: "Broker secret ref", placeholder: "vault://secret/grafana/api-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Use read-only API keys for dashboards and alert retrieval.", "Do not allow dashboard write scopes in production by default."]
+  },
+  kafka: {
+    category: "operations",
+    authMode: "key-pair",
+    setupFields: [
+      { key: "bootstrapServers", label: "Bootstrap servers", placeholder: "kafka-1:9093,kafka-2:9093", required: true },
+      { key: "topicAllowlist", label: "Topic allowlist", placeholder: "alerts.*,governance.*", required: true },
+      { key: "privateKeyRef", label: "Broker secret ref", placeholder: "vault://secret/kafka/private-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Limit producers to approved topic patterns.", "Use mTLS and ACLs for all topic access."]
+  },
+  nifi: {
+    category: "operations",
+    authMode: "service-principal",
+    setupFields: [
+      { key: "endpoint", label: "NiFi URL", placeholder: "https://nifi.company.local/nifi-api", required: true },
+      { key: "processGroupId", label: "Process group ID", placeholder: "root-openaegis", required: true },
+      { key: "clientSecretRef", label: "Broker secret ref", placeholder: "vault://secret/nifi/client-secret", secret: true, required: true }
+    ],
+    safetyNotes: ["Lock execute permission to dedicated process groups.", "Track provenance IDs in audit evidence."]
+  },
+  dagster: {
+    category: "operations",
+    authMode: "oauth",
+    setupFields: [
+      { key: "endpoint", label: "Dagster URL", placeholder: "https://dagster.company.local", required: true },
+      { key: "location", label: "Code location", placeholder: "core_ops", required: true },
+      { key: "clientSecretRef", label: "Broker secret ref", placeholder: "vault://secret/dagster/client-secret", secret: true, required: true }
+    ],
+    safetyNotes: ["Allow only approved jobs and sensors for execution.", "Enforce role-scoped run launch permissions."]
+  },
+  n8n: {
+    category: "operations",
+    authMode: "api-key",
+    setupFields: [
+      { key: "endpoint", label: "n8n URL", placeholder: "https://n8n.company.local", required: true },
+      { key: "projectId", label: "Project ID", placeholder: "ops-automation", required: true },
+      { key: "apiKeyRef", label: "Broker secret ref", placeholder: "vault://secret/n8n/api-key", secret: true, required: true }
+    ],
+    safetyNotes: ["Restrict workflow activation to approved projects.", "Use separate credentials for test and production."]
   }
 };
 
@@ -734,7 +968,17 @@ const defaultBlueprintForManifest = (
     openai: "operations",
     anthropic: "operations",
     google: "operations",
-    "azure-openai": "operations"
+    "azure-openai": "operations",
+    airbyte: "data",
+    airflow: "operations",
+    trino: "data",
+    superset: "analytics",
+    metabase: "analytics",
+    grafana: "analytics",
+    kafka: "operations",
+    nifi: "operations",
+    dagster: "operations",
+    n8n: "operations"
   };
   const authMode = authMethodToMode(manifest.authMethods);
   return {
@@ -937,6 +1181,29 @@ export const pilotApi = {
     ),
   getCommercialReadiness: (token: string) =>
     jsonRequest<CommercialReadinessSnapshot>("/v1/commercial/readiness", "GET", token),
+  listProjectPacks: (token: string) =>
+    jsonRequest<{ packs: ProjectPackDefinition[] }>("/v1/projects/packs", "GET", token),
+  getProjectPack: (token: string, packId: ProjectPackDefinition["packId"]) =>
+    jsonRequest<ProjectPackDefinition>(`/v1/projects/packs/${packId}`, "GET", token),
+  getProjectPackExperience: (token: string, packId: ProjectPackDefinition["packId"]) =>
+    jsonRequest<ProjectPackExperienceResponse>(`/v1/projects/packs/${packId}/experience`, "GET", token),
+  runProjectPack: (
+    token: string,
+    packId: ProjectPackDefinition["packId"],
+    payload: {
+      mode: "simulation" | "live";
+      requestFollowupEmail?: boolean;
+      classification?: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "PII" | "PHI" | "EPHI" | "SECRET";
+      zeroRetentionRequested?: boolean;
+    }
+  ) =>
+    jsonRequest<ProjectPackRunResponse>(`/v1/projects/packs/${packId}/run`, "POST", token, payload),
+  applyProjectPackPolicyPreset: (
+    token: string,
+    packId: ProjectPackDefinition["packId"],
+    payload?: { profileName?: string; changeSummary?: string; controls?: Partial<PolicyProfileControls> }
+  ) =>
+    jsonRequest<ProjectPackPolicyApplyResponse>(`/v1/projects/packs/${packId}/policies/apply`, "POST", token, payload ?? {}),
   getPolicyProfile: (token: string) =>
     jsonRequest<PolicyProfileSnapshot>("/v1/policies/profile", "GET", token),
   previewPolicyProfile: (token: string, payload: { profileName?: string; controls: Partial<PolicyProfileControls> }) =>

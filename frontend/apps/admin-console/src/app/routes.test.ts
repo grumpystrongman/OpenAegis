@@ -21,6 +21,8 @@ test("route catalog includes required consoles for MVP", () => {
   const paths = APP_ROUTES.map((route) => route.path);
   assert.ok(paths.includes("/setup"));
   assert.ok(paths.includes("/integrations"));
+  assert.ok(paths.includes("/projects"));
+  assert.ok(paths.includes("/project-guide"));
   assert.ok(paths.includes("/identity"));
   assert.ok(paths.includes("/security"));
   assert.ok(paths.includes("/simulation"));

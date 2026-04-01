@@ -1,8 +1,9 @@
 FROM node:22-alpine AS build
 WORKDIR /workspace
-COPY package.json tsconfig.base.json ./
+COPY package.json package-lock.json tsconfig.base.json ./
 COPY frontend ./frontend
-RUN npm install
+COPY backend ./backend
+RUN npm ci
 RUN npm run build --workspace @openaegis/admin-console
 
 FROM nginx:1.27-alpine

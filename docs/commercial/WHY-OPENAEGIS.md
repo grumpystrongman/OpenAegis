@@ -1,76 +1,73 @@
 # Why OpenAegis Wins in Regulated Enterprise AI
 
-This document explains what OpenAegis does, why it is different, and how to verify those claims using executable checks.
+OpenAegis matters because it controls what an agent can do, not just what it can say.
+That is the difference between a demo and software you can trust in a hospital, a finance team, or a security operations center.
 
-## One-Sentence Positioning
+## The Short Answer
 
-OpenAegis is a control plane that lets enterprises run AI agents with policy, approvals, and evidence enforced outside the model.
+OpenAegis is the control plane for AI agents in regulated enterprises.
+It enforces policy, approvals, isolation, redaction, and evidence outside the model.
 
-For security leaders, see the buyer-focused brief: `docs/commercial/CISO-DECISION-BRIEF.md`.
+## Why Buyers Care
 
-## What Problem It Solves
+A CISO, CIO, COO, or compliance lead usually asks the same questions:
 
-Most agent stacks can generate actions but cannot prove safe operation in regulated environments. OpenAegis closes that gap by requiring:
+- Can the system block unsafe actions even if the model is confident?
+- Can a human be required before a high-risk live step?
+- Can we prove what happened later?
+- Can we stop sensitive data from leaking out of the platform?
+- Can we run the same workflow in simulation first?
 
-- explicit policy decisions before risky actions
-- approval gates for high-risk live operations
-- replayable evidence for every major action
-- deterministic simulation before production rollout
+OpenAegis answers yes with controls that are built into the platform.
 
-## Why It Is Better Than Generic Agent Frameworks
+## What OpenAegis Does Better
 
-| Capability | Typical framework | OpenAegis |
+| Need | Typical agent stack | OpenAegis |
 | --- | --- | --- |
-| Policy enforcement outside model | Partial or absent | Built-in and testable |
-| Approval workflow for high-risk live actions | Usually custom | Included by default |
-| Evidence chain and replay | Often ad hoc logs | Structured evidence with IDs |
-| Vendor-neutral model routing | Mixed | Core design principle |
-| Simulation before live execution | Inconsistent | First-class workflow mode |
+| Policy outside the model | Often custom | Built in and testable |
+| Human approval gates | Optional | First-class |
+| Evidence and replay | Loose logs | Structured evidence trail |
+| Zero-retention handling | Hard to enforce | Policy-controlled |
+| Tenant isolation | Add-on later | Core design |
+| Simulation before live | Inconsistent | Standard workflow |
+| Clear operator guidance | Usually vague | Plain-language setup and warnings |
 
-## How To Verify Claims (No Marketing Hand-Waving)
+## Why This Is Safer For Real Work
 
-Run these commands from repository root:
+- Policies are evaluated before the model gets to act.
+- Sensitive data can be denied or routed away from external providers.
+- High-risk live actions do not execute without approval.
+- Every run produces evidence IDs and trace records.
+- The platform is built for roles, tenants, and audit, not for free-form chat.
+
+## How To Verify The Claims
+
+Run the commercial and trust checks from the repo root:
 
 ```bash
 npm run test
-npm run validate:test-surface
-npm run validate:infra
-npm run security:regression
+npm run build
 npm run smoke:pilot
-npm run proof:commercial
-npm run load:commercial
-npm run chaos:commercial
-npm run audit:codebase
-npm run trust:pack
-npm run trust:audit
-npm run audit:commercial
-npm run readiness:gate
+npm run test:commercial
+npm run showcase:projects
+npm run screenshots:commercial
 ```
 
-Expected results:
+Then review:
 
-- all commands exit `0`
-- `docs/assets/demo/commercial-proof-report.json` has `summary.status = PASS`
-- `docs/assets/demo/security-regression-report.json` has `summary.status = PASS`
-- `docs/assets/demo/codebase-line-audit-report.json` has `summary.status = PASS`
-- `docs/assets/demo/enterprise-trust-pack-audit-report.json` has `summary.status = PASS`
-- `docs/assets/demo/readiness-gate-report.json` has `summary.scorePercent >= 98`
+- [docs/projects/INDEX.md](../projects/INDEX.md)
+- [docs/projects/STEP-BY-STEP-DEMO.md](../projects/STEP-BY-STEP-DEMO.md)
+- the screenshot artifacts in `docs/assets/screenshots/`
+- the evidence packs in `docs/assets/demo/`
 
-## How Non-Experts Can Operate It Safely
+## For Evaluators
 
-- Policy Studio explains each control in plain language.
-- Impact Preview shows what policy outcomes change before save.
-- Blocking-risk changes require break-glass metadata.
-- Local/built-in policy copilot proposes safer settings and remediation hints.
+If a product cannot clearly answer these questions, it is not ready for regulated use:
 
-## Buyer Evaluation Checklist
+1. What setting controls the risk?
+2. What policy blocks the dangerous path?
+3. Where is the human approval step?
+4. What dashboard shows the result?
+5. What evidence proves it happened?
 
-Use this list in a security and operations review:
-
-1. Can the platform deny unsafe actions even when the model output suggests them?
-2. Can we require human approval for high-risk live execution?
-3. Can we replay who changed policy, what changed, and why?
-4. Can we run simulation and compare behavior before go-live?
-5. Can we prove these controls through automated checks in CI?
-
-If any answer is no, treat rollout as no-go until the gap is closed.
+OpenAegis is designed so those answers are visible, not hidden.
