@@ -25,6 +25,12 @@ const requiredShots = [
   "commercial-setup.png",
   "commercial-dashboard.png",
   "commercial-projects.png",
+  "commercial-sandbox-proof.png",
+  "commercial-project-guide-secops-runtime-guard.png",
+  "commercial-project-guide-revenue-cycle-copilot.png",
+  "commercial-project-guide-supply-chain-resilience.png",
+  "commercial-project-guide-clinical-quality-signal.png",
+  "commercial-project-guide-board-risk-cockpit.png",
   "commercial-readiness.png",
   "commercial-integrations.png",
   "commercial-identity.png",
@@ -35,6 +41,34 @@ const requiredShots = [
   "commercial-simulation.png",
   "commercial-workflow.png",
   "commercial-admin.png"
+];
+
+const projectGuideShots = [
+  {
+    packId: "secops-runtime-guard",
+    heading: "SecOps Runtime Guard",
+    filename: "commercial-project-guide-secops-runtime-guard.png"
+  },
+  {
+    packId: "revenue-cycle-copilot",
+    heading: "Revenue Cycle Copilot",
+    filename: "commercial-project-guide-revenue-cycle-copilot.png"
+  },
+  {
+    packId: "supply-chain-resilience",
+    heading: "Supply Chain Resilience",
+    filename: "commercial-project-guide-supply-chain-resilience.png"
+  },
+  {
+    packId: "clinical-quality-signal",
+    heading: "Clinical Quality Signal",
+    filename: "commercial-project-guide-clinical-quality-signal.png"
+  },
+  {
+    packId: "board-risk-cockpit",
+    heading: "Board Risk Cockpit",
+    filename: "commercial-project-guide-board-risk-cockpit.png"
+  }
 ];
 
 const log = (message) => {
@@ -190,6 +224,24 @@ const captureRoute = async (page, route, heading, filename) => {
   await page.screenshot({ path: path.join(screenshotDir, filename), fullPage: true });
 };
 
+const captureProjectGuide = async (page, packId, heading, filename) => {
+  await navigateToRoute(page, "/projects");
+  await waitForHeading(page, "Commercial Project Packs");
+  const packCard = page.locator(".scenario-card").filter({ hasText: heading }).first();
+  if ((await packCard.count()) === 0) {
+    await page.getByRole("button", { name: /Refresh live data/i }).first().click();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1_500);
+  }
+  await packCard.waitFor({ state: "visible", timeout: 20_000 });
+  await packCard.click();
+  await page.locator(`a[href='/project-guide?pack=${packId}']`).first().click();
+  await page.waitForLoadState("networkidle");
+  await waitForHeading(page, heading);
+  await page.getByText("Seeded business data").first().waitFor({ state: "visible", timeout: 15_000 });
+  await page.screenshot({ path: path.join(screenshotDir, filename), fullPage: true });
+};
+
 export const captureCommercialScreenshots = async () => {
   const ports = {
     gateway: await findAvailablePort(requestedPorts.gateway),
@@ -297,9 +349,22 @@ export const captureCommercialScreenshots = async () => {
 
     await captureRoute(page, "/dashboard", "Business KPI Dashboard", "commercial-dashboard.png");
     await captureRoute(page, "/projects", "Commercial Project Packs", "commercial-projects.png");
+    await navigateToRoute(page, "/sandbox-proof");
+    await waitForHeading(page, "Sandbox Proof");
+    await page.getByText("SecOps Runtime Guard").first().waitFor({ state: "visible", timeout: 15_000 });
+    await page.screenshot({ path: path.join(screenshotDir, "commercial-sandbox-proof.png"), fullPage: true });
     await captureRoute(page, "/setup", "Setup Center", "commercial-setup.png");
     await captureRoute(page, "/workflows", "Workflow Designer", "commercial-workflow.png");
     await captureRoute(page, "/simulation", "Simulation Lab", "commercial-simulation.png");
+
+    for (const projectGuideShot of projectGuideShots) {
+      await captureProjectGuide(
+        page,
+        projectGuideShot.packId,
+        projectGuideShot.heading,
+        projectGuideShot.filename
+      );
+    }
 
     await page.getByRole("button", { name: "Security" }).first().click();
     await page.waitForTimeout(400);

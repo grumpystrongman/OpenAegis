@@ -40,7 +40,13 @@
     "restore:state": "node tools/scripts/restore-state.mjs",
     "evidence:package": "node tools/scripts/export-evidence-package.mjs",
     "readiness:gate": "node tools/scripts/readiness-gate.mjs",
-    "screenshots:commercial": "node tools/scripts/capture-commercial-screenshots.mjs"
+    "screenshots:commercial": "node tools/scripts/capture-commercial-screenshots.mjs",
+    "sandbox:list": "node tools/scripts/sandbox-compose.mjs list",
+    "sandbox:config": "node tools/scripts/sandbox-compose.mjs config --all",
+    "sandbox:up": "node tools/scripts/sandbox-compose.mjs up",
+    "sandbox:down": "node tools/scripts/sandbox-compose.mjs down",
+    "sandbox:ps": "node tools/scripts/sandbox-compose.mjs ps",
+    "sandbox:proof": "npm run build && node tools/scripts/sandbox-proof.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

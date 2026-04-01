@@ -1180,6 +1180,98 @@ button:hover.danger {
   background: rgba(255, 255, 255, 0.9);
 }
 
+.sandbox-pack-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.sandbox-proof-pack {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(199, 210, 224, 0.9);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at top right, rgba(13, 138, 125, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(245, 249, 253, 0.95));
+  box-shadow: var(--shadow);
+}
+
+.sandbox-pack-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.sandbox-pack-head h3 {
+  margin: 0.35rem 0 0.45rem;
+  font-size: 1.24rem;
+}
+
+.sandbox-pack-head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 72ch;
+}
+
+.sandbox-proof-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.sandbox-proof-section {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.sandbox-connector-row,
+.sandbox-workflow-card,
+.sandbox-trust-check {
+  padding: 0.95rem;
+  border: 1px solid rgba(199, 210, 224, 0.9);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.sandbox-connector-row p,
+.sandbox-workflow-card p,
+.sandbox-trust-check p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.sandbox-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.7rem;
+}
+
+.sandbox-evidence-grid div {
+  padding: 0.7rem;
+  border-radius: 0.9rem;
+  background: rgba(15, 91, 143, 0.06);
+  border: 1px solid rgba(15, 91, 143, 0.08);
+}
+
+.sandbox-evidence-grid span {
+  display: block;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.sandbox-evidence-grid strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.25rem;
+}
+
 .panel .persona-chip {
   border-color: rgba(199, 210, 224, 0.9);
   background: rgba(255, 255, 255, 0.82);
@@ -1210,6 +1302,10 @@ button:hover.danger {
   .scenario-grid-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .sandbox-evidence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 960px) {
@@ -1225,6 +1321,7 @@ button:hover.danger {
   .topbar,
   .page-header,
   .panel-head,
+  .sandbox-pack-head,
   .service-top,
   .policy-card-head,
   .incident-top {
@@ -1236,6 +1333,7 @@ button:hover.danger {
   .route-preview.compact,
   .split-grid,
   .pack-hero-card,
+  .sandbox-proof-columns,
   .connector-grid,
   .service-grid,
   .project-pack-tabs,

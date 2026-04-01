@@ -584,6 +584,74 @@ test("project pack catalog lists five commercial packs", async () => {
   );
 });
 
+test("sandbox proof endpoint returns per-pack connector and workflow proof", async () => {
+  const login = await fetch(`${baseUrl}/v1/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "clinician@starlighthealth.org" })
+  });
+  const authBody = (await login.json()) as { accessToken: string };
+
+  const response = await fetch(`${baseUrl}/v1/projects/sandbox-proof`, {
+    headers: { authorization: `Bearer ${authBody.accessToken}` }
+  });
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as {
+    summary: {
+      totalPacks: number;
+      totalConnectors: number;
+      approvalGatedPackCount: number;
+      deniedScenarioCount: number;
+    };
+    commands: string[];
+    packs: Array<{
+      pack: { packId: string; workflowId: string };
+      connectorProof: Array<{
+        toolId: string;
+        sandboxClass: string;
+        proofStatus: string;
+        scope: string;
+      }>;
+      workflowProof: {
+        baselineProfile: string;
+        liveScenario?: {
+          expectedDecision: "ALLOW" | "REQUIRE_APPROVAL" | "DENY";
+          humanApprovalRequired: boolean;
+        };
+        denyScenario?: { expectedDecision: "DENY" };
+        walkthrough: Array<{ step: number; title: string; control: string; evidenceProduced: string }>;
+        evidence: { executions: number; approvals: number; auditEvents: number };
+      };
+    }>;
+  };
+
+  assert.equal(body.summary.totalPacks, 5);
+  assert.equal(body.summary.totalConnectors, 15);
+  assert.ok(body.summary.approvalGatedPackCount >= 1);
+  assert.ok(body.summary.deniedScenarioCount >= 1);
+  assert.ok(body.commands.includes("node tools/scripts/capture-commercial-screenshots.mjs"));
+  assert.equal(body.packs.length, 5);
+
+  const revenuePack = body.packs.find((pack) => pack.pack.packId === "revenue-cycle-copilot");
+  assert.ok(revenuePack);
+  if (!revenuePack) return;
+
+  assert.equal(revenuePack.pack.workflowId, "wf-revenue-cycle-copilot");
+  assert.equal(revenuePack.connectorProof.length, 3);
+  assert.ok(revenuePack.connectorProof.some((connector) => connector.toolId === "connector-trino-query"));
+  assert.ok(revenuePack.connectorProof.every((connector) => connector.proofStatus === "pass"));
+  assert.ok(revenuePack.connectorProof.every((connector) => connector.scope.length > 10));
+  assert.ok(revenuePack.workflowProof.baselineProfile.length > 0);
+  assert.equal(revenuePack.workflowProof.liveScenario?.expectedDecision, "REQUIRE_APPROVAL");
+  assert.equal(revenuePack.workflowProof.liveScenario?.humanApprovalRequired, true);
+  assert.ok(body.packs.some((pack) => pack.workflowProof.denyScenario?.expectedDecision === "DENY"));
+  assert.ok(revenuePack.workflowProof.walkthrough.length >= 4);
+  assert.ok(revenuePack.workflowProof.walkthrough.every((step) => step.control.length > 0));
+  assert.equal(revenuePack.workflowProof.evidence.executions, 0);
+  assert.equal(revenuePack.workflowProof.evidence.approvals, 0);
+  assert.equal(revenuePack.workflowProof.evidence.auditEvents, 0);
+});
+
 test("project pack run endpoint launches workflow execution with pack defaults", async () => {
   const login = await fetch(`${baseUrl}/v1/auth/login`, {
     method: "POST",

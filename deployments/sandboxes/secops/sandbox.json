@@ -1,0 +1,46 @@
+{
+  "id": "secops",
+  "name": "SecOps Runtime Guard",
+  "packId": "secops-runtime-guard",
+  "composeFile": "deployments/sandboxes/secops/compose.yaml",
+  "projectName": "openaegis-sandbox-secops",
+  "serviceProbes": [
+    {
+      "serviceId": "redpanda-admin",
+      "name": "Redpanda Admin API",
+      "urls": [
+        "http://127.0.0.1:19644/v1/status/ready"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    },
+    {
+      "serviceId": "prometheus",
+      "name": "Prometheus Ready",
+      "urls": [
+        "http://127.0.0.1:19090/-/ready"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    },
+    {
+      "serviceId": "grafana",
+      "name": "Grafana Health",
+      "urls": [
+        "http://127.0.0.1:13000/api/health"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    },
+    {
+      "serviceId": "opa",
+      "name": "OPA Health",
+      "urls": [
+        "http://127.0.0.1:18181/health?plugins",
+        "http://127.0.0.1:18181/health"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    }
+  ]
+}

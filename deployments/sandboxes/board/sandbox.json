@@ -1,0 +1,38 @@
+{
+  "id": "board",
+  "name": "Board Risk Cockpit",
+  "packId": "board-risk-cockpit",
+  "composeFile": "deployments/sandboxes/board/compose.yaml",
+  "projectName": "openaegis-sandbox-board",
+  "serviceProbes": [
+    {
+      "serviceId": "trino",
+      "name": "Trino Coordinator",
+      "urls": [
+        "http://127.0.0.1:18085/v1/info"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "metabase",
+      "name": "Metabase Health",
+      "urls": [
+        "http://127.0.0.1:13004/api/health",
+        "http://127.0.0.1:13004/api/session/properties"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "opensearch",
+      "name": "OpenSearch Cluster Health",
+      "urls": [
+        "http://127.0.0.1:19201/_cluster/health",
+        "http://127.0.0.1:19201/"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    }
+  ]
+}

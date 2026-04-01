@@ -1,0 +1,38 @@
+{
+  "id": "revenue",
+  "name": "Revenue Cycle Copilot",
+  "packId": "revenue-cycle-copilot",
+  "composeFile": "deployments/sandboxes/revenue/compose.yaml",
+  "projectName": "openaegis-sandbox-revenue",
+  "serviceProbes": [
+    {
+      "serviceId": "trino",
+      "name": "Trino Coordinator",
+      "urls": [
+        "http://127.0.0.1:18080/v1/info"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "airflow",
+      "name": "Airflow Webserver",
+      "urls": [
+        "http://127.0.0.1:18081/health",
+        "http://127.0.0.1:18081/api/v2/monitor/health"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "metabase",
+      "name": "Metabase Health",
+      "urls": [
+        "http://127.0.0.1:13001/api/health",
+        "http://127.0.0.1:13001/api/session/properties"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    }
+  ]
+}

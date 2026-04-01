@@ -141,6 +141,12 @@ All screenshots are generated from live route interactions:
 - Setup Center: `docs/assets/screenshots/commercial-setup.png`
 - KPI Dashboard: `docs/assets/screenshots/commercial-dashboard.png`
 - Project Packs: `docs/assets/screenshots/commercial-projects.png`
+- Sandbox Proof Review: `docs/assets/screenshots/commercial-sandbox-proof.png`
+- Pack Guide (SecOps Runtime Guard): `docs/assets/screenshots/commercial-project-guide-secops-runtime-guard.png`
+- Pack Guide (Revenue Cycle Copilot): `docs/assets/screenshots/commercial-project-guide-revenue-cycle-copilot.png`
+- Pack Guide (Supply Chain Resilience): `docs/assets/screenshots/commercial-project-guide-supply-chain-resilience.png`
+- Pack Guide (Clinical Quality Signal): `docs/assets/screenshots/commercial-project-guide-clinical-quality-signal.png`
+- Pack Guide (Board Risk Cockpit): `docs/assets/screenshots/commercial-project-guide-board-risk-cockpit.png`
 - Commercial Readiness: `docs/assets/screenshots/commercial-readiness.png`
 - Integration Hub: `docs/assets/screenshots/commercial-integrations.png`
 - Identity & Access: `docs/assets/screenshots/commercial-identity.png`
@@ -163,6 +169,7 @@ npm run smoke:pilot
 npm run validate:test-surface
 npm run security:regression
 npm run proof:trust-layer
+npm run sandbox:proof
 npm run audit:codebase
 npm run trust:pack
 npm run trust:audit
@@ -186,6 +193,12 @@ Capture screenshots:
 
 ```bash
 npm run screenshots:commercial
+```
+
+Generate and verify all five live sandbox packs (Trino/Airflow/FHIR/OpenSearch/OPA/MinIO, etc.):
+
+```bash
+npm run sandbox:proof
 ```
 
 One-command local pilot (readiness + KPI + security pack):

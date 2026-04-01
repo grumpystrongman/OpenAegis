@@ -1,0 +1,33 @@
+services:
+  trino:
+    image: trinodb/trino:469
+    ports:
+      - "18080:8080"
+    volumes:
+      - ../_shared/trino/etc:/etc/trino:ro
+
+  airflow:
+    image: apache/airflow:2.10.5-python3.11
+    command: standalone
+    environment:
+      AIRFLOW_UID: "50000"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: openaegis-demo
+    ports:
+      - "18081:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_home:/opt/airflow
+
+  metabase:
+    image: metabase/metabase:v0.56.3
+    ports:
+      - "13001:3000"
+    volumes:
+      - metabase_data:/metabase-data
+
+volumes:
+  airflow_home:
+  metabase_data:

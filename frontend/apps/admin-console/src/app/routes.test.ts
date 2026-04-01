@@ -23,6 +23,7 @@ test("route catalog includes required consoles for MVP", () => {
   assert.ok(paths.includes("/integrations"));
   assert.ok(paths.includes("/projects"));
   assert.ok(paths.includes("/project-guide"));
+  assert.ok(paths.includes("/sandbox-proof"));
   assert.ok(paths.includes("/identity"));
   assert.ok(paths.includes("/security"));
   assert.ok(paths.includes("/simulation"));

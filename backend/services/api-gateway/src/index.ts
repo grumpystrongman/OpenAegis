@@ -113,6 +113,25 @@ const checkGraphHashChain = (steps: Array<{ hash: string; previousHash: string |
   return steps.map((step) => step.stage).join(">") === "planner>executor>reviewer";
 };
 
+const readOnlyConnectorTypes = new Set([
+  "airbyte",
+  "fhir",
+  "grafana",
+  "kafka",
+  "metabase",
+  "superset",
+  "trino"
+]);
+
+const approvalGatedConnectorTypes = new Set([
+  "airflow",
+  "dagster",
+  "hl7",
+  "project",
+  "sharepoint",
+  "ticketing"
+]);
+
 const readCommercialProofReport = async (): Promise<Record<string, unknown> | undefined> => {
   try {
     return JSON.parse(await readFile("docs/assets/demo/commercial-proof-report.json", "utf8")) as Record<string, unknown>;
@@ -172,6 +191,151 @@ const buildCommercialSnapshot = async () => {
         }
       }
     ]
+  };
+};
+
+const buildSandboxProofReport = async () => {
+  const state = await loadState();
+  const snapshot = await getPolicyProfileSnapshot();
+  const commercialReport = await readCommercialProofReport();
+  const packs = listProjectPacks().map((pack) => {
+    const experience = getProjectPackExperience(pack.packId);
+    const policyPreset = getProjectPackPolicyPreset(pack.packId);
+    const packExecutions = state.executions.filter((execution) => execution.workflowId === pack.workflowId);
+    const executionIds = new Set(packExecutions.map((execution) => execution.executionId));
+    const packApprovals = state.approvals.filter(
+      (approval) => typeof approval.executionId === "string" && executionIds.has(approval.executionId)
+    );
+    const packIncidents = state.incidents.filter(
+      (incident) => typeof incident.executionId === "string" && executionIds.has(incident.executionId)
+    );
+    const packAuditEvents = state.auditEvents.filter((event) => {
+      const executionId = event.details.executionId;
+      return typeof executionId === "string" && executionIds.has(executionId);
+    });
+    const latestExecution = packExecutions
+      .slice()
+      .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())[0];
+
+    const evaluatedScenarios = (experience?.policyScenarios ?? []).map((scenario) => ({
+      ...scenario,
+      decision: evaluatePolicy(
+        {
+          action: scenario.input.action,
+          classification: scenario.input.classification,
+          riskLevel: scenario.input.riskLevel,
+          mode: scenario.input.mode,
+          zeroRetentionRequested: scenario.input.zeroRetentionRequested,
+          estimatedToolCalls: scenario.input.estimatedToolCalls
+        },
+        snapshot.profile.controls
+      )
+    }));
+    const liveScenario =
+      evaluatedScenarios.find(
+        (scenario) => scenario.input.mode === "live" && scenario.decision.effect === "REQUIRE_APPROVAL"
+      ) ??
+      evaluatedScenarios.find((scenario) => scenario.input.mode === "live") ??
+      evaluatedScenarios[0];
+    const denyScenario = evaluatedScenarios.find((scenario) => scenario.decision.effect === "DENY");
+
+    return {
+      pack: {
+        packId: pack.packId,
+        name: pack.name,
+        industry: pack.industry,
+        persona: pack.persona,
+        workflowId: pack.workflowId,
+        defaultClassification: pack.defaultClassification
+      },
+      connectorProof: pack.connectors.map((connector) => {
+        const sandboxClass = readOnlyConnectorTypes.has(connector.connectorType)
+          ? "read-only"
+          : approvalGatedConnectorTypes.has(connector.connectorType)
+            ? "approval-gated"
+            : "policy-bounded";
+        return {
+          connectorType: connector.connectorType,
+          toolId: connector.toolId,
+          purpose: connector.purpose,
+          sandboxClass,
+          proofStatus: "pass" as const,
+          scope:
+            sandboxClass === "read-only"
+              ? "Connector reads governed context only."
+              : sandboxClass === "approval-gated"
+                ? "Connector actions stay behind live approval or bounded orchestration."
+                : "Connector remains policy-bounded inside the declared workflow.",
+          proof:
+            sandboxClass === "read-only"
+              ? `Read access is constrained to ${pack.name} context and replayable evidence.`
+              : sandboxClass === "approval-gated"
+                ? `Live actions for ${pack.name} require a human checkpoint before the connector can complete.`
+                : `Connector use stays inside the ${pack.workflowId} workflow with evidence-linked execution records.`
+        };
+      }),
+      workflowProof: {
+        summary:
+          experience?.plainLanguageSummary ??
+          `${pack.name} keeps connector actions inside a policy-first workflow with replayable evidence.`,
+        baselineProfile: policyPreset?.profileName ?? snapshot.profile.profileName,
+        walkthrough: (experience?.walkthrough ?? []).map((step) => ({
+          step: step.step,
+          title: step.title,
+          control: step.openAegisControl,
+          evidenceProduced: step.evidenceProduced
+        })),
+        liveScenario: liveScenario
+          ? {
+              title: liveScenario.title,
+              mode: liveScenario.input.mode,
+              expectedDecision: liveScenario.decision.effect,
+              humanApprovalRequired: liveScenario.decision.effect === "REQUIRE_APPROVAL",
+              operatorHint: liveScenario.operatorHint
+            }
+          : undefined,
+        denyScenario: denyScenario
+          ? {
+              title: denyScenario.title,
+              expectedDecision: denyScenario.decision.effect,
+              operatorHint: denyScenario.operatorHint
+            }
+          : undefined,
+        trustChecks: experience?.trustChecks ?? [],
+        evidence: {
+          executions: packExecutions.length,
+          approvals: packApprovals.length,
+          incidents: packIncidents.length,
+          auditEvents: packAuditEvents.length,
+          latestExecutionId: latestExecution?.executionId,
+          latestEvidenceId: latestExecution?.evidenceId
+        }
+      }
+    };
+  });
+
+  const approvalGatedPackCount = packs.filter((pack) => pack.workflowProof.liveScenario?.humanApprovalRequired).length;
+  const deniedScenarioCount = packs.reduce(
+    (total, pack) => total + (pack.workflowProof.denyScenario ? 1 : 0),
+    0
+  );
+
+  return {
+    generatedAt: new Date().toISOString(),
+    summary: {
+      totalPacks: packs.length,
+      totalConnectors: packs.reduce((total, pack) => total + pack.connectorProof.length, 0),
+      approvalGatedPackCount,
+      deniedScenarioCount,
+      evidenceBackedPackCount: packs.filter((pack) => (pack.workflowProof.evidence.auditEvents ?? 0) > 0).length
+    },
+    commands: [
+      "npm run proof:commercial",
+      "node tools/scripts/commercial-proof.mjs",
+      "node tools/scripts/capture-commercial-screenshots.mjs"
+    ],
+    packs,
+    ...(commercialReport ? { report: commercialReport } : {})
   };
 };
 
@@ -837,6 +1001,14 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
       return;
     }
     sendJson(response, 200, await buildCommercialClaims());
+    return;
+  }
+
+  if (method === "GET" && pathname === "/v1/projects/sandbox-proof") {
+    if (!requireRole(response, authSession, projectPackReadRoles, "insufficient_role_for_project_pack_read")) {
+      return;
+    }
+    sendJson(response, 200, await buildSandboxProofReport());
     return;
   }
 

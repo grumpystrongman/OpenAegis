@@ -1,0 +1,47 @@
+{
+  "id": "supply",
+  "name": "Supply Chain Resilience",
+  "packId": "supply-chain-resilience",
+  "composeFile": "deployments/sandboxes/supply/compose.yaml",
+  "projectName": "openaegis-sandbox-supply",
+  "serviceProbes": [
+    {
+      "serviceId": "trino",
+      "name": "Trino Coordinator",
+      "urls": [
+        "http://127.0.0.1:18082/v1/info"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "airflow",
+      "name": "Airflow Webserver",
+      "urls": [
+        "http://127.0.0.1:18083/health",
+        "http://127.0.0.1:18083/api/v2/monitor/health"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "minio",
+      "name": "MinIO Health",
+      "urls": [
+        "http://127.0.0.1:19000/minio/health/live",
+        "http://127.0.0.1:19000/minio/health/ready"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    },
+    {
+      "serviceId": "grafana",
+      "name": "Grafana Health",
+      "urls": [
+        "http://127.0.0.1:13002/api/health"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 180000
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import { IntegrationHubPage } from "./app/pages/integration-hub-page.js";
 import { NotFoundPage } from "./app/pages/not-found-page.js";
 import { ProjectPackDetailPage } from "./app/pages/project-pack-detail-page.js";
 import { ProjectPacksPage } from "./app/pages/project-packs-page.js";
+import { SandboxProofPage } from "./app/pages/sandbox-proof-page.js";
 import { SecurityConsolePage } from "./app/pages/security-console-page.js";
 import { SetupCenterPage } from "./app/pages/setup-center-page.js";
 import { SimulationLabPage } from "./app/pages/simulation-lab-page.js";
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "commercial", element: <CommercialReadinessPage /> },
       { path: "projects", element: <ProjectPacksPage /> },
       { path: "project-guide", element: <ProjectPackDetailPage /> },
+      { path: "sandbox-proof", element: <SandboxProofPage /> },
       { path: "integrations", element: <IntegrationHubPage /> },
       { path: "identity", element: <IdentityAccessPage /> },
       { path: "admin", element: <AdminConsolePage /> },

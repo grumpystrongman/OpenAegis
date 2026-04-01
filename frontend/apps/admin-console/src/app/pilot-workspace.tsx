@@ -511,28 +511,40 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
         }
       },
       refreshWorkspace: async () => {
-        const token = getPrimaryToken(get());
-        if (!token) {
+        const clinicianToken = get().clinicianSession?.accessToken ?? get().securitySession?.accessToken;
+        const securityToken = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
+        if (!clinicianToken && !securityToken) {
           set({ error: "connect_demo_users_to_load_live_data" });
           return;
         }
 
         set({ isSyncing: true, error: undefined });
         try {
-          const [approvalsResponse, auditResponse, previewResponse, commercialProof, commercialClaims, commercialReadiness, policySnapshot, projectPacks] = await Promise.all([
-            pilotApi.listApprovals(token),
-            pilotApi.listAuditEvents(token),
-            pilotApi.previewModelRoute(token),
-            pilotApi.getCommercialProof(token),
-            pilotApi.getCommercialClaims(token),
-            pilotApi.getCommercialReadiness(token),
-            pilotApi.getPolicyProfile(token),
-            pilotApi.listProjectPacks(token)
+          const [
+            approvalsResponse,
+            auditResponse,
+            previewResponse,
+            commercialProof,
+            commercialClaims,
+            commercialReadiness,
+            policySnapshot,
+            projectPacks
+          ] = await Promise.all([
+            securityToken ? pilotApi.listApprovals(securityToken).catch(() => ({ approvals: [] })) : Promise.resolve({ approvals: [] }),
+            securityToken ? pilotApi.listAuditEvents(securityToken).catch(() => ({ events: [] })) : Promise.resolve({ events: [] }),
+            clinicianToken ? pilotApi.previewModelRoute(clinicianToken).catch(() => undefined) : Promise.resolve(undefined),
+            securityToken ? pilotApi.getCommercialProof(securityToken).catch(() => undefined) : Promise.resolve(undefined),
+            securityToken ? pilotApi.getCommercialClaims(securityToken).catch(() => undefined) : Promise.resolve(undefined),
+            securityToken ? pilotApi.getCommercialReadiness(securityToken).catch(() => undefined) : Promise.resolve(undefined),
+            securityToken ? pilotApi.getPolicyProfile(securityToken).catch(() => undefined) : Promise.resolve(undefined),
+            (clinicianToken ?? securityToken)
+              ? pilotApi.listProjectPacks(clinicianToken ?? securityToken!).catch(() => ({ packs: [] }))
+              : Promise.resolve({ packs: [] })
           ]);
           const experienceEntries = await Promise.all(
             projectPacks.packs.map(async (pack) => {
               try {
-                const response = await pilotApi.getProjectPackExperience(token, pack.packId);
+                const response = await pilotApi.getProjectPackExperience(clinicianToken ?? securityToken!, pack.packId);
                 return [pack.packId, response] as const;
               } catch {
                 return null;
@@ -559,7 +571,7 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
             await Promise.all(
               executionIds.map(async (executionId) => {
                 try {
-                  return await pilotApi.getExecution(token, executionId);
+                  return await pilotApi.getExecution(clinicianToken ?? securityToken!, executionId);
                 } catch {
                   return null;
                 }
@@ -572,13 +584,13 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
             auditEvents,
             executions: sortLatestFirst(executions),
             incidents: deriveIncidents(executions, approvals, auditEvents),
-            commercialProof,
-            commercialClaims,
-            commercialReadiness,
             projectPacks: projectPacks.packs,
             projectPackExperiences,
-            policySnapshot,
-            modelPreview: previewResponse,
+            ...(commercialProof ? { commercialProof } : {}),
+            ...(commercialClaims ? { commercialClaims } : {}),
+            ...(commercialReadiness ? { commercialReadiness } : {}),
+            ...(previewResponse ? { modelPreview: previewResponse } : {}),
+            ...(policySnapshot ? { policySnapshot } : {}),
             trackedExecutionIds: executionIds,
             lastSyncedAt: toIso()
           });

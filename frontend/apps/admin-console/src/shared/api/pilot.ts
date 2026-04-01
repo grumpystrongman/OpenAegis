@@ -383,6 +383,69 @@ export interface ProjectPackExperienceResponse {
   };
 }
 
+export interface SandboxProofConnector {
+  connectorType: string;
+  toolId: string;
+  purpose: string;
+  sandboxClass: "read-only" | "approval-gated" | "policy-bounded";
+  proofStatus: "pass";
+  scope: string;
+  proof: string;
+}
+
+export interface SandboxProofWorkflowScenario {
+  title: string;
+  mode?: "simulation" | "live";
+  expectedDecision: "ALLOW" | "REQUIRE_APPROVAL" | "DENY";
+  humanApprovalRequired?: boolean;
+  operatorHint: string;
+}
+
+export interface SandboxProofWorkflowStep {
+  step: number;
+  title: string;
+  control: string;
+  evidenceProduced: string;
+}
+
+export interface SandboxProofPack {
+  pack: Pick<
+    ProjectPackDefinition,
+    "packId" | "name" | "industry" | "persona" | "workflowId" | "defaultClassification"
+  >;
+  connectorProof: SandboxProofConnector[];
+  workflowProof: {
+    summary: string;
+    baselineProfile: string;
+    walkthrough: SandboxProofWorkflowStep[];
+    liveScenario?: SandboxProofWorkflowScenario;
+    denyScenario?: SandboxProofWorkflowScenario;
+    trustChecks: string[];
+    evidence: {
+      executions: number;
+      approvals: number;
+      incidents: number;
+      auditEvents: number;
+      latestExecutionId?: string;
+      latestEvidenceId?: string;
+    };
+  };
+}
+
+export interface SandboxProofReport {
+  generatedAt: string;
+  summary: {
+    totalPacks: number;
+    totalConnectors: number;
+    approvalGatedPackCount: number;
+    deniedScenarioCount: number;
+    evidenceBackedPackCount: number;
+  };
+  commands: string[];
+  packs: SandboxProofPack[];
+  report?: Record<string, unknown>;
+}
+
 export interface ProjectPackPolicyApplyResponse {
   pack: ProjectPackDefinition;
   appliedPreset: {
@@ -1183,6 +1246,8 @@ export const pilotApi = {
     jsonRequest<CommercialReadinessSnapshot>("/v1/commercial/readiness", "GET", token),
   listProjectPacks: (token: string) =>
     jsonRequest<{ packs: ProjectPackDefinition[] }>("/v1/projects/packs", "GET", token),
+  getSandboxProof: (token: string) =>
+    jsonRequest<SandboxProofReport>("/v1/projects/sandbox-proof", "GET", token),
   getProjectPack: (token: string, packId: ProjectPackDefinition["packId"]) =>
     jsonRequest<ProjectPackDefinition>(`/v1/projects/packs/${packId}`, "GET", token),
   getProjectPackExperience: (token: string, packId: ProjectPackDefinition["packId"]) =>

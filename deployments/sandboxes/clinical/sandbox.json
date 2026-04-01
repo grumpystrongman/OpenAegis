@@ -1,0 +1,40 @@
+{
+  "id": "clinical",
+  "name": "Clinical Quality Signal",
+  "packId": "clinical-quality-signal",
+  "composeFile": "deployments/sandboxes/clinical/compose.yaml",
+  "projectName": "openaegis-sandbox-clinical",
+  "serviceProbes": [
+    {
+      "serviceId": "hapi-fhir",
+      "name": "HAPI FHIR Server",
+      "urls": [
+        "http://127.0.0.1:18084/actuator/health",
+        "http://127.0.0.1:18084/fhir/metadata",
+        "http://127.0.0.1:18084/metadata"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "metabase",
+      "name": "Metabase Health",
+      "urls": [
+        "http://127.0.0.1:13003/api/health",
+        "http://127.0.0.1:13003/api/session/properties"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    },
+    {
+      "serviceId": "opensearch",
+      "name": "OpenSearch Cluster Health",
+      "urls": [
+        "http://127.0.0.1:19200/_cluster/health",
+        "http://127.0.0.1:19200/"
+      ],
+      "expectedStatus": 200,
+      "timeoutMs": 240000
+    }
+  ]
+}

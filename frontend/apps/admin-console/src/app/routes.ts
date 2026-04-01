@@ -57,6 +57,15 @@ export const APP_ROUTES: AppRoute[] = [
     match: "any"
   },
   {
+    path: "/sandbox-proof",
+    title: "Sandbox Proof",
+    summary: "Per-pack connector and workflow proof showing how sandbox boundaries stay visible.",
+    accent: "teal",
+    section: "foundation",
+    requiredRoles: ["workflow_operator", "analyst", "security_admin", "platform_admin"],
+    match: "any"
+  },
+  {
     path: "/integrations",
     title: "Integration Hub",
     summary: "Configure and verify Databricks, Fabric, Snowflake, and AWS connectors.",

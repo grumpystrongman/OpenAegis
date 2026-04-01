@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-01T15:00:29.011Z",
+  "generatedAt": "2026-04-01T18:24:12.578Z",
   "suite": "trust-layer-end-to-end-proof",
   "product": "OpenAegis",
   "endpoints": {
@@ -26,11 +26,11 @@
           "step": "start_live_execution",
           "expected": "blocked with approval requirement",
           "status": 201,
-          "latencyMs": 7,
+          "latencyMs": 8,
           "data": {
-            "executionId": "ex-mng6ah2a-jg73km",
+            "executionId": "ex-mngdkgtw-2ix9qb",
             "executionStatus": "blocked",
-            "approvalId": "ap-mng6ah2b-dzeqbt"
+            "approvalId": "ap-mngdkgtw-pzj4k3"
           }
         },
         {
@@ -54,7 +54,7 @@
               "executor",
               "reviewer"
             ],
-            "evidenceId": "ev-ex-mng6ah2a-jg73km",
+            "evidenceId": "ev-ex-mngdkgtw-2ix9qb",
             "auditEvents": 5
           }
         }
@@ -64,7 +64,7 @@
         "approvalLatencyMs": 6,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 21
+        "endToEndMs": 22
       },
       "summary": "High-risk clinical flow was safely blocked, approved, completed, and fully auditable."
     },
@@ -96,7 +96,7 @@
           "step": "block_unapproved_finance_export",
           "expected": "runtime guard blocks outbound execution without approval",
           "status": 403,
-          "latencyMs": 5,
+          "latencyMs": 6,
           "data": {
             "guardReason": "approval_missing",
             "callStatus": "blocked"
@@ -106,10 +106,10 @@
           "step": "verify_idempotent_finance_automation",
           "expected": "duplicate submission replays prior tool call safely",
           "status": 200,
-          "latencyMs": 8,
+          "latencyMs": 9,
           "data": {
-            "firstCallId": "tc-mng6ah33-kk37nr",
-            "replayCallId": "tc-mng6ah33-kk37nr",
+            "firstCallId": "tc-mngdkguq-c0igb8",
+            "replayCallId": "tc-mngdkguq-c0igb8",
             "replayed": true
           }
         },
@@ -117,7 +117,7 @@
           "step": "validate_finance_policy_obligations",
           "expected": "decision includes outbound DLP/logging obligations",
           "status": 200,
-          "latencyMs": 3,
+          "latencyMs": 5,
           "data": {
             "effect": "ALLOW",
             "obligations": [
@@ -133,7 +133,7 @@
         "approvalLatencyMs": null,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "endToEndMs": 19
+        "endToEndMs": 23
       },
       "summary": "Finance automation stayed controlled: unsafe export blocked, retries idempotent, obligations attached."
     },
@@ -163,7 +163,7 @@
           "step": "allow_policy_change_with_dual_approval_break_glass",
           "expected": "200 response with breakGlassUsed=true",
           "status": 200,
-          "latencyMs": 6,
+          "latencyMs": 5,
           "data": {
             "breakGlassUsed": true,
             "profileVersion": 2
@@ -173,7 +173,7 @@
           "step": "trigger_and_release_kill_switch",
           "expected": "triggered then released with immutable event chain",
           "status": 200,
-          "latencyMs": 16,
+          "latencyMs": 15,
           "data": {
             "triggerStatus": "triggered",
             "releasedStatus": "released",
@@ -185,7 +185,7 @@
           "step": "restore_secure_policy_baseline",
           "expected": "secure defaults restored without break-glass",
           "status": 200,
-          "latencyMs": 6,
+          "latencyMs": 4,
           "data": {
             "enforceSecretDeny": true,
             "profileVersion": 3
@@ -197,8 +197,8 @@
         "approvalLatencyMs": null,
         "blockedRiskyActions": 1,
         "auditCompletenessPercent": 100,
-        "containmentLatencyMs": 11,
-        "endToEndMs": 32
+        "containmentLatencyMs": 10,
+        "endToEndMs": 28
       },
       "summary": "SecOps controls validated: unsafe changes blocked, emergency path controlled, baseline restored."
     }

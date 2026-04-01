@@ -1,0 +1,30 @@
+services:
+  trino:
+    image: trinodb/trino:469
+    ports:
+      - "18085:8080"
+    volumes:
+      - ../_shared/trino/etc:/etc/trino:ro
+
+  metabase:
+    image: metabase/metabase:v0.56.3
+    ports:
+      - "13004:3000"
+    volumes:
+      - metabase_data:/metabase-data
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.0
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: OpenAegis-demo-1234
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "19201:9200"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+
+volumes:
+  metabase_data:
+  opensearch_data:
