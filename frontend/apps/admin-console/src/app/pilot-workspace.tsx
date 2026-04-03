@@ -108,6 +108,7 @@ interface WorkspaceState {
 
 interface WorkspaceActions {
   connectDemoUsers: () => Promise<void>;
+  initializePlatform: () => Promise<void>;
   refreshWorkspace: () => Promise<void>;
   runWorkflow: (mode: "simulation" | "live", requestFollowupEmail?: boolean) => Promise<ExecutionRecord | null>;
   runProjectPack: (
@@ -143,6 +144,7 @@ interface WorkspaceActions {
   }) => void;
   setDirectoryUserStatus: (userId: string, status: "active" | "disabled") => void;
   setActivePersona: (persona: PersonaKey) => void;
+  clearError: () => void;
   boot: () => Promise<void>;
 }
 
@@ -374,6 +376,7 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
       isBootstrapping: false,
       isSyncing: false,
       error: undefined,
+      clearError: () => set({ error: undefined }),
       setActivePersona: (persona) => set({ activePersona: persona }),
       configureIntegration: (integrationId, values) =>
         set((state) => ({
@@ -511,11 +514,32 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
           set({ isSyncing: false });
         }
       },
+      initializePlatform: async () => {
+        set({ isSyncing: true, error: undefined });
+        try {
+          const hasSessions = Boolean(get().clinicianSession && get().securitySession);
+          if (!hasSessions) {
+            await get().connectDemoUsers();
+          }
+
+          const stateAfterConnect = get();
+          if (stateAfterConnect.executions.length === 0 && stateAfterConnect.clinicianSession?.accessToken) {
+            await get().runWorkflow("simulation");
+          } else {
+            await get().refreshWorkspace();
+          }
+          set({ error: undefined });
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : "platform_initialization_failed" });
+        } finally {
+          set({ isSyncing: false });
+        }
+      },
       refreshWorkspace: async () => {
         const clinicianToken = get().clinicianSession?.accessToken ?? get().securitySession?.accessToken;
         const securityToken = get().securitySession?.accessToken ?? get().clinicianSession?.accessToken;
         if (!clinicianToken && !securityToken) {
-          set({ error: "connect_demo_users_to_load_live_data" });
+          set({ error: "setup_required_connect_identities" });
           return;
         }
 
@@ -658,7 +682,7 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
       loadProjectPackExperience: async (packId) => {
         const token = getPrimaryToken(get());
         if (!token) {
-          set({ error: "connect_demo_users_to_load_live_data" });
+          set({ error: "setup_required_connect_identities" });
           return null;
         }
         try {
@@ -813,6 +837,8 @@ export const usePilotWorkspace = create<PilotWorkspace>()(
         try {
           if (state.clinicianSession || state.securitySession) {
             await get().refreshWorkspace();
+          } else if (isDemoIdentitiesEnabled()) {
+            await get().connectDemoUsers();
           }
         } finally {
           set({ isBootstrapping: false });

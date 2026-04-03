@@ -446,6 +446,36 @@ export interface SandboxProofReport {
   report?: Record<string, unknown>;
 }
 
+export type SetupAssistantActionType =
+  | "connect_demo_users"
+  | "refresh_workspace"
+  | "run_simulation"
+  | "run_live"
+  | "open_route";
+
+export interface SetupAssistantAction {
+  type: SetupAssistantActionType;
+  reason: string;
+  route?: string;
+}
+
+export interface SetupAssistantStatus {
+  available: boolean;
+  source: "ollama" | "builtin";
+  model: string;
+  url: string;
+  installedModels: string[];
+  message: string;
+}
+
+export interface SetupAssistantResponse {
+  source: "ollama" | "builtin";
+  model: string;
+  summary: string;
+  actions: SetupAssistantAction[];
+  followups: string[];
+}
+
 export interface ProjectPackPolicyApplyResponse {
   pack: ProjectPackDefinition;
   appliedPreset: {
@@ -1296,6 +1326,10 @@ export const pilotApi = {
       token,
       payload
     ),
+  getSetupAssistantStatus: () =>
+    jsonRequest<SetupAssistantStatus>("/v1/setup/assistant/status", "GET"),
+  askSetupAssistant: (prompt: string) =>
+    jsonRequest<SetupAssistantResponse>("/v1/setup/assistant/respond", "POST", undefined, { prompt }),
   listPluginCatalog: async (token?: string) => {
     const response = await toolRegistryRequest<{ manifests: ToolRegistryManifest[] }>("/v1/tools?status=published", "GET", token);
     return toManifestMap(response.manifests)

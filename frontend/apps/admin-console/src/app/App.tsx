@@ -83,6 +83,15 @@ const workspaceModeRoutes: Record<Exclude<WorkspaceMode, "all">, Set<string>> = 
   governance: new Set(["/setup", "/guides", "/identity", "/admin", "/security", "/approvals", "/incidents", "/audit", "/commercial"])
 };
 
+const mapWorkspaceError = (error: string | undefined): string | undefined => {
+  if (!error) return undefined;
+  if (error === "setup_required_connect_identities") return "Setup required: initialize identities first, then reload live data.";
+  if (error === "demo_auth_disabled") return "Demo login is disabled on the gateway. Enable insecure demo auth for local onboarding.";
+  if (error === "invalid_credentials") return "Configured demo users are missing from backend state. Reseed the GrumpyMan dataset.";
+  if (error === "platform_initialization_failed") return "Platform initialization did not complete. Retry once.";
+  return `Sync error: ${error}`;
+};
+
 export const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -98,9 +107,11 @@ export const App = () => {
   const error = usePilotWorkspace((state) => state.error);
   const lastSyncedAt = usePilotWorkspace((state) => state.lastSyncedAt);
   const connectDemoUsers = usePilotWorkspace((state) => state.connectDemoUsers);
+  const initializePlatform = usePilotWorkspace((state) => state.initializePlatform);
   const refreshWorkspace = usePilotWorkspace((state) => state.refreshWorkspace);
   const boot = usePilotWorkspace((state) => state.boot);
   const setActivePersona = usePilotWorkspace((state) => state.setActivePersona);
+  const clearError = usePilotWorkspace((state) => state.clearError);
   const [showTechnicalContext, setShowTechnicalContext] = useState(false);
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("evaluator");
   const activeSession = activePersona === "clinician" ? clinicianSession : securitySession;
@@ -129,6 +140,7 @@ export const App = () => {
   const isGuidedRoute = guidedRoutes.has(currentRoute.path);
   const needsStepUpAssurance = Boolean(activeContext && currentRoute.requireStepUpMfa && activeContext.assuranceLevel !== "aal3");
   const isCurrentRouteInMode = activeModeRouteSet ? activeModeRouteSet.has(currentRoute.path) : true;
+  const friendlyError = mapWorkspaceError(error);
 
   useEffect(() => {
     void boot();
@@ -255,6 +267,9 @@ export const App = () => {
                 {clinicianSession || securitySession ? "Reconnect evaluator identities" : "Connect evaluator identities"}
               </button>
             ) : null}
+            <button type="button" className="success" onClick={() => void initializePlatform()} disabled={isSyncing}>
+              Initialize platform
+            </button>
             <button type="button" onClick={() => void refreshWorkspace()} disabled={isSyncing || !clinicianSession}>
               Refresh live data
             </button>
@@ -285,7 +300,19 @@ export const App = () => {
           </div>
         </div>
 
-        {error ? <div className="banner error">Sync error: {error}</div> : null}
+        {friendlyError ? (
+          <div className="banner error">
+            {friendlyError}
+            <div className="pill-row">
+              <button type="button" className="primary" onClick={() => void initializePlatform()} disabled={isSyncing}>
+                Initialize platform
+              </button>
+              <button type="button" onClick={() => void clearError()} disabled={isSyncing}>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ) : null}
         {isSyncing ? <div className="banner info">Refreshing pilot data and evidence chain...</div> : null}
         {!isCurrentRouteInMode ? (
           <div className="banner info">

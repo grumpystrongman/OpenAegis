@@ -60,6 +60,8 @@ interface JsonMap {
 const DEFAULT_COMPANY_NAME = process.env.OPENAEGIS_COMPANY_NAME?.trim() || "GrumpyMan Distributors";
 const DEFAULT_TENANT_ID = process.env.OPENAEGIS_TENANT_ID?.trim() || "tenant-grumpyman-distributors";
 const DEFAULT_POLICY_PROFILE_NAME = `${DEFAULT_COMPANY_NAME} Safe Baseline`;
+const DEFAULT_LOCAL_LLM_URL = process.env.OPENAEGIS_LOCAL_LLM_URL?.trim() || "http://127.0.0.1:11434";
+const DEFAULT_LOCAL_LLM_MODEL = process.env.OPENAEGIS_LOCAL_LLM_MODEL?.trim() || "llama3.2:3b";
 
 const roleToPrivileges: Record<string, string[]> = {
   clinician: ["workflow_operator", "analyst"],
@@ -386,6 +388,271 @@ const buildFallbackCorsHeaders = (): Record<string, string> => {
     "access-control-allow-headers": "content-type,authorization",
     "access-control-allow-methods": "GET,POST,OPTIONS"
   };
+};
+
+type SetupAssistantActionType =
+  | "connect_demo_users"
+  | "refresh_workspace"
+  | "run_simulation"
+  | "run_live"
+  | "open_route";
+
+interface SetupAssistantAction {
+  type: SetupAssistantActionType;
+  reason: string;
+  route?: string;
+}
+
+interface SetupAssistantResponse {
+  source: "ollama" | "builtin";
+  model: string;
+  summary: string;
+  actions: SetupAssistantAction[];
+  followups: string[];
+}
+
+const allowedSetupAssistantActions = new Set<SetupAssistantActionType>([
+  "connect_demo_users",
+  "refresh_workspace",
+  "run_simulation",
+  "run_live",
+  "open_route"
+]);
+
+const normalizeSetupAssistantAction = (input: unknown): SetupAssistantAction | undefined => {
+  if (!input || typeof input !== "object") return undefined;
+  const value = input as Record<string, unknown>;
+  const type = typeof value.type === "string" ? value.type : "";
+  if (!allowedSetupAssistantActions.has(type as SetupAssistantActionType)) return undefined;
+  const reason = typeof value.reason === "string" && value.reason.trim().length > 0
+    ? value.reason.trim()
+    : "Suggested by setup assistant.";
+  const route = typeof value.route === "string" && value.route.trim().length > 0 ? value.route.trim() : undefined;
+  return {
+    type: type as SetupAssistantActionType,
+    reason,
+    ...(route ? { route } : {})
+  };
+};
+
+const extractJsonObject = (text: string): Record<string, unknown> | undefined => {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      return JSON.parse(trimmed) as Record<string, unknown>;
+    } catch {
+      return undefined;
+    }
+  }
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace <= firstBrace) return undefined;
+  try {
+    return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)) as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
+};
+
+const buildSetupAssistantFallback = (prompt: string): SetupAssistantResponse => {
+  const normalized = prompt.toLowerCase();
+  const actions: SetupAssistantAction[] = [];
+  actions.push({
+    type: "connect_demo_users",
+    reason: "Connect evaluator identities so the console can load live tenant data."
+  });
+  actions.push({
+    type: "refresh_workspace",
+    reason: "Refresh the workspace state after identity connection."
+  });
+  if (normalized.includes("simulation") || normalized.includes("demo") || normalized.includes("setup")) {
+    actions.push({
+      type: "run_simulation",
+      reason: "Generate a first execution and evidence chain for onboarding."
+    });
+  }
+  if (normalized.includes("live")) {
+    actions.push({
+      type: "run_live",
+      reason: "Run live mode after simulation to validate approval gating."
+    });
+  }
+  if (normalized.includes("integration")) {
+    actions.push({
+      type: "open_route",
+      route: "/integrations",
+      reason: "Open Integration Hub to complete connector verification."
+    });
+  } else {
+    actions.push({
+      type: "open_route",
+      route: "/guides",
+      reason: "Open guides for evaluator/operator walkthrough sequence."
+    });
+  }
+  return {
+    source: "builtin",
+    model: "builtin-setup-assistant",
+    summary:
+      "Initialize identities, refresh live state, run simulation, then continue in Guides. This is the fastest evaluator onboarding path.",
+    actions,
+    followups: [
+      "If demo login fails, enable OPENAEGIS_ENABLE_INSECURE_DEMO_AUTH=true in local gateway runtime.",
+      "If local LLM is desired, install Ollama and pull a model (for example: llama3.2:3b)."
+    ]
+  };
+};
+
+const mergeSetupAssistantActions = (
+  prompt: string,
+  preferred: SetupAssistantAction[],
+  fallback: SetupAssistantAction[]
+): SetupAssistantAction[] => {
+  const merged: SetupAssistantAction[] = [];
+  const seen = new Set<string>();
+  const add = (action: SetupAssistantAction | undefined) => {
+    if (!action) return;
+    const key = `${action.type}:${action.route ?? ""}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(action);
+  };
+
+  preferred.forEach(add);
+
+  const normalizedPrompt = prompt.toLowerCase();
+  const requiredTypes: SetupAssistantActionType[] = ["connect_demo_users", "refresh_workspace"];
+  if (
+    normalizedPrompt.includes("setup") ||
+    normalizedPrompt.includes("onboard") ||
+    normalizedPrompt.includes("simulation") ||
+    normalizedPrompt.includes("demo")
+  ) {
+    requiredTypes.push("run_simulation");
+  }
+  if (normalizedPrompt.includes("live")) {
+    requiredTypes.push("run_live");
+  }
+
+  for (const requiredType of requiredTypes) {
+    if (!merged.some((item) => item.type === requiredType)) {
+      add(fallback.find((item) => item.type === requiredType));
+    }
+  }
+
+  if (!merged.some((item) => item.type === "open_route")) {
+    add(fallback.find((item) => item.type === "open_route"));
+  }
+
+  if (merged.length === 0) {
+    fallback.forEach(add);
+  }
+
+  return merged.slice(0, 8);
+};
+
+const getLocalAssistantStatus = async (): Promise<{
+  available: boolean;
+  source: "ollama" | "builtin";
+  model: string;
+  url: string;
+  installedModels: string[];
+  message: string;
+}> => {
+  try {
+    const response = await fetch(`${DEFAULT_LOCAL_LLM_URL}/api/tags`, {
+      method: "GET",
+      headers: { "content-type": "application/json" }
+    });
+    if (!response.ok) {
+      return {
+        available: false,
+        source: "builtin",
+        model: DEFAULT_LOCAL_LLM_MODEL,
+        url: DEFAULT_LOCAL_LLM_URL,
+        installedModels: [],
+        message: `Local LLM endpoint reachable but returned ${response.status}. Using fallback assistant.`
+      };
+    }
+    const body = (await response.json().catch(() => ({}))) as {
+      models?: Array<{ name?: string }>;
+    };
+    const installedModels = (body.models ?? [])
+      .map((item) => (typeof item.name === "string" ? item.name : ""))
+      .filter((name) => name.length > 0);
+    const available = installedModels.includes(DEFAULT_LOCAL_LLM_MODEL);
+    return {
+      available,
+      source: available ? "ollama" : "builtin",
+      model: DEFAULT_LOCAL_LLM_MODEL,
+      url: DEFAULT_LOCAL_LLM_URL,
+      installedModels,
+      message: available
+        ? `Local model ${DEFAULT_LOCAL_LLM_MODEL} is ready.`
+        : `Ollama is running but model ${DEFAULT_LOCAL_LLM_MODEL} is not installed. Using fallback assistant.`
+    };
+  } catch {
+    return {
+      available: false,
+      source: "builtin",
+      model: DEFAULT_LOCAL_LLM_MODEL,
+      url: DEFAULT_LOCAL_LLM_URL,
+      installedModels: [],
+      message: "Ollama is not reachable. Using fallback assistant."
+    };
+  }
+};
+
+const getSetupAssistantResponse = async (prompt: string): Promise<SetupAssistantResponse> => {
+  const fallback = buildSetupAssistantFallback(prompt);
+  const status = await getLocalAssistantStatus();
+  if (!status.available) return fallback;
+
+  try {
+    const llmPrompt = [
+      "You are OpenAegis Setup Assistant. Return strict JSON only.",
+      "Allowed action types: connect_demo_users, refresh_workspace, run_simulation, run_live, open_route.",
+      "JSON schema:",
+      '{"summary":"string","actions":[{"type":"connect_demo_users|refresh_workspace|run_simulation|run_live|open_route","reason":"string","route":"optional string for open_route"}],"followups":["string"]}',
+      `User prompt: ${prompt}`
+    ].join("\n");
+
+    const response = await fetch(`${DEFAULT_LOCAL_LLM_URL}/api/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: DEFAULT_LOCAL_LLM_MODEL,
+        prompt: llmPrompt,
+        format: "json",
+        stream: false
+      })
+    });
+    if (!response.ok) return fallback;
+    const body = (await response.json().catch(() => ({}))) as { response?: string };
+    if (typeof body.response !== "string" || body.response.trim().length === 0) return fallback;
+    const parsed = extractJsonObject(body.response);
+    if (!parsed) return fallback;
+    const preferredActions = Array.isArray(parsed.actions)
+      ? parsed.actions
+          .map((item) => normalizeSetupAssistantAction(item))
+          .filter((item): item is SetupAssistantAction => Boolean(item))
+      : [];
+    const actions = mergeSetupAssistantActions(prompt, preferredActions, fallback.actions);
+    return {
+      source: "ollama",
+      model: DEFAULT_LOCAL_LLM_MODEL,
+      summary:
+        typeof parsed.summary === "string" && parsed.summary.trim().length > 0
+          ? parsed.summary.trim()
+          : fallback.summary,
+      actions: actions.length > 0 ? actions : fallback.actions,
+      followups: Array.isArray(parsed.followups)
+        ? parsed.followups.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        : fallback.followups
+    };
+  } catch {
+    return fallback;
+  }
 };
 
 const sendJson = (response: ServerResponse, statusCode: number, body: unknown, request?: IncomingMessage) => {
@@ -944,6 +1211,9 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
   const requiresMtlsAttestation =
     process.env.OPENAEGIS_ENFORCE_MTLS === "true" &&
     pathname !== "/healthz" &&
+    pathname !== "/health" &&
+    !(method === "GET" && pathname === "/v1/setup/assistant/status") &&
+    !(method === "POST" && pathname === "/v1/setup/assistant/respond") &&
     !(method === "POST" && pathname === "/v1/auth/login");
 
   if (requiresMtlsAttestation) {
@@ -973,8 +1243,21 @@ export const requestHandler = async (request: IncomingMessage, response: ServerR
     return;
   }
 
-  if (pathname === "/healthz") {
+  if (pathname === "/healthz" || pathname === "/health") {
     sendJson(response, 200, { status: "ok", service: descriptor.serviceName });
+    return;
+  }
+
+  if (method === "GET" && pathname === "/v1/setup/assistant/status") {
+    sendJson(response, 200, await getLocalAssistantStatus(), request);
+    return;
+  }
+
+  if (method === "POST" && pathname === "/v1/setup/assistant/respond") {
+    const body = await readJson(request);
+    const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
+    const safePrompt = prompt.length > 0 ? prompt : "Set up OpenAegis for evaluator onboarding.";
+    sendJson(response, 200, await getSetupAssistantResponse(safePrompt), request);
     return;
   }
 
